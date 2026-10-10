@@ -60,6 +60,17 @@ npm run worker:dev
 
 ---
 
+## 🛠️ إعدادات البناء في لوحة تحكم Cloudflare Pages (Build Configuration):
+عند ربط المستودع في Cloudflare Pages Dashboard، تأكد من ضبط الإعدادات التالية:
+- **Framework preset:** `Vite` (أو None)
+- **Build command:** `npm run build`
+- **Build output directory:** `dist`
+- **Root directory:** `/` (اتركه فارغاً أو `/`)
+
+> 💡 **ملاحظة هامة:** تم حذف ملف `bun.lock` واستبداله بـ `package-lock.json` القياسي لمنع الخطأ (`Unknown lockfile version`) وضمان استخدام Node.js و npm المستقرين على بيئة Cloudflare.
+
+---
+
 ## ⚙️ إضافة متغيرات البيئة أو قواعد البيانات (اختياري):
 إذا أردت ربط Cloudflare D1 أو KV أو Secrets، يمكنك إضافتها في ملف `wrangler.jsonc`:
 ```jsonc
