@@ -5,5 +5,9 @@ coverage/
 .DS_Store
 *.log
 .wrangler/
+package-lock.json
+bun.lock*
+yarn.lock
+pnpm-lock.yaml
 .env*
 !.env.example

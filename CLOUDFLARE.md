@@ -67,7 +67,12 @@ npm run worker:dev
 - **Build output directory:** `dist`
 - **Root directory:** `/` (اتركه فارغاً أو `/`)
 
-> 💡 **ملاحظة هامة:** تم حذف ملف `bun.lock` واستبداله بـ `package-lock.json` القياسي لمنع الخطأ (`Unknown lockfile version`) وضمان استخدام Node.js و npm المستقرين على بيئة Cloudflare.
+> 💡 **ملاحظة هامة لحل أخطاء البناء في Cloudflare (npm clean-install / bun):**
+> 1. تم استبعاد ملفات الـ lockfile غير المتوافقة (`bun.lock` و `package-lock.json`) من المستودع في `.gitignore`، وتجهيز ملف `.npmrc` بإعدادات التوافق (`legacy-peer-deps=true`).
+> 2. عند عدم وجود lockfile مقيد بمنصة معينة، ستقوم Cloudflare بتشغيل `npm install` بمرونة وتثبيت حزم Linux المتوافقة دون أي خطأ في حزم المنصات الاختيارية (مثل `@tailwindcss/oxide`).
+> 3. يمكنك في لوحة تحكم Cloudflare Pages كتابة أمر البناء كالتالي لضمان التثبيت والبناء دوماً:
+>    - **Build command:** `npm install && npm run build`
+>    - **Build output directory:** `dist`
 
 ---
 
