@@ -4,6 +4,10 @@
   "main": "worker/index.ts",
   "compatibility_date": "2024-11-01",
   "compatibility_flags": ["nodejs_compat"],
+  "routes": [
+    { "pattern": "al-zahraa.space", "custom_domain": true },
+    { "pattern": "www.al-zahraa.space", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
