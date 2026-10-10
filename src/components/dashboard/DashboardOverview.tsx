@@ -221,7 +221,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Stat Card 1: Treasury */}
               <div
-                onClick={() => onNavigate('treasury')}
+                onClick={() => onNavigate('treasury_dept')}
                 className="card-box p-7 border-2 border-emerald-200 hover:border-emerald-500 cursor-pointer space-y-4 group"
               >
                 <div className="flex items-center justify-between">
@@ -236,14 +236,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 <div className="flex items-center justify-between text-sm font-bold text-slate-500 pt-2 border-t border-slate-100">
                   <span>في {cashAccounts.length} خزينة ودرج</span>
                   <span className="text-emerald-700 group-hover:translate-x-[-4px] transition-transform flex items-center">
-                    عرض الخزينة ←
+                    صفحة قسم الخزينة ←
                   </span>
                 </div>
               </div>
 
               {/* Stat Card 2: Customer Debts */}
               <div
-                onClick={() => onNavigate('customer_ledgers')}
+                onClick={() => onNavigate('customers_dept')}
                 className="card-box p-7 border-2 border-amber-200 hover:border-amber-500 cursor-pointer space-y-4 group"
               >
                 <div className="flex items-center justify-between">
@@ -258,14 +258,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 <div className="flex items-center justify-between text-sm font-bold text-slate-500 pt-2 border-t border-slate-100">
                   <span>على {customers.filter((c) => c.current_balance > 0).length} مزارع مدين</span>
                   <span className="text-amber-700 group-hover:translate-x-[-4px] transition-transform flex items-center">
-                    كشوف الحسابات ←
+                    صفحة قسم العملاء ←
                   </span>
                 </div>
               </div>
 
               {/* Stat Card 3: Supplier Debts */}
               <div
-                onClick={() => onNavigate('suppliers')}
+                onClick={() => onNavigate('purchases_dept')}
                 className="card-box p-7 border-2 border-blue-200 hover:border-blue-500 cursor-pointer space-y-4 group"
               >
                 <div className="flex items-center justify-between">
@@ -280,14 +280,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 <div className="flex items-center justify-between text-sm font-bold text-slate-500 pt-2 border-t border-slate-100">
                   <span>لصالح {suppliers.filter((s) => s.current_balance > 0).length} شركة موردة</span>
                   <span className="text-blue-700 group-hover:translate-x-[-4px] transition-transform flex items-center">
-                    حسابات الشركات ←
+                    صفحة قسم المشتريات ←
                   </span>
                 </div>
               </div>
 
               {/* Stat Card 4: Low Stock Alert */}
               <div
-                onClick={() => setActiveTab('stock_cards')}
+                onClick={() => onNavigate('inventory_dept')}
                 className="card-box p-7 border-2 border-rose-200 hover:border-rose-500 cursor-pointer space-y-4 group"
               >
                 <div className="flex items-center justify-between">
@@ -302,7 +302,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 <div className="flex items-center justify-between text-sm font-bold text-slate-500 pt-2 border-t border-slate-100">
                   <span>تحتاج إعادة طلب وتوريد</span>
                   <span className="text-rose-700 group-hover:translate-x-[-4px] transition-transform flex items-center">
-                    عرض النواقص ←
+                    صفحة قسم المخازن ←
                   </span>
                 </div>
               </div>

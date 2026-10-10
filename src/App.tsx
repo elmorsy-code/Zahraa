@@ -21,6 +21,12 @@ import { OldLedgersScreen } from './components/old_ledgers/OldLedgersScreen';
 import { ReportsScreen } from './components/reports/ReportsScreen';
 import { UsersPermissionsScreen } from './components/users/UsersPermissionsScreen';
 import { SettingsScreen } from './components/settings/SettingsScreen';
+import { SalesDeptPage } from './components/departments/SalesDeptPage';
+import { CustomersDeptPage } from './components/departments/CustomersDeptPage';
+import { PurchasesDeptPage } from './components/departments/PurchasesDeptPage';
+import { InventoryDeptPage } from './components/departments/InventoryDeptPage';
+import { TreasuryDeptPage } from './components/departments/TreasuryDeptPage';
+import { ManagementDeptPage } from './components/departments/ManagementDeptPage';
 import { ShieldAlert, ArrowLeft, Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -161,6 +167,55 @@ export default function App() {
                 setActiveTab('pos');
               }
             }}
+          />
+        );
+
+      case 'sales_dept':
+        return (
+          <SalesDeptPage
+            initialSubTab="overview"
+            onNavigateHome={() => setActiveTab('dashboard')}
+            onOpenPosFull={() => setActiveTab('pos')}
+          />
+        );
+
+      case 'customers_dept':
+        return (
+          <CustomersDeptPage
+            initialSubTab="overview"
+            onNavigateHome={() => setActiveTab('dashboard')}
+          />
+        );
+
+      case 'purchases_dept':
+        return (
+          <PurchasesDeptPage
+            initialSubTab="overview"
+            onNavigateHome={() => setActiveTab('dashboard')}
+          />
+        );
+
+      case 'inventory_dept':
+        return (
+          <InventoryDeptPage
+            initialSubTab="overview"
+            onNavigateHome={() => setActiveTab('dashboard')}
+          />
+        );
+
+      case 'treasury_dept':
+        return (
+          <TreasuryDeptPage
+            initialSubTab="overview"
+            onNavigateHome={() => setActiveTab('dashboard')}
+          />
+        );
+
+      case 'management_dept':
+        return (
+          <ManagementDeptPage
+            initialSubTab="overview"
+            onNavigateHome={() => setActiveTab('dashboard')}
           />
         );
 

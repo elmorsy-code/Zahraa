@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ShoppingCart,
   Coins,
@@ -21,6 +21,8 @@ import {
   ShieldCheck,
   ChevronLeft,
   Sparkles,
+  AlertTriangle,
+  ArrowLeft,
 } from 'lucide-react';
 import { formatCurrency } from '../../lib/formatters';
 import { storage } from '../../lib/storage';
@@ -102,7 +104,7 @@ const allDepartments: Department[] = [
     subtitle: 'الكاشير والفواتير',
     tagline: 'البيع السريع وطباعة الفواتير',
     icon: ShoppingCart,
-    defaultTab: 'pos',
+    defaultTab: 'sales_dept',
     theme: {
       colorName: 'emerald',
       iconBg: 'bg-emerald-50',
@@ -120,6 +122,7 @@ const allDepartments: Department[] = [
       subTabActiveRing: 'ring-emerald-700',
     },
     tabs: [
+      { id: 'sales_dept', label: 'صفحة قسم المبيعات', icon: LayoutDashboard },
       { id: 'pos', label: 'نقطة البيع السريعة (POS)', icon: ShoppingCart },
       { id: 'sales', label: 'سجل فواتير المبيعات', icon: Receipt },
     ],
@@ -130,7 +133,7 @@ const allDepartments: Department[] = [
     subtitle: 'المزارعين والديون',
     tagline: 'كشوف الحساب وسقف الائتمان',
     icon: Users,
-    defaultTab: 'customers',
+    defaultTab: 'customers_dept',
     theme: {
       colorName: 'amber',
       iconBg: 'bg-amber-50',
@@ -148,6 +151,7 @@ const allDepartments: Department[] = [
       subTabActiveRing: 'ring-amber-700',
     },
     tabs: [
+      { id: 'customers_dept', label: 'صفحة قسم العملاء', icon: LayoutDashboard },
       { id: 'customers', label: 'دليل العملاء والمزارعين', icon: Users },
       { id: 'customer_ledgers', label: 'كشوف الحسابات والمديونيات', icon: FileSpreadsheet },
     ],
@@ -158,7 +162,7 @@ const allDepartments: Department[] = [
     subtitle: 'فواتير التوريد',
     tagline: 'الموردين والشركات والمستحقات',
     icon: Truck,
-    defaultTab: 'purchases',
+    defaultTab: 'purchases_dept',
     theme: {
       colorName: 'blue',
       iconBg: 'bg-blue-50',
@@ -176,6 +180,7 @@ const allDepartments: Department[] = [
       subTabActiveRing: 'ring-blue-700',
     },
     tabs: [
+      { id: 'purchases_dept', label: 'صفحة قسم المشتريات', icon: LayoutDashboard },
       { id: 'purchases', label: 'فواتير المشتريات والتوريد', icon: Truck },
       { id: 'suppliers', label: 'دليل وحسابات الموردين', icon: Building2 },
     ],
@@ -186,7 +191,7 @@ const allDepartments: Department[] = [
     subtitle: 'الجرد والتحويل',
     tagline: 'الرصيد والوحدات والمستودعات',
     icon: Warehouse,
-    defaultTab: 'products',
+    defaultTab: 'inventory_dept',
     theme: {
       colorName: 'teal',
       iconBg: 'bg-teal-50',
@@ -204,6 +209,7 @@ const allDepartments: Department[] = [
       subTabActiveRing: 'ring-teal-700',
     },
     tabs: [
+      { id: 'inventory_dept', label: 'صفحة قسم المخازن', icon: LayoutDashboard },
       { id: 'products', label: 'دليل الأصناف والوحدات', icon: PackageCheck },
       { id: 'warehouse_main', label: 'المستودع الرئيسي', icon: Warehouse },
       { id: 'warehouse_shop', label: 'مخزون محل البيع', icon: Store },
@@ -217,7 +223,7 @@ const allDepartments: Department[] = [
     subtitle: 'حركة النقدية',
     tagline: 'سندات القبض والصرف واليومية',
     icon: Landmark,
-    defaultTab: 'treasury',
+    defaultTab: 'treasury_dept',
     theme: {
       colorName: 'purple',
       iconBg: 'bg-purple-50',
@@ -235,7 +241,8 @@ const allDepartments: Department[] = [
       subTabActiveRing: 'ring-purple-700',
     },
     tabs: [
-      { id: 'treasury', label: 'الخزينة والمصروفات اليومية', icon: Landmark },
+      { id: 'treasury_dept', label: 'صفحة قسم المالية', icon: LayoutDashboard },
+      { id: 'treasury', label: 'الخزينة والمصروفات', icon: Landmark },
       { id: 'payments', label: 'سندات القبض والصرف', icon: BadgeDollarSign },
       { id: 'old_ledgers', label: 'ترحيل الدفاتر القديمة', icon: BookOpenCheck },
     ],
@@ -246,7 +253,7 @@ const allDepartments: Department[] = [
     subtitle: 'الرقابة والصلاحيات',
     tagline: 'الأرباح والتقارير والمستخدمين',
     icon: BarChart3,
-    defaultTab: 'reports',
+    defaultTab: 'management_dept',
     theme: {
       colorName: 'rose',
       iconBg: 'bg-rose-50',
@@ -264,6 +271,7 @@ const allDepartments: Department[] = [
       subTabActiveRing: 'ring-rose-700',
     },
     tabs: [
+      { id: 'management_dept', label: 'صفحة قسم الإدارة', icon: LayoutDashboard },
       { id: 'reports', label: 'التقارير المالية والمخزنية', icon: BarChart3 },
       { id: 'users', label: 'المستخدمون والصلاحيات', icon: ShieldCheck },
     ],
@@ -279,16 +287,80 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
   const [totalCashBalance, setTotalCashBalance] = useState(() => {
     return storage.getCashAccounts().reduce((sum, c) => sum + (c.current_balance || 0), 0);
   });
-  const isCloud = isSupabaseConfigured();
 
-  React.useEffect(() => {
-    const updateBalance = () => {
+  const [dataTick, setDataTick] = useState(0);
+
+  useEffect(() => {
+    const updateStats = () => {
       const accounts = storage.getCashAccounts();
       setTotalCashBalance(accounts.reduce((sum, c) => sum + (c.current_balance || 0), 0));
+      setDataTick((t) => t + 1);
     };
-    const unsubscribe = storage.subscribe(updateBalance);
+    const unsubscribe = storage.subscribe(updateStats);
     return () => unsubscribe();
   }, []);
+
+  // Compute department live metric tags
+  const products = storage.getProducts();
+  const salesInvoices = storage.getSalesInvoices();
+  const customers = storage.getCustomers();
+  const suppliers = storage.getSuppliers();
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todaySales = salesInvoices
+    .filter((inv) => inv.invoice_date?.startsWith(todayStr))
+    .reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+
+  const totalCustomerDebt = customers.reduce((sum, c) => sum + Math.max(0, c.current_balance), 0);
+  const totalSupplierDues = suppliers.reduce((sum, s) => sum + Math.max(0, s.current_balance), 0);
+  const lowStockCount = products.filter(
+    (p) => (p.stock_shop || 0) + (p.stock_warehouse || 0) <= p.min_stock_alert
+  ).length;
+
+  const getDeptMetric = (deptId: string) => {
+    switch (deptId) {
+      case 'dashboard':
+        return { label: 'مركز التحكم', value: 'مؤشرات حية', isAlert: false };
+      case 'sales_dept':
+        return {
+          label: todaySales > 0 ? 'مبيعات اليوم' : 'إجمالي الفواتير',
+          value: todaySales > 0 ? formatCurrency(todaySales) : `${salesInvoices.length} فاتورة`,
+          isAlert: false,
+        };
+      case 'customers_dept':
+        return {
+          label: 'إجمالي الديون',
+          value: formatCurrency(totalCustomerDebt),
+          isAlert: false,
+        };
+      case 'purchases_dept':
+        return {
+          label: 'مستحقات الشركات',
+          value: formatCurrency(totalSupplierDues),
+          isAlert: false,
+        };
+      case 'inventory_dept':
+        return {
+          label: lowStockCount > 0 ? 'نواقص المخزون' : 'الأصناف',
+          value: lowStockCount > 0 ? `${lowStockCount} صنف ناقص` : `${products.length} صنف`,
+          isAlert: lowStockCount > 0,
+        };
+      case 'treasury_dept':
+        return {
+          label: 'السيولة الحالية',
+          value: formatCurrency(totalCashBalance),
+          isAlert: false,
+        };
+      case 'management_dept':
+        return {
+          label: 'الرقابة والصلاحيات',
+          value: 'التقارير والأرباح',
+          isAlert: false,
+        };
+      default:
+        return null;
+    }
+  };
 
   // Filter departments & tabs according to user role permissions
   const allowedDepartments = allDepartments
@@ -297,39 +369,41 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
       return {
         ...dept,
         tabs: allowedTabs,
-        defaultTab: allowedTabs[0]?.id || dept.defaultTab,
+        defaultTab: dept.defaultTab,
       };
     })
-    .filter((dept) => dept.tabs.length > 0);
+    .filter((dept) => authService.canAccessTab(dept.id, currentUser.role) || dept.tabs.length > 0);
 
   // Find active department among allowed ones
   const currentDept =
-    allowedDepartments.find((dept) => dept.tabs.some((t) => t.id === activeTab)) ||
+    allowedDepartments.find(
+      (dept) => dept.id === activeTab || dept.tabs.some((t) => t.id === activeTab)
+    ) ||
     allowedDepartments[0] ||
     allDepartments[0];
 
   return (
     <>
       {/* Master Navigation & Departments Portal Card */}
-      <div className="card-box border-2 border-slate-200/90 p-4 sm:p-5 mb-8 bg-white shadow-sm space-y-4">
+      <div className="card-box border-2 border-slate-200/90 p-4 sm:p-5 mb-6 bg-white shadow-xs space-y-4">
         {/* Tier 1: System Title & Quick Operations Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-slate-900 text-white rounded-xl shadow-xs">
+            <div className="p-2.5 bg-slate-900 text-white rounded-xl shadow-xs">
               <Layers className="w-4 h-4 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm sm:text-base font-black text-slate-900 leading-tight">
-                  أقسام المنظومة الرئيسية
+                  أقسام المنظومة الرئيسية (الصفحات المستقلة)
                 </h2>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                   <Sparkles className="w-3 h-3 text-emerald-600" />
-                  {allowedDepartments.length} أقسام متاحة
+                  لكل قسم صفحته المستقلة
                 </span>
               </div>
               <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-                انقر على بطاقة أي قسم للتبديل الفوري والتنقل بين أدواته
+                انقر على أي قسم لفتح صفحته المخصصة ومؤشراته وأدواته المتكاملة
               </p>
             </div>
           </div>
@@ -337,11 +411,11 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
           {/* Quick Operations & Status Pills */}
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
             {/* Treasury Balance Pill */}
-            {authService.canAccessTab('treasury', currentUser.role) && (
+            {authService.canAccessTab('treasury_dept', currentUser.role) && (
               <div
-                onClick={() => onSelectTab('treasury')}
+                onClick={() => onSelectTab('treasury_dept')}
                 className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-xl cursor-pointer hover:bg-emerald-100 transition-colors shadow-2xs"
-                title="عرض تفاصيل الخزينة وحركة النقدية"
+                title="عرض تفاصيل قسم الخزينة والسيولة"
               >
                 <Coins className="w-4 h-4 text-emerald-700" />
                 <div className="text-xs sm:text-sm leading-none">
@@ -367,60 +441,63 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
           </div>
         </div>
 
-        {/* Tier 2: DISTINCTIVE DEPARTMENT CARDS GRID */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2.5 sm:gap-3">
+        {/* Tier 2: ENHANCED DISTINCTIVE DEPARTMENT CARDS GRID */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-3.5">
           {allowedDepartments.map((dept) => {
             const Icon = dept.icon;
-            const isDeptActive = dept.id === currentDept.id;
+            const isDeptActive =
+              dept.id === activeTab ||
+              (currentDept.id === dept.id && dept.id !== 'dashboard' && activeTab !== 'dashboard');
             const { theme } = dept;
+            const metric = getDeptMetric(dept.id);
 
             return (
               <button
                 key={dept.id}
                 onClick={() => onSelectTab(dept.defaultTab)}
                 type="button"
-                className={`relative text-right rounded-2xl p-3 sm:p-3.5 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden group select-none ${
+                className={`relative text-right rounded-2xl p-3 sm:p-4 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden group select-none min-h-[148px] ${
                   isDeptActive
                     ? `${theme.activeBg} border-2 ${theme.activeBorder} shadow-md ring-2 ${theme.activeRing} -translate-y-0.5`
-                    : 'bg-white hover:bg-slate-50/80 border-2 border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5'
+                    : 'bg-white hover:bg-slate-50/90 border-2 border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5'
                 }`}
               >
                 {/* Top Accent Strip */}
                 <div
-                  className={`absolute top-0 left-0 right-0 h-1 transition-opacity ${
-                    isDeptActive ? theme.activeBar : 'opacity-0 group-hover:opacity-40 ' + theme.activeBar
+                  className={`absolute top-0 left-0 right-0 h-1.5 transition-opacity ${
+                    isDeptActive ? theme.activeBar : 'opacity-0 group-hover:opacity-60 ' + theme.activeBar
                   }`}
                 />
 
-                {/* Top Row: Icon Container + Counter / Active Badge */}
+                {/* Top Row: Icon Container + Active / Separate Page Badge */}
                 <div className="flex items-start justify-between gap-1.5 mb-2.5 w-full">
                   <div
-                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border transition-transform duration-200 group-hover:scale-105 shrink-0 ${
+                    className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center border transition-all duration-200 group-hover:scale-105 shrink-0 ${
                       isDeptActive
                         ? `${theme.activeBar} text-white border-transparent shadow-xs`
                         : `${theme.iconBg} ${theme.iconText} ${theme.iconBorder}`
                     }`}
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-5 h-5 sm:w-5.5 sm:h-5.5" />
                   </div>
 
-                  {/* Badge */}
+                  {/* Active Indicator or Separate Page Tag */}
                   {isDeptActive ? (
                     <span
                       className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-full ${theme.activeBadgeBg} ${theme.activeBadgeText} border border-current/20`}
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                      نشط
+                      القسم الحالي
                     </span>
                   ) : (
-                    <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/80">
-                      {dept.tabs.length === 1 ? 'شاشة' : `${dept.tabs.length} شاشات`}
+                    <span className="text-[10px] font-black text-slate-500 bg-slate-100/90 px-2 py-0.5 rounded-md border border-slate-200/80 group-hover:bg-slate-200 transition-colors">
+                      صفحة مستقلة
                     </span>
                   )}
                 </div>
 
-                {/* Middle: Title & Tagline */}
-                <div className="space-y-0.5 text-right w-full">
+                {/* Middle: Title & Subtitle */}
+                <div className="space-y-0.5 text-right w-full mb-2">
                   <h3
                     className={`text-xs sm:text-sm font-black tracking-tight leading-snug transition-colors line-clamp-1 ${
                       isDeptActive ? theme.activeText : 'text-slate-800 group-hover:text-slate-950'
@@ -428,25 +505,43 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
                   >
                     {dept.title}
                   </h3>
-                  <p className="text-[10px] sm:text-[11px] font-semibold text-slate-500 line-clamp-1 hidden xs:block">
+                  <p className="text-[10px] sm:text-[11px] font-semibold text-slate-500 line-clamp-1">
                     {dept.subtitle}
                   </p>
                 </div>
 
+                {/* Live Real-time Metric Strip */}
+                {metric && (
+                  <div className="w-full my-1">
+                    <div
+                      className={`text-[10px] sm:text-[11px] font-black px-2 py-1 rounded-lg tabular-nums line-clamp-1 flex items-center justify-between ${
+                        metric.isAlert
+                          ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                          : isDeptActive
+                          ? 'bg-white/80 border border-slate-200/80 text-slate-900'
+                          : 'bg-slate-50 border border-slate-200/60 text-slate-700'
+                      }`}
+                    >
+                      <span className="text-[9px] text-slate-500 font-bold truncate">{metric.label}:</span>
+                      <span className="font-extrabold truncate mr-1">{metric.value}</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Bottom: Micro Action / Arrow Indicator */}
-                <div className="pt-2 mt-2 border-t border-slate-100/90 flex items-center justify-between text-[10px] sm:text-[11px] w-full">
+                <div className="pt-2 mt-auto border-t border-slate-100/90 flex items-center justify-between text-[10px] sm:text-[11px] w-full">
                   <span
-                    className={`font-bold transition-colors ${
-                      isDeptActive ? theme.activeText : 'text-slate-400 group-hover:text-slate-600'
+                    className={`font-black transition-colors ${
+                      isDeptActive ? theme.activeText : 'text-slate-400 group-hover:text-slate-800'
                     }`}
                   >
-                    {isDeptActive ? 'القسم الحالي' : 'فتح القسم'}
+                    {isDeptActive ? 'صفحة القسم مفتوحة' : 'فتح صفحة القسم'}
                   </span>
                   <ChevronLeft
                     className={`w-3.5 h-3.5 transition-transform duration-200 ${
                       isDeptActive
                         ? `${theme.iconText} -translate-x-0.5`
-                        : 'text-slate-400 group-hover:text-slate-700 group-hover:-translate-x-0.5'
+                        : 'text-slate-400 group-hover:text-slate-700 group-hover:-translate-x-1'
                     }`}
                   />
                 </div>
@@ -455,8 +550,8 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
           })}
         </div>
 
-        {/* Tier 3: Sub-pages Bar of Active Department (if it has more than 1 tab) */}
-        {currentDept.tabs.length > 1 && (
+        {/* Tier 3: Sub-pages Bar of Active Department (if it has more than 1 tab and not on dashboard) */}
+        {currentDept.id !== 'dashboard' && currentDept.tabs.length > 1 && (
           <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3 sm:p-3.5 mt-2">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-slate-800 shrink-0">
