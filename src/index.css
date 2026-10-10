@@ -1,0 +1,316 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Cairo', 'Almarai', 'Alexandria', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cairo', monospace;
+}
+
+@layer base {
+  :root {
+    /* Default: Cairo - the most open, spacious, legible and elegant Arabic typeface */
+    --font-sans: 'Cairo', 'Almarai', 'Alexandria', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Cairo', monospace;
+    
+    /* Default: Botanical Emerald & Deep Slate - Authentic Agricultural ERP */
+    --theme-dark-bg: #0b1f18;
+    --theme-dark-surface: #122f24;
+    --theme-dark-border: #1a4234;
+    --theme-accent: #059669;
+    --theme-accent-hover: #047857;
+    --theme-badge-bg: #ecfdf5;
+    --theme-badge-text: #065f46;
+    --theme-highlight: #10b981;
+  }
+
+  [data-theme="executive"] {
+    --theme-dark-bg: #0f172a;
+    --theme-dark-surface: #1e293b;
+    --theme-dark-border: #334155;
+    --theme-accent: #2563eb;
+    --theme-accent-hover: #1d4ed8;
+    --theme-badge-bg: #eff6ff;
+    --theme-badge-text: #1d4ed8;
+    --theme-highlight: #3b82f6;
+  }
+
+  [data-theme="emerald_clean"], [data-theme="botanical"] {
+    --theme-dark-bg: #0b1f18;
+    --theme-dark-surface: #122f24;
+    --theme-dark-border: #1a4234;
+    --theme-accent: #059669;
+    --theme-accent-hover: #047857;
+    --theme-badge-bg: #ecfdf5;
+    --theme-badge-text: #065f46;
+    --theme-highlight: #10b981;
+  }
+
+  [data-theme="sapphire"] {
+    --theme-dark-bg: #0b1528;
+    --theme-dark-surface: #132240;
+    --theme-dark-border: #1e3562;
+    --theme-accent: #3b82f6;
+    --theme-accent-hover: #2563eb;
+    --theme-badge-bg: #eff6ff;
+    --theme-badge-text: #1e40af;
+    --theme-highlight: #60a5fa;
+  }
+
+  [data-theme="nordic"] {
+    --theme-dark-bg: #181d24;
+    --theme-dark-surface: #222933;
+    --theme-dark-border: #323d4c;
+    --theme-accent: #0284c7;
+    --theme-accent-hover: #0369a1;
+    --theme-badge-bg: #f0f9ff;
+    --theme-badge-text: #075985;
+    --theme-highlight: #38bdf8;
+  }
+
+  [data-theme="obsidian"] {
+    --theme-dark-bg: #12151a;
+    --theme-dark-surface: #1b2027;
+    --theme-dark-border: #29303b;
+    --theme-accent: #0d9488;
+    --theme-accent-hover: #0f766e;
+    --theme-badge-bg: #f0fdfa;
+    --theme-badge-text: #115e59;
+    --theme-highlight: #14b8a6;
+  }
+
+  [data-theme="amber"] {
+    --theme-dark-bg: #261b0d;
+    --theme-dark-surface: #382713;
+    --theme-dark-border: #4d361c;
+    --theme-accent: #d97706;
+    --theme-accent-hover: #b45309;
+    --theme-badge-bg: #fffbeb;
+    --theme-badge-text: #92400e;
+    --theme-highlight: #f59e0b;
+  }
+
+  [data-theme="crimson"] {
+    --theme-dark-bg: #210c14;
+    --theme-dark-surface: #33121f;
+    --theme-dark-border: #4c182d;
+    --theme-accent: #be123c;
+    --theme-accent-hover: #9f1239;
+    --theme-badge-bg: #fff1f2;
+    --theme-badge-text: #9f1239;
+    --theme-highlight: #f43f5e;
+  }
+
+  [data-theme="amethyst"] {
+    --theme-dark-bg: #1e112a;
+    --theme-dark-surface: #2d193e;
+    --theme-dark-border: #41245a;
+    --theme-accent: #7c3aed;
+    --theme-accent-hover: #6d28d9;
+    --theme-badge-bg: #faf5ff;
+    --theme-badge-text: #6b21a8;
+    --theme-highlight: #a855f7;
+  }
+
+  [data-theme="minimal"] {
+    --theme-dark-bg: #18181b;
+    --theme-dark-surface: #27272a;
+    --theme-dark-border: #3f3f46;
+    --theme-accent: #27272a;
+    --theme-accent-hover: #18181b;
+    --theme-badge-bg: #f4f4f5;
+    --theme-badge-text: #18181b;
+    --theme-highlight: #71717a;
+  }
+
+  /* Dynamic font variations */
+  [data-font="cairo"] {
+    --font-sans: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  [data-font="alexandria"] {
+    --font-sans: 'Alexandria', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  [data-font="ibm_plex"] {
+    --font-sans: 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  [data-font="readex"] {
+    --font-sans: 'Readex Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  [data-font="almarai"] {
+    --font-sans: 'Almarai', 'Cairo', sans-serif;
+  }
+
+  [data-font="tajawal"] {
+    --font-sans: 'Tajawal', 'Cairo', sans-serif;
+  }
+
+  [data-font="amiri"] {
+    --font-sans: 'Amiri', 'Cairo', serif;
+  }
+
+  [data-font="noto_sans"] {
+    --font-sans: 'Noto Sans Arabic', 'Cairo', sans-serif;
+  }
+
+  [data-font="changa"] {
+    --font-sans: 'Changa', 'Cairo', sans-serif;
+  }
+
+  [data-font="el_messiri"] {
+    --font-sans: 'El Messiri', 'Cairo', sans-serif;
+  }
+
+  [data-font="marhey"] {
+    --font-sans: 'Marhey', 'Cairo', cursive;
+  }
+
+  [data-font="aref_ruqaa"] {
+    --font-sans: 'Aref Ruqaa', 'Amiri', serif;
+  }
+
+  [data-font="rubik"] {
+    --font-sans: 'Rubik', 'Cairo', sans-serif;
+  }
+
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html, body {
+    font-family: var(--font-sans) !important;
+    letter-spacing: normal !important;
+    word-spacing: normal !important;
+    line-height: 1.8;
+    background-color: var(--theme-page-bg, #f8fafc) !important;
+    color: var(--theme-text-color, #0f172a);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  /* Prevent micro-text in Arabic - boost legibility across all elements */
+  .text-xs {
+    font-size: 0.84rem !important; /* ~13.5px instead of 12px */
+    line-height: 1.4 !important;
+  }
+
+  .text-sm {
+    font-size: 0.95rem !important; /* ~15.2px instead of 14px */
+    line-height: 1.5 !important;
+  }
+
+  /* Arabic cursive connections must always have normal letter-spacing */
+  *, *::before, *::after {
+    letter-spacing: normal;
+  }
+
+  p, span, label, input, button, select, textarea, div {
+    letter-spacing: normal;
+  }
+
+  /* Clean headings with balanced line-height */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans) !important;
+    font-weight: 800;
+    letter-spacing: normal !important;
+    line-height: 1.4;
+  }
+
+  button, input, select, textarea {
+    font-family: inherit;
+    letter-spacing: normal;
+  }
+
+  /* Tabular numbers for numerical accuracy in accounts & accounting tables */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: normal;
+  }
+
+  /* Unified Card styling class for consistent organization */
+  .card-box {
+    background-color: var(--theme-card-bg, #ffffff) !important;
+    border-radius: var(--theme-border-radius, 1.25rem) !important;
+    border: 1px solid var(--theme-card-border, #e2e8f0) !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-box:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Responsive Table Container - prevents layout breaking on small screens */
+  .table-responsive-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Clean Touch-friendly scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+/* Custom theme helper classes */
+.bg-theme-dark {
+  background-color: var(--theme-dark-bg);
+}
+
+.bg-theme-surface {
+  background-color: var(--theme-dark-surface);
+}
+
+.border-theme-dark {
+  border-color: var(--theme-dark-border);
+}
+
+.bg-theme-accent {
+  background-color: var(--theme-accent);
+}
+
+.hover\:bg-theme-accent-hover:hover {
+  background-color: var(--theme-accent-hover);
+}
+
+.text-theme-accent {
+  color: var(--theme-accent);
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .invoice-print-area {
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}

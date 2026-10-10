@@ -1,0 +1,8 @@
+{
+  "name": "Remix نظام إدارة الصيدلية والمخزن الزراعي",
+  "description": "نظام ويب متكامل لإدارة محلات ومخازن الأدوية والمبيدات والأسمدة الزراعية، مع نقاط البيع وحسابات العملاء والموردين والخزينة",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
