@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-xs">
+    <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-xs transition-colors duration-200">
       <div className="max-w-[1920px] mx-auto flex items-center justify-between min-h-[72px] sm:min-h-[88px] md:min-h-[96px] py-2 px-3 sm:px-6 lg:px-8 relative">
         {/* RIGHT SIDE (in RTL = First element): Placeholder for visual balance or small helper */}
         <div className="w-10 sm:w-28 flex items-center">

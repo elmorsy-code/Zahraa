@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './Header';
 import { NavigationCard } from './NavigationCard';
 import { HeroCard } from './HeroCard';
 import { UserAccount } from '../../lib/auth';
 import { SettingsAndProfileModal } from './SettingsAndProfileModal';
 import { ThemeCustomizerModal } from './ThemeCustomizerModal';
+import { getThemeConfig, subscribeTheme, ThemeConfig } from '../../lib/themeManager';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -27,9 +28,17 @@ export const Layout: React.FC<LayoutProps> = ({
 }) => {
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
+  const [themeConfig, setThemeConfig] = useState<ThemeConfig>(() => getThemeConfig());
+
+  useEffect(() => {
+    return subscribeTheme((newCfg) => {
+      setThemeConfig({ ...newCfg });
+    });
+  }, []);
 
   return (
     <div
+      key={`${themeConfig.palette}-${themeConfig.mode}-${themeConfig.font}`}
       className="min-h-screen flex flex-col font-sans w-full overflow-x-hidden transition-colors duration-200"
       style={{
         backgroundColor: 'var(--theme-page-bg, #f8fafc)',

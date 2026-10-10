@@ -316,6 +316,178 @@ export const BUILTIN_FONTS: Array<{
   },
 ];
 
+export const PRESET_SHADES: Record<ThemePalette, Record<string, string>> = {
+  botanical: {
+    '50': '#ecfdf5',
+    '100': '#d1fae5',
+    '200': '#a7f3d0',
+    '300': '#6ee7b7',
+    '400': '#34d399',
+    '500': '#10b981',
+    '600': '#059669',
+    '700': '#047857',
+    '800': '#065f46',
+    '900': '#064e3b',
+    '950': '#022c22',
+  },
+  executive: {
+    '50': '#eff6ff',
+    '100': '#dbeafe',
+    '200': '#bfdbfe',
+    '300': '#93c5fd',
+    '400': '#60a5fa',
+    '500': '#3b82f6',
+    '600': '#2563eb',
+    '700': '#1d4ed8',
+    '800': '#1e40af',
+    '900': '#1e3a8a',
+    '950': '#172554',
+  },
+  sapphire: {
+    '50': '#f0f7ff',
+    '100': '#e0effe',
+    '200': '#b9ddfd',
+    '300': '#7cc2fb',
+    '400': '#36a3f7',
+    '500': '#0c87eb',
+    '600': '#026bc7',
+    '700': '#0355a1',
+    '800': '#074984',
+    '900': '#0c3d6e',
+    '950': '#082749',
+  },
+  nordic: {
+    '50': '#f0f9ff',
+    '100': '#e0f2fe',
+    '200': '#bae6fd',
+    '300': '#7dd3fc',
+    '400': '#38bdf8',
+    '500': '#0ea5e9',
+    '600': '#0284c7',
+    '700': '#0369a1',
+    '800': '#075985',
+    '900': '#0c4a6e',
+    '950': '#082f49',
+  },
+  obsidian: {
+    '50': '#f0fdfa',
+    '100': '#ccfbf1',
+    '200': '#99f6e4',
+    '300': '#5eead4',
+    '400': '#2dd4bf',
+    '500': '#14b8a6',
+    '600': '#0d9488',
+    '700': '#0f766e',
+    '800': '#115e59',
+    '900': '#134e4a',
+    '950': '#042f2e',
+  },
+  amber: {
+    '50': '#fffbeb',
+    '100': '#fef3c7',
+    '200': '#fde68a',
+    '300': '#fcd34d',
+    '400': '#fbbf24',
+    '500': '#f59e0b',
+    '600': '#d97706',
+    '700': '#b45309',
+    '800': '#92400e',
+    '900': '#78350f',
+    '950': '#451a03',
+  },
+  crimson: {
+    '50': '#fff1f2',
+    '100': '#ffe4e6',
+    '200': '#fecdd3',
+    '300': '#fda4af',
+    '400': '#fb7185',
+    '500': '#f43f5e',
+    '600': '#e11d48',
+    '700': '#be123c',
+    '800': '#9f1239',
+    '900': '#881337',
+    '950': '#4c0519',
+  },
+  amethyst: {
+    '50': '#faf5ff',
+    '100': '#f3e8ff',
+    '200': '#e9d5ff',
+    '300': '#d8b4fe',
+    '400': '#c084fc',
+    '500': '#a855f7',
+    '600': '#9333ea',
+    '700': '#7e22ce',
+    '800': '#6b21a8',
+    '900': '#581c87',
+    '950': '#3b0764',
+  },
+  minimal: {
+    '50': '#f4f4f5',
+    '100': '#e4e4e7',
+    '200': '#d4d4d8',
+    '300': '#a1a1aa',
+    '400': '#71717a',
+    '500': '#52525b',
+    '600': '#3f3f46',
+    '700': '#27272a',
+    '800': '#18181b',
+    '900': '#09090b',
+    '950': '#000000',
+  },
+  custom: {} as any,
+};
+
+// Helper: Convert hex to RGB
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  let clean = hex.replace('#', '').trim();
+  if (clean.length === 3) {
+    clean = clean.split('').map((c) => c + c).join('');
+  }
+  const num = parseInt(clean, 16);
+  if (isNaN(num)) return { r: 5, g: 150, b: 105 }; // fallback emerald
+  return {
+    r: (num >> 16) & 255,
+    g: (num >> 8) & 255,
+    b: num & 255,
+  };
+}
+
+// Helper: Convert RGB to Hex
+function rgbToHex(r: number, g: number, b: number): string {
+  const clamp = (val: number) => Math.max(0, Math.min(255, Math.round(val)));
+  return '#' + [clamp(r), clamp(g), clamp(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
+}
+
+// Helper: Blend color with white (tint) or black (shade)
+function mixColors(rgb: { r: number; g: number; b: number }, target: { r: number; g: number; b: number }, weight: number): string {
+  return rgbToHex(
+    rgb.r + (target.r - rgb.r) * weight,
+    rgb.g + (target.g - rgb.g) * weight,
+    rgb.b + (target.b - rgb.b) * weight
+  );
+}
+
+// Generate complete 11-step scale (50-950) from any primary color
+export function generateShadeScale(primaryHex: string): Record<string, string> {
+  const rgb = hexToRgb(primaryHex);
+  const white = { r: 255, g: 255, b: 255 };
+  const black = { r: 0, g: 0, b: 0 };
+
+  return {
+    '50': mixColors(rgb, white, 0.94),
+    '100': mixColors(rgb, white, 0.86),
+    '200': mixColors(rgb, white, 0.72),
+    '300': mixColors(rgb, white, 0.52),
+    '400': mixColors(rgb, white, 0.28),
+    '500': mixColors(rgb, white, 0.12),
+    '600': primaryHex,
+    '700': mixColors(rgb, black, 0.18),
+    '800': mixColors(rgb, black, 0.36),
+    '900': mixColors(rgb, black, 0.54),
+    '950': mixColors(rgb, black, 0.72),
+  };
+}
+
 type ThemeListener = (config: ThemeConfig) => void;
 const listeners: Set<ThemeListener> = new Set();
 
@@ -351,8 +523,13 @@ export function applyThemeConfig(config: ThemeConfig): void {
   // Set Font attribute
   root.setAttribute('data-font', config.font);
 
-  // Set Mode attribute
+  // Set Mode attribute and class
   root.setAttribute('data-mode', config.mode);
+  if (config.mode === 'dark') {
+    root.classList.add('dark');
+  } else {
+    root.classList.remove('dark');
+  }
 
   // Set Radius attribute
   root.setAttribute('data-radius', config.borderRadius);
@@ -384,16 +561,33 @@ export function applyThemeConfig(config: ThemeConfig): void {
   if (config.mode === 'dark') {
     colors = {
       ...colors,
-      pageBg: '#0f172a',
-      cardBg: '#1e293b',
-      cardBorder: '#334155',
+      pageBg: '#0b1320',
+      cardBg: '#111c2e',
+      cardBorder: '#1e2e48',
       textColor: '#f8fafc',
     };
   }
 
+  // Resolve 11-step color scale for primary
+  const shades =
+    config.palette !== 'custom' && PRESET_SHADES[config.palette]
+      ? PRESET_SHADES[config.palette]
+      : generateShadeScale(colors.primary);
+
+  // 2. Set Tailwind CSS v4 variables for emerald & green (which power all buttons, badges, rings, active states in the UI)
+  Object.entries(shades).forEach(([step, hexVal]) => {
+    root.style.setProperty(`--color-emerald-${step}`, hexVal);
+    root.style.setProperty(`--color-green-${step}`, hexVal);
+  });
+
   // Apply CSS custom properties
-  root.style.setProperty('--theme-primary', colors.primary);
-  root.style.setProperty('--theme-accent', colors.accent);
+  root.style.setProperty('--theme-primary', shades['600']);
+  root.style.setProperty('--theme-accent', shades['500']);
+  root.style.setProperty('--theme-accent-hover', shades['700']);
+  root.style.setProperty('--theme-badge-bg', shades['50']);
+  root.style.setProperty('--theme-badge-text', shades['800']);
+  root.style.setProperty('--theme-highlight', shades['400']);
+
   root.style.setProperty('--theme-dark-bg', colors.darkBg);
   root.style.setProperty('--theme-dark-surface', colors.darkSurface);
   root.style.setProperty('--theme-dark-border', colors.darkBorder);
@@ -402,7 +596,7 @@ export function applyThemeConfig(config: ThemeConfig): void {
   root.style.setProperty('--theme-card-border', colors.cardBorder);
   root.style.setProperty('--theme-text-color', colors.textColor);
 
-  // 2. Resolve Border Radius
+  // 3. Resolve Border Radius
   let radiusVal = '1.25rem';
   if (config.borderRadius === 'rounded_none') radiusVal = '0px';
   else if (config.borderRadius === 'rounded_sm') radiusVal = '0.5rem';
@@ -410,11 +604,10 @@ export function applyThemeConfig(config: ThemeConfig): void {
   else if (config.borderRadius === 'rounded_lg') radiusVal = '1.25rem';
   root.style.setProperty('--theme-border-radius', radiusVal);
 
-  // 3. Resolve Font
+  // 4. Resolve Font
   let resolvedFontFamily: string;
 
   if (config.font === 'custom' && config.customFont) {
-    // If Custom font has a URL (Google Fonts or external stylesheet)
     if (config.customFont.fontUrl) {
       let linkEl = document.getElementById('custom-font-link') as HTMLLinkElement | null;
       if (!linkEl) {
@@ -426,7 +619,6 @@ export function applyThemeConfig(config: ThemeConfig): void {
       linkEl.href = config.customFont.fontUrl;
     }
 
-    // If Custom font has Base64 data URI
     if (config.customFont.fontDataUri) {
       let styleEl = document.getElementById('custom-font-style') as HTMLStyleElement | null;
       if (!styleEl) {
@@ -450,6 +642,80 @@ export function applyThemeConfig(config: ThemeConfig): void {
   }
 
   root.style.setProperty('--font-sans', resolvedFontFamily);
+
+  // 5. Injects an authoritative style tag that guarantees dynamic styles across all Tailwind CSS v4 components
+  let dynStyle = document.getElementById('theme-dynamic-engine') as HTMLStyleElement | null;
+  if (!dynStyle) {
+    dynStyle = document.createElement('style');
+    dynStyle.id = 'theme-dynamic-engine';
+    document.head.appendChild(dynStyle);
+  }
+
+  dynStyle.innerHTML = `
+    :root, html, body {
+      --color-emerald-50: ${shades['50']} !important;
+      --color-emerald-100: ${shades['100']} !important;
+      --color-emerald-200: ${shades['200']} !important;
+      --color-emerald-300: ${shades['300']} !important;
+      --color-emerald-400: ${shades['400']} !important;
+      --color-emerald-500: ${shades['500']} !important;
+      --color-emerald-600: ${shades['600']} !important;
+      --color-emerald-700: ${shades['700']} !important;
+      --color-emerald-800: ${shades['800']} !important;
+      --color-emerald-900: ${shades['900']} !important;
+      --color-emerald-950: ${shades['950']} !important;
+
+      --color-green-50: ${shades['50']} !important;
+      --color-green-100: ${shades['100']} !important;
+      --color-green-200: ${shades['200']} !important;
+      --color-green-300: ${shades['300']} !important;
+      --color-green-400: ${shades['400']} !important;
+      --color-green-500: ${shades['500']} !important;
+      --color-green-600: ${shades['600']} !important;
+      --color-green-700: ${shades['700']} !important;
+      --color-green-800: ${shades['800']} !important;
+      --color-green-900: ${shades['900']} !important;
+      --color-green-950: ${shades['950']} !important;
+
+      --theme-primary: ${shades['600']} !important;
+      --theme-accent: ${shades['500']} !important;
+      --theme-accent-hover: ${shades['700']} !important;
+      --theme-badge-bg: ${shades['50']} !important;
+      --theme-badge-text: ${shades['800']} !important;
+      --theme-highlight: ${shades['400']} !important;
+      --theme-page-bg: ${colors.pageBg} !important;
+      --theme-card-bg: ${colors.cardBg} !important;
+      --theme-card-border: ${colors.cardBorder} !important;
+      --theme-text-color: ${colors.textColor} !important;
+    }
+
+    body {
+      background-color: var(--theme-page-bg, #f8fafc) !important;
+      color: var(--theme-text-color, #0f172a) !important;
+    }
+
+    ${
+      config.mode === 'dark'
+        ? `
+    html.dark, html[data-mode="dark"] {
+      color-scheme: dark;
+    }
+    html.dark body, html[data-mode="dark"] body {
+      background-color: ${colors.pageBg} !important;
+      color: ${colors.textColor} !important;
+    }
+    html.dark header, html[data-mode="dark"] header {
+      background-color: ${colors.cardBg} !important;
+      border-color: ${colors.cardBorder} !important;
+    }
+    html.dark .card-box, html[data-mode="dark"] .card-box {
+      background-color: ${colors.cardBg} !important;
+      border-color: ${colors.cardBorder} !important;
+    }
+    `
+        : ''
+    }
+  `;
 
   // Persist in localStorage
   try {

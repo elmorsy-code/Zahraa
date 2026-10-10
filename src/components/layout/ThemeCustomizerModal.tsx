@@ -45,6 +45,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
 
   const [activeTab, setActiveTab] = useState<'presets' | 'color_picker' | 'fonts' | 'custom_font' | 'layout'>('presets');
   const [config, setConfig] = useState<ThemeConfig>(getThemeConfig());
+  const [themeAppliedMsg, setThemeAppliedMsg] = useState<string | null>(null);
 
   // Custom Font builder states
   const [customFontName, setCustomFontName] = useState(config.customFont?.fontName || '');
@@ -64,21 +65,27 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
     '#be123c', '#e11d48', '#4b5563', '#1e293b',
   ];
 
-  const updateConfig = (newCfg: ThemeConfig) => {
+  const updateConfig = (newCfg: ThemeConfig, successMsg?: string) => {
     setConfig(newCfg);
     applyThemeConfig(newCfg);
+    if (successMsg) {
+      setThemeAppliedMsg(successMsg);
+      setTimeout(() => setThemeAppliedMsg(null), 3000);
+    }
   };
 
   // 1. Select Preset Palette
   const handleSelectPalette = (palette: ThemePalette) => {
     const updated: ThemeConfig = { ...config, palette };
-    updateConfig(updated);
+    const found = PRESET_PALETTES.find((p) => p.id === palette);
+    updateConfig(updated, `تم تطبيق سمة "${found?.name || palette}" وتحديث كامل ألوان الموقع بنجاح!`);
   };
 
   // 2. Select Built-in Font
   const handleSelectFont = (font: BuiltinFont) => {
     const updated: ThemeConfig = { ...config, font };
-    updateConfig(updated);
+    const found = BUILTIN_FONTS.find((f) => f.id === font);
+    updateConfig(updated, `تم تطبيق خط "${found?.arabicName || font}" بنجاح!`);
   };
 
   // 3. Update Custom Colors
@@ -103,12 +110,11 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
       palette: 'custom',
       customColors: updatedColors,
     };
-    updateConfig(updated);
+    updateConfig(updated, 'تم تحديث اللون وتطبيقه على الموقع فورياً!');
   };
 
   // 4. Auto-Harmonize Colors from Primary
   const handleAutoHarmonize = (primaryColor: string) => {
-    // Generate a beautiful coordinated palette based on the chosen primary
     const updatedColors: CustomColors = {
       primary: primaryColor,
       accent: primaryColor,
@@ -126,19 +132,19 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
       palette: 'custom',
       customColors: updatedColors,
     };
-    updateConfig(updated);
+    updateConfig(updated, 'تم توليد ومواءمة درجات الألوان المتناسقة بنجاح!');
   };
 
   // 5. Toggle Mode
   const handleToggleMode = (mode: ThemeMode) => {
     const updated: ThemeConfig = { ...config, mode };
-    updateConfig(updated);
+    updateConfig(updated, mode === 'dark' ? 'تم تفعيل الوضع الليلي الفخم!' : 'تم تفعيل الوضع النهاري الصافي!');
   };
 
   // 6. Change Border Radius
   const handleBorderRadiusChange = (borderRadius: BorderRadiusOption) => {
     const updated: ThemeConfig = { ...config, borderRadius };
-    updateConfig(updated);
+    updateConfig(updated, 'تم تحديث انحناء حواف البطاقات والأزرار!');
   };
 
   // 7. Handle Custom Font File Upload
@@ -247,6 +253,19 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Live confirmation alert banner */}
+        {themeAppliedMsg && (
+          <div className="bg-emerald-600 text-white px-6 py-2.5 flex items-center justify-between text-xs sm:text-sm font-black animate-in fade-in slide-in-from-top-2 duration-200 shrink-0">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+              <span>{themeAppliedMsg}</span>
+            </div>
+            <span className="text-[11px] text-emerald-200 bg-emerald-700/80 px-2 py-0.5 rounded-full font-bold">
+              مباشر ومفعّل الآن
+            </span>
+          </div>
+        )}
 
         {/* Navigation Tabs */}
         <div className="flex items-center gap-2 px-6 pt-4 border-b border-slate-200 bg-slate-50 overflow-x-auto scrollbar-none shrink-0">
