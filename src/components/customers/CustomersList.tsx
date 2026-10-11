@@ -6,11 +6,14 @@ import {
   FileSpreadsheet,
   Coins,
   Edit,
+  Trash2,
   Phone,
   MapPin,
 } from 'lucide-react';
 import { Customer } from '../../types/database';
 import { storage } from '../../lib/storage';
+import { authService } from '../../lib/auth';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { formatCurrency } from '../../lib/formatters';
 import { CustomerModal } from './CustomerModal';
 import { CustomerLedgerModal } from './CustomerLedgerModal';
@@ -28,6 +31,8 @@ export const CustomersList: React.FC<CustomersListProps> = ({ initialOpenLedger 
   // Modals
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Customer | null>(null);
+  const isAdmin = authService.getCurrentUser()?.role === 'admin';
   const [selectedLedgerCustomer, setSelectedLedgerCustomer] = useState<Customer | null>(null);
   const [selectedPaymentCustomer, setSelectedPaymentCustomer] = useState<Customer | null>(null);
 
@@ -241,6 +246,16 @@ export const CustomersList: React.FC<CustomersListProps> = ({ initialOpenLedger 
                           >
                             <Edit className="w-4 h-4" />
                           </button>
+{isAdmin && (
+  <button
+    type="button"
+    onClick={() => setDeleteTarget(customer)}
+    className="p-1.5 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
+    title="حذف العميل"
+  >
+    <Trash2 className="w-4 h-4" />
+  </button>
+)}
                         </div>
                       </td>
                     </tr>
@@ -251,6 +266,16 @@ export const CustomersList: React.FC<CustomersListProps> = ({ initialOpenLedger 
           </table>
         </div>
       </div>
+
+
+      <ConfirmDeleteModal
+        isOpen={!!deleteTarget}
+        title="حذف عميل"
+        itemName={deleteTarget?.name}
+        description="يتم الحذف فقط للعميل الذي ليس له فواتير أو دفعات ورصيده صفر."
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => storage.deleteCustomer(deleteTarget!.id)}
+      />
 
       <CustomerModal
         isOpen={customerModalOpen}
