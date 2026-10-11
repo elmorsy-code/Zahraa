@@ -117,7 +117,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
                 كود المورد
@@ -145,7 +145,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
                 اسم المندوب أو جهة الاتصال
@@ -173,7 +173,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
                 الرقم الضريبي
