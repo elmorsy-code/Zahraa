@@ -358,10 +358,10 @@ class DataStorage {
   }
 
   // --- Document Number Generator ---
-  public async getNextDocNumber(prefix: string): Promise<string> {
-    // Specific custom sequential code for customers: CUST-1, CUST-2, CUST-3, ...
+  public async getNextDocNumber(prefix: string, customPrefix?: string): Promise<string> {
+    // Specific custom sequential code for customers: CUST-1, CUST-2, ... (or any custom prefix)
     if (prefix === 'CUST') {
-      return this.getNextCustomerCode();
+      return this.getNextCustomerCode(customPrefix);
     }
 
     const supabase = getSupabaseClient();
@@ -394,21 +394,27 @@ class DataStorage {
     return data;
   }
 
-  // توليد كود العميل المتسلسل تلقائياً بصيغة CUST-1 ثم CUST-2 وهكذا
-  public getNextCustomerCode(): string {
+  // توليد كود العميل المتسلسل تلقائياً: بادئة قابلة للتخصيص + رقم يزيد (CUST-1، ZAH-1، ...)
+  // كل بادئة لها ترقيمها المستقل (ZAH-1, ZAH-2 ... و CUST-1, CUST-2 ...)
+  public getNextCustomerCode(prefix: string = 'CUST'): string {
+    const cleanPrefix = (prefix || 'CUST').trim().replace(/[-\s]+$/g, '') || 'CUST';
+    const esc = cleanPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp('^' + esc + '-?(\\d+)$', 'i');
+    const isDefault = cleanPrefix.toUpperCase() === 'CUST';
     let maxNum = 0;
     for (const c of this.customers) {
       const codeStr = (c.code || '').trim();
-      // Match patterns like CUST-1, CUST-01, CUST-001, C-1, or just 1
-      const match = codeStr.match(/(?:CUST-?|C-?)(\d+)/i) || codeStr.match(/^(\d+)$/);
+      let match = codeStr.match(re);
+      // للبادئة الافتراضية: ندعم كمان الصيغ القديمة C-1 أو رقم لوحده
+      if (!match && isDefault) {
+        match = codeStr.match(/^C-?(\d+)$/i) || codeStr.match(/^(\d+)$/);
+      }
       if (match) {
         const num = parseInt(match[1], 10);
-        if (!isNaN(num) && num > maxNum) {
-          maxNum = num;
-        }
+        if (!isNaN(num) && num > maxNum) maxNum = num;
       }
     }
-    return `CUST-${maxNum + 1}`;
+    return `${cleanPrefix}-${maxNum + 1}`;
   }
 
   // --- Synchronous Getters ---
