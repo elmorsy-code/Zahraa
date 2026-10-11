@@ -8,17 +8,22 @@ import {
   Phone,
   MapPin,
   Calendar,
+  Trash2,
 } from 'lucide-react';
 import { OldLedgerEntry } from '../../types/database';
 import { storage } from '../../lib/storage';
 import { formatCurrency, formatDate } from '../../lib/formatters';
 import { NewOldLedgerEntryModal } from './NewOldLedgerEntryModal';
+import { authService } from '../../lib/auth';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 
 export const OldLedgersScreen: React.FC = () => {
   const [entries, setEntries] = useState<OldLedgerEntry[]>([]);
   const [search, setSearch] = useState('');
   const [bookFilter, setBookFilter] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<OldLedgerEntry | null>(null);
+  const isAdmin = authService.getCurrentUser()?.role === 'admin';
   const [migrationStatus, setMigrationStatus] = useState<string | null>(null);
 
   useEffect(() => {
@@ -158,12 +163,13 @@ export const OldLedgersScreen: React.FC = () => {
                 <th className="py-3 px-3 text-left">صافي المتبقي</th>
                 <th className="py-3 px-3">الملاحظات</th>
                 <th className="py-3 px-3 text-center">حالة الترحيل والإجراء</th>
+                <th className="py-3 px-3 text-center w-12"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-10 text-center text-slate-400">
+                  <td colSpan={10} className="py-10 text-center text-slate-400">
                     لا توجد قيود ورقية مسجلة
                   </td>
                 </tr>
@@ -232,6 +238,18 @@ export const OldLedgersScreen: React.FC = () => {
                           </button>
                         )}
                       </td>
+                      <td className="py-2.5 px-3 text-center">
+{isAdmin && (
+  <button
+    type="button"
+    onClick={() => setDeleteTarget(entry)}
+    className="p-1.5 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
+    title="حذف القيد"
+  >
+    <Trash2 className="w-4 h-4" />
+  </button>
+)}
+                      </td>
                     </tr>
                   );
                 })
@@ -240,6 +258,14 @@ export const OldLedgersScreen: React.FC = () => {
           </table>
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={!!deleteTarget}
+        title="حذف قيد دفتري"
+        itemName={deleteTarget ? `${deleteTarget.party_name} (${deleteTarget.book_name})` : ''}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => storage.deleteOldLedgerEntry(deleteTarget!.id)}
+      />
 
       <NewOldLedgerEntryModal
         isOpen={modalOpen}
