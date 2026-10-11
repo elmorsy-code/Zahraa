@@ -5,6 +5,7 @@ import {
   Package,
   AlertTriangle,
   Edit,
+  Trash2,
   Layers,
   Tags,
   CheckCircle2,
@@ -12,6 +13,8 @@ import {
 } from 'lucide-react';
 import { Product } from '../../types/database';
 import { storage } from '../../lib/storage';
+import { authService } from '../../lib/auth';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { formatCurrency, formatQuantity } from '../../lib/formatters';
 import { ProductModal } from './ProductModal';
 import { CategoryModal } from './CategoryModal';
@@ -24,6 +27,8 @@ export const ProductsList: React.FC = () => {
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const isAdmin = authService.getCurrentUser()?.role === 'admin';
 
   useEffect(() => {
     loadProducts();
@@ -214,7 +219,7 @@ export const ProductsList: React.FC = () => {
                         {formatCurrency(prod.default_sale_price)}
                       </td>
 
-                      <td className="py-2.5 px-3 text-center">
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
                         <button
                           onClick={() => {
                             setEditingProduct(prod);
@@ -225,6 +230,16 @@ export const ProductsList: React.FC = () => {
                         >
                           <Edit className="w-4 h-4" />
                         </button>
+{isAdmin && (
+  <button
+    type="button"
+    onClick={() => setDeleteTarget(prod)}
+    className="p-1.5 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
+    title="حذف المنتج"
+  >
+    <Trash2 className="w-4 h-4" />
+  </button>
+)}
                       </td>
                     </tr>
                   );
@@ -243,6 +258,15 @@ export const ProductsList: React.FC = () => {
           loadProducts();
           setProductModalOpen(false);
         }}
+      />
+
+
+      <ConfirmDeleteModal
+        isOpen={!!deleteTarget}
+        title="حذف منتج"
+        itemName={deleteTarget?.name}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => storage.deleteProduct(deleteTarget!.id)}
       />
 
       <CategoryModal
