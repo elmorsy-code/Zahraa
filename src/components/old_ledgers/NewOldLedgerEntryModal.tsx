@@ -87,7 +87,7 @@ export const NewOldLedgerEntryModal: React.FC<NewOldLedgerEntryModalProps> = ({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
                 اسم الدفتر الورقي <span className="text-rose-500">*</span>
@@ -116,7 +116,7 @@ export const NewOldLedgerEntryModal: React.FC<NewOldLedgerEntryModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
                 اسم المزارع / العميل <span className="text-rose-500">*</span>
@@ -145,7 +145,7 @@ export const NewOldLedgerEntryModal: React.FC<NewOldLedgerEntryModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
                 القرية / الحوض
@@ -172,7 +172,7 @@ export const NewOldLedgerEntryModal: React.FC<NewOldLedgerEntryModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
                 المبلغ المقيد (عليه بالدفتر) ج.م <span className="text-rose-500">*</span>
