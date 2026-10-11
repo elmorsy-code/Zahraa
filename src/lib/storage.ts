@@ -1298,6 +1298,135 @@ class DataStorage {
     }
   }
 
+  // --- Delete Methods ---
+
+  private friendlyDeleteError(err: any): string {
+    const msg: string = err?.message || '';
+    if (err?.code === '23503' || /foreign key|violates/i.test(msg)) {
+      return 'لا يمكن الحذف لأن هذا العنصر مرتبط بعمليات أخرى في النظام';
+    }
+    return msg || 'فشل الحذف';
+  }
+
+  public async deleteProduct(id: string): Promise<{ success: boolean; error?: string }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
+
+    const inSales = this.salesInvoices.some((inv) => (inv.items || []).some((i) => i.product_id === id));
+    const inPurchases = this.purchaseInvoices.some((inv) => (inv.items || []).some((i) => i.product_id === id));
+    const hasMovements = this.stockMovements.some((m) => m.product_id === id);
+    if (inSales || inPurchases || hasMovements) {
+      return {
+        success: false,
+        error: 'لا يمكن حذف المنتج لأن له فواتير أو حركات مخزون سابقة. يمكنك إيقافه بدل حذفه من شاشة التعديل.',
+      };
+    }
+
+    try {
+      const { error } = await supabase.from('products').delete().eq('id', id);
+      if (error) return { success: false, error: this.friendlyDeleteError(error) };
+      await this.hydrate();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: this.friendlyDeleteError(err) };
+    }
+  }
+
+  public async deleteCategory(id: string): Promise<{ success: boolean; error?: string }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
+    try {
+      const { error } = await supabase.from('product_categories').delete().eq('id', id);
+      if (error) return { success: false, error: this.friendlyDeleteError(error) };
+      await this.hydrate();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: this.friendlyDeleteError(err) };
+    }
+  }
+
+  public async deleteCustomer(id: string): Promise<{ success: boolean; error?: string }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
+
+    const cust = this.customers.find((c) => c.id === id);
+    const hasInvoices = this.salesInvoices.some((inv) => inv.customer_id === id);
+    const hasPayments = this.customerPayments.some((p) => p.customer_id === id);
+    const hasMovementsInLedger = this.customerLedger.some((l) => l.customer_id === id && l.entry_type !== 'opening_balance');
+    if (hasInvoices || hasPayments || hasMovementsInLedger || (cust && Math.abs(cust.current_balance || 0) > 0.0001)) {
+      return {
+        success: false,
+        error: 'لا يمكن حذف العميل لأن له فواتير أو دفعات أو رصيد غير صفري. يمكنك إيقافه بدل حذفه من شاشة التعديل.',
+      };
+    }
+
+    try {
+      const { error } = await supabase.from('customers').delete().eq('id', id);
+      if (error) return { success: false, error: this.friendlyDeleteError(error) };
+      await this.hydrate();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: this.friendlyDeleteError(err) };
+    }
+  }
+
+  public async deleteSupplier(id: string): Promise<{ success: boolean; error?: string }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
+
+    const sup = this.suppliers.find((s) => s.id === id);
+    const hasInvoices = this.purchaseInvoices.some((inv) => inv.supplier_id === id);
+    const hasPayments = this.supplierPayments.some((p) => p.supplier_id === id);
+    const hasMovementsInLedger = this.supplierLedger.some((l) => l.supplier_id === id && l.entry_type !== 'opening_balance');
+    if (hasInvoices || hasPayments || hasMovementsInLedger || (sup && Math.abs(sup.current_balance || 0) > 0.0001)) {
+      return {
+        success: false,
+        error: 'لا يمكن حذف المورد لأن له فواتير أو دفعات أو رصيد غير صفري. يمكنك إيقافه بدل حذفه من شاشة التعديل.',
+      };
+    }
+
+    try {
+      const { error } = await supabase.from('suppliers').delete().eq('id', id);
+      if (error) return { success: false, error: this.friendlyDeleteError(error) };
+      await this.hydrate();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: this.friendlyDeleteError(err) };
+    }
+  }
+
+  public async deleteExpense(id: string): Promise<{ success: boolean; error?: string }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
+    try {
+      const { data, error } = await supabase.rpc('delete_expense_atomic', { p_expense_id: id });
+      if (error) return { success: false, error: this.friendlyDeleteError(error) };
+      if (data && data.success === false) return { success: false, error: data.error || 'فشل حذف المصروف' };
+      await this.hydrate();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: this.friendlyDeleteError(err) };
+    }
+  }
+
+  public async deleteOldLedgerEntry(id: string): Promise<{ success: boolean; error?: string }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
+
+    const entry = this.oldLedgers.find((e) => e.id === id);
+    if (entry?.is_transferred_to_system) {
+      return { success: false, error: 'لا يمكن حذف قيد تم ترحيله للنظام' };
+    }
+    try {
+      const { error } = await supabase.from('old_ledgers').delete().eq('id', id);
+      if (error) return { success: false, error: this.friendlyDeleteError(error) };
+      await this.hydrate();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: this.friendlyDeleteError(err) };
+    }
+  }
+
   public async saveOldLedgerEntry(entry: Partial<OldLedgerEntry> & { book_name: string; party_name: string }): Promise<OldLedgerEntry> {
     const supabase = getSupabaseClient();
     if (!supabase) throw new Error('الاتصال غير متوفر');
