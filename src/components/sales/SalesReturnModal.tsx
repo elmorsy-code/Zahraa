@@ -123,7 +123,7 @@ export const SalesReturnModal: React.FC<SalesReturnModalProps> = ({
           )}
 
           {/* Meta Info */}
-          <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
             <div>
               <span className="text-slate-500 block text-[11px]">العميل:</span>
               <span className="font-bold text-slate-900">{invoice.customer_name_snapshot}</span>

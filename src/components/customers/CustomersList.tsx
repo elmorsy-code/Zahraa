@@ -270,9 +270,16 @@ export const CustomersList: React.FC<CustomersListProps> = ({ initialOpenLedger 
 
       <ConfirmDeleteModal
         isOpen={!!deleteTarget}
-        title="حذف عميل"
+        title="حذف عميل نهائياً"
         itemName={deleteTarget?.name}
-        description="يتم الحذف فقط للعميل الذي ليس له فواتير أو دفعات ورصيده صفر."
+        description={(() => {
+          if (!deleteTarget) return '';
+          const imp = storage.getCustomerDeletionImpact(deleteTarget.id);
+          if (!imp.invoices && !imp.returns && !imp.payments) {
+            return 'لا توجد فواتير أو دفعات على هذا العميل، سيتم حذفه مع كشف حسابه.';
+          }
+          return `سيتم حذف ${imp.invoices} فاتورة و${imp.payments} دفعة و${imp.returns} مرتجع لهذا العميل، مع إرجاع الكميات للمخزون وعكس المبالغ المقبوضة من الخزينة. لا يمكن التراجع.`;
+        })()}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => storage.deleteCustomer(deleteTarget!.id)}
       />
