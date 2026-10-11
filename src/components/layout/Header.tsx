@@ -39,24 +39,28 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header
       className="app-header sticky top-0 z-30 bg-white border-b border-slate-200 shadow-xs"
-      style={{ backgroundColor: '#ffffff', paddingTop: 'env(safe-area-inset-top)' }}
+      style={{
+        backgroundColor: '#ffffff',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        borderBottomColor: 'var(--theme-card-border, #e2e8f0)',
+      }}
     >
-      <div className="max-w-[1920px] mx-auto flex items-center justify-between min-h-[72px] sm:min-h-[88px] md:min-h-[96px] py-2 px-3 sm:px-6 lg:px-8 relative">
-        {/* RIGHT SIDE (in RTL = First element): Placeholder for visual balance or small helper */}
-        <div className="w-10 sm:w-28 flex items-center">
-          {/* Empty spacer to keep logo perfectly centered */}
+      <div className="max-w-[1920px] mx-auto flex items-center justify-between min-h-[64px] sm:min-h-[84px] md:min-h-[92px] py-1.5 sm:py-2 px-3 sm:px-6 lg:px-8 relative">
+        {/* RIGHT SIDE (in RTL = First element): Placeholder for visual balance */}
+        <div className="w-8 sm:w-24 md:w-28 flex items-center">
+          {/* Empty spacer to keep logo centered */}
         </div>
 
-        {/* CENTER: BRAND LOGO ONLY (No text/name, as explicitly requested) */}
+        {/* CENTER: BRAND LOGO ONLY */}
         <div
           onClick={onGoHome}
-          className="flex items-center justify-center cursor-pointer select-none group transition-transform hover:scale-105 active:scale-95"
+          className="flex items-center justify-center cursor-pointer select-none group transition-transform hover:scale-105 active:scale-95 px-2"
           title="الرئيسية - الزهراء للأدوية والمبيدات الزراعية"
         >
           <img
             src={APP_CONFIG.logo}
             alt={APP_CONFIG.name}
-            className="h-14 sm:h-18 md:h-22 lg:h-24 max-h-24 w-auto object-contain drop-shadow-xs transition-all duration-300"
+            className="h-11 sm:h-16 md:h-20 lg:h-22 max-h-22 max-w-[200px] sm:max-w-none w-auto object-contain drop-shadow-xs transition-all duration-300"
           />
         </div>
 
@@ -65,12 +69,12 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => setDropdownOpen((prev) => !prev)}
             type="button"
-            className="group flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-slate-900 transition-all cursor-pointer shadow-xs active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            className="group flex items-center justify-center p-2 sm:p-2.5 md:p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-slate-900 transition-all cursor-pointer shadow-xs active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
             title="الإعدادات وتخصيص المظهر"
             aria-label="الإعدادات"
             aria-expanded={dropdownOpen}
           >
-            <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-slate-700 group-hover:text-emerald-700 transition-transform duration-500 group-hover:rotate-90" />
+            <Settings className="w-5 h-5 sm:w-5.5 sm:h-5.5 md:w-6 md:h-6 text-slate-700 group-hover:text-emerald-700 transition-transform duration-500 group-hover:rotate-90" />
           </button>
 
           {/* Settings & Profile Quick Dropdown Menu */}

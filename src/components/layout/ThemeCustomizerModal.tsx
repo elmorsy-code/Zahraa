@@ -226,29 +226,29 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
   const currentColors: CustomColors = getResolvedColors();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 my-6 flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+      <div className="w-full max-w-4xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-slate-200 my-auto flex flex-col max-h-[94vh] animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 bg-slate-900 text-white shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-emerald-600 rounded-2xl text-white shadow-sm">
-              <Palette className="w-6 h-6" />
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-5 bg-slate-900 text-white shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="p-2 sm:p-3 bg-emerald-600 rounded-xl sm:rounded-2xl text-white shadow-sm shrink-0">
+              <Palette className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-lg md:text-xl">تخصيص المظهر الشامل وهوية المنظومة</h3>
-                <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  تحكم بنسبة 100%
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h3 className="font-bold text-sm sm:text-lg md:text-xl">تخصيص المظهر الشامل وهوية المنظومة</h3>
+                <span className="px-2 py-0.5 rounded-lg text-[10px] sm:text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  تحكم كامل
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 line-clamp-1 sm:line-clamp-none">
                 تعديل كامل لألوان الأزرار والأسطح والخلفيات، مكتبة خطوط عربية شاملة، وإمكانية إضافة خط مخصص
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -256,69 +256,69 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
 
         {/* Live confirmation alert banner */}
         {themeAppliedMsg && (
-          <div className="bg-emerald-600 text-white px-6 py-2.5 flex items-center justify-between text-xs sm:text-sm font-black animate-in fade-in slide-in-from-top-2 duration-200 shrink-0">
+          <div className="bg-emerald-600 text-white px-4 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between text-xs sm:text-sm font-black animate-in fade-in slide-in-from-top-2 duration-200 shrink-0">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-200" />
-              <span>{themeAppliedMsg}</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-200 shrink-0" />
+              <span className="truncate">{themeAppliedMsg}</span>
             </div>
-            <span className="text-[11px] text-emerald-200 bg-emerald-700/80 px-2 py-0.5 rounded-full font-bold">
+            <span className="text-[10px] sm:text-[11px] text-emerald-200 bg-emerald-700/80 px-2 py-0.5 rounded-full font-bold shrink-0">
               مباشر ومفعّل الآن
             </span>
           </div>
         )}
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 px-6 pt-4 border-b border-slate-200 bg-slate-50 overflow-x-auto scrollbar-none shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 pt-2.5 sm:pt-4 border-b border-slate-200 bg-slate-50 overflow-x-auto scrollbar-none shrink-0">
           <button
             onClick={() => setActiveTab('presets')}
             type="button"
-            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-t-xl sm:rounded-t-2xl border-b-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'presets'
                 ? 'bg-white text-emerald-700 border-emerald-600 shadow-2xs'
                 : 'text-slate-600 hover:text-slate-900 border-transparent hover:bg-slate-100/70'
             }`}
           >
-            <Sparkles className="w-4 h-4 text-emerald-600" />
-            <span>1. السمات والألوان الجاهزة (10 أنماط)</span>
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
+            <span>1. السمات والألوان ({PRESET_PALETTES.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('color_picker')}
             type="button"
-            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-t-xl sm:rounded-t-2xl border-b-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'color_picker'
                 ? 'bg-white text-emerald-700 border-emerald-600 shadow-2xs'
                 : 'text-slate-600 hover:text-slate-900 border-transparent hover:bg-slate-100/70'
             }`}
           >
-            <Sliders className="w-4 h-4 text-emerald-600" />
-            <span>2. التخصيص اللوني الدقيق (Color Pickers & Hex)</span>
+            <Sliders className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
+            <span>2. التخصيص اللوني الدقيق</span>
           </button>
 
           <button
             onClick={() => setActiveTab('fonts')}
             type="button"
-            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-t-xl sm:rounded-t-2xl border-b-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'fonts'
                 ? 'bg-white text-emerald-700 border-emerald-600 shadow-2xs'
                 : 'text-slate-600 hover:text-slate-900 border-transparent hover:bg-slate-100/70'
             }`}
           >
-            <Type className="w-4 h-4 text-emerald-600" />
-            <span>3. مكتبة الخطوط العربية ({BUILTIN_FONTS.length} خطوط)</span>
+            <Type className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
+            <span>3. الخطوط العربية ({BUILTIN_FONTS.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('custom_font')}
             type="button"
-            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-t-xl sm:rounded-t-2xl border-b-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'custom_font'
                 ? 'bg-white text-emerald-700 border-emerald-600 shadow-2xs'
                 : 'text-slate-600 hover:text-slate-900 border-transparent hover:bg-slate-100/70'
             }`}
           >
-            <Plus className="w-4 h-4 text-emerald-600" />
-            <span>4. إضافة خط مخصص من عندك</span>
+            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
+            <span>4. إضافة خط مخصص</span>
             {config.font === 'custom' && (
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             )}
@@ -327,19 +327,19 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
           <button
             onClick={() => setActiveTab('layout')}
             type="button"
-            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold rounded-t-2xl border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-t-xl sm:rounded-t-2xl border-b-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'layout'
                 ? 'bg-white text-emerald-700 border-emerald-600 shadow-2xs'
                 : 'text-slate-600 hover:text-slate-900 border-transparent hover:bg-slate-100/70'
             }`}
           >
-            <Wand2 className="w-4 h-4 text-emerald-600" />
+            <Wand2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
             <span>5. الحواف والوضع الليلي</span>
           </button>
         </div>
 
         {/* Tab Body */}
-        <div className="p-6 space-y-6 overflow-y-auto flex-1 text-slate-800">
+        <div className="p-3.5 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1 text-slate-800">
           {/* TAB 1: PRESET PALETTES */}
           {activeTab === 'presets' && (
             <div className="space-y-5">

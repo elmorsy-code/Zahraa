@@ -343,6 +343,11 @@ class DataStorage {
 
   // --- Document Number Generator ---
   public async getNextDocNumber(prefix: string): Promise<string> {
+    // Specific custom sequential code for customers: CUST-1, CUST-2, CUST-3, ...
+    if (prefix === 'CUST') {
+      return this.getNextCustomerCode();
+    }
+
     const supabase = getSupabaseClient();
     if (!supabase) {
       return `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -371,6 +376,23 @@ class DataStorage {
       return `${prefix}-${Date.now().toString().slice(-4)}`;
     }
     return data;
+  }
+
+  // توليد كود العميل المتسلسل تلقائياً بصيغة CUST-1 ثم CUST-2 وهكذا
+  public getNextCustomerCode(): string {
+    let maxNum = 0;
+    for (const c of this.customers) {
+      const codeStr = (c.code || '').trim();
+      // Match patterns like CUST-1, CUST-01, CUST-001, C-1, or just 1
+      const match = codeStr.match(/(?:CUST-?|C-?)(\d+)/i) || codeStr.match(/^(\d+)$/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (!isNaN(num) && num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
+    return `CUST-${maxNum + 1}`;
   }
 
   // --- Synchronous Getters ---
@@ -521,7 +543,22 @@ class DataStorage {
   }
 
   public getCustomers(): Customer[] {
-    return this.customers;
+    // ترتيب العملاء بحسب كود العميل تصاعدياً (CUST-1, CUST-2, CUST-3, ...)
+    return [...this.customers].sort((a, b) => {
+      const codeA = (a.code || '').trim();
+      const codeB = (b.code || '').trim();
+      const matchA = codeA.match(/(?:CUST-?|C-?)(\d+)/i) || codeA.match(/^(\d+)$/);
+      const matchB = codeB.match(/(?:CUST-?|C-?)(\d+)/i) || codeB.match(/^(\d+)$/);
+
+      if (matchA && matchB) {
+        const numA = parseInt(matchA[1], 10);
+        const numB = parseInt(matchB[1], 10);
+        if (numA !== numB) return numA - numB;
+      }
+
+      // Fallback natural alphanumeric sorting
+      return codeA.localeCompare(codeB, 'ar', { numeric: true, sensitivity: 'base' });
+    });
   }
 
   public getCustomer(id: string): Customer | undefined {

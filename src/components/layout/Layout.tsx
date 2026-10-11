@@ -56,7 +56,7 @@ export const Layout: React.FC<LayoutProps> = ({
       />
 
       {/* 2. Main Responsive Content Area */}
-      <main className="flex-1 p-3 sm:p-5 md:p-6 lg:p-8 focus:outline-none w-full">
+      <main className="flex-1 p-2.5 sm:p-5 md:p-6 lg:p-8 focus:outline-none w-full">
         <div className="max-w-[1920px] mx-auto w-full">
           {/* Master Hero Card on dashboard view (above department cards) */}
           {activeTab === 'dashboard' && (

@@ -385,42 +385,42 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
   return (
     <>
       {/* Master Navigation & Departments Portal Card */}
-      <div className="card-box border-2 border-slate-200/90 p-4 sm:p-5 mb-6 bg-white shadow-xs space-y-4">
+      <div className="card-box border-2 border-slate-200/90 p-3 sm:p-5 mb-4 sm:mb-6 bg-white shadow-xs space-y-3 sm:space-y-4">
         {/* Tier 1: System Title & Quick Operations Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2.5 bg-slate-900 text-white rounded-xl shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 sm:pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className="p-2 sm:p-2.5 bg-slate-900 text-white rounded-xl shadow-xs shrink-0">
               <Layers className="w-4 h-4 text-emerald-400" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm sm:text-base font-black text-slate-900 leading-tight">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h2 className="text-xs sm:text-base font-black text-slate-900 leading-tight">
                   أقسام المنظومة الرئيسية (الصفحات المستقلة)
                 </h2>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <span className="hidden md:inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                   <Sparkles className="w-3 h-3 text-emerald-600" />
                   لكل قسم صفحته المستقلة
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+              <p className="text-[10px] sm:text-xs text-slate-500 font-medium line-clamp-1">
                 انقر على أي قسم لفتح صفحته المخصصة ومؤشراته وأدواته المتكاملة
               </p>
             </div>
           </div>
 
           {/* Quick Operations & Status Pills */}
-          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
             {/* Treasury Balance Pill */}
             {authService.canAccessTab('treasury_dept', currentUser.role) && (
               <div
                 onClick={() => onSelectTab('treasury_dept')}
-                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-emerald-50 border border-emerald-300 rounded-xl cursor-pointer hover:bg-emerald-100 transition-colors shadow-2xs"
+                className="flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-emerald-50 border border-emerald-300 rounded-xl cursor-pointer hover:bg-emerald-100 transition-colors shadow-2xs"
                 title="عرض تفاصيل قسم الخزينة والسيولة"
               >
-                <Coins className="w-4 h-4 text-emerald-700" />
-                <div className="text-xs sm:text-sm leading-none">
-                  <span className="text-slate-600 font-bold">الخزينة: </span>
-                  <span className="font-black text-emerald-900 tabular-nums text-xs sm:text-sm mr-1">
+                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700 shrink-0" />
+                <div className="text-[11px] sm:text-sm leading-none">
+                  <span className="text-slate-600 font-bold hidden min-[400px]:inline">الخزينة: </span>
+                  <span className="font-black text-emerald-900 tabular-nums text-xs sm:text-sm mr-0.5">
                     {formatCurrency(totalCashBalance)}
                   </span>
                 </div>
@@ -432,9 +432,9 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
               <button
                 onClick={onOpenPos}
                 type="button"
-                className="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-sm font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer active:scale-95"
               >
-                <ShoppingCart className="w-4 h-4" />
+                <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                 <span>نقطة البيع (POS)</span>
               </button>
             )}
@@ -442,7 +442,7 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
         </div>
 
         {/* Tier 2: ENHANCED DISTINCTIVE DEPARTMENT CARDS GRID */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-3.5">
+        <div className="grid grid-cols-2 min-[500px]:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-2 sm:gap-3">
           {allowedDepartments.map((dept) => {
             const Icon = dept.icon;
             const isDeptActive =
@@ -456,7 +456,7 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
                 key={dept.id}
                 onClick={() => onSelectTab(dept.defaultTab)}
                 type="button"
-                className={`relative text-right rounded-2xl p-3 sm:p-4 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden group select-none min-h-[148px] ${
+                className={`relative text-right rounded-2xl p-2.5 sm:p-3.5 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden group select-none min-h-[140px] sm:min-h-[150px] ${
                   isDeptActive
                     ? `${theme.activeBg} border-2 ${theme.activeBorder} shadow-md ring-2 ${theme.activeRing} -translate-y-0.5`
                     : 'bg-white hover:bg-slate-50/90 border-2 border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5'
@@ -470,42 +470,42 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
                 />
 
                 {/* Top Row: Icon Container + Active / Separate Page Badge */}
-                <div className="flex items-start justify-between gap-1.5 mb-2.5 w-full">
+                <div className="flex items-start justify-between gap-1 mb-2 w-full">
                   <div
-                    className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center border transition-all duration-200 group-hover:scale-105 shrink-0 ${
+                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border transition-all duration-200 group-hover:scale-105 shrink-0 ${
                       isDeptActive
                         ? `${theme.activeBar} text-white border-transparent shadow-xs`
                         : `${theme.iconBg} ${theme.iconText} ${theme.iconBorder}`
                     }`}
                   >
-                    <Icon className="w-5 h-5 sm:w-5.5 sm:h-5.5" />
+                    <Icon className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
                   </div>
 
                   {/* Active Indicator or Separate Page Tag */}
                   {isDeptActive ? (
                     <span
-                      className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-full ${theme.activeBadgeBg} ${theme.activeBadgeText} border border-current/20`}
+                      className={`inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-full ${theme.activeBadgeBg} ${theme.activeBadgeText} border border-current/20 truncate max-w-[85px] sm:max-w-none`}
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse shrink-0" />
                       القسم الحالي
                     </span>
                   ) : (
-                    <span className="text-[10px] font-black text-slate-500 bg-slate-100/90 px-2 py-0.5 rounded-md border border-slate-200/80 group-hover:bg-slate-200 transition-colors">
+                    <span className="text-[9px] sm:text-[10px] font-black text-slate-500 bg-slate-100/90 px-1.5 sm:px-2 py-0.5 rounded-md border border-slate-200/80 group-hover:bg-slate-200 transition-colors truncate max-w-[85px] sm:max-w-none">
                       صفحة مستقلة
                     </span>
                   )}
                 </div>
 
                 {/* Middle: Title & Subtitle */}
-                <div className="space-y-0.5 text-right w-full mb-2">
+                <div className="space-y-0.5 text-right w-full mb-1.5">
                   <h3
-                    className={`text-xs sm:text-sm font-black tracking-tight leading-snug transition-colors line-clamp-1 ${
+                    className={`text-xs sm:text-sm font-black tracking-tight leading-snug transition-colors truncate ${
                       isDeptActive ? theme.activeText : 'text-slate-800 group-hover:text-slate-950'
                     }`}
                   >
                     {dept.title}
                   </h3>
-                  <p className="text-[10px] sm:text-[11px] font-semibold text-slate-500 line-clamp-1">
+                  <p className="text-[10px] sm:text-[11px] font-semibold text-slate-500 truncate">
                     {dept.subtitle}
                   </p>
                 </div>
@@ -514,7 +514,7 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
                 {metric && (
                   <div className="w-full my-1">
                     <div
-                      className={`text-[10px] sm:text-[11px] font-black px-2 py-1 rounded-lg tabular-nums line-clamp-1 flex items-center justify-between ${
+                      className={`text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg tabular-nums flex items-center justify-between overflow-hidden ${
                         metric.isAlert
                           ? 'bg-amber-100 text-amber-900 border border-amber-300'
                           : isDeptActive
@@ -522,23 +522,23 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
                           : 'bg-slate-50 border border-slate-200/60 text-slate-700'
                       }`}
                     >
-                      <span className="text-[9px] text-slate-500 font-bold truncate">{metric.label}:</span>
-                      <span className="font-extrabold truncate mr-1">{metric.value}</span>
+                      <span className="text-[9px] text-slate-500 font-bold truncate shrink-0">{metric.label}:</span>
+                      <span className="font-extrabold truncate mr-1 min-w-0">{metric.value}</span>
                     </div>
                   </div>
                 )}
 
                 {/* Bottom: Micro Action / Arrow Indicator */}
-                <div className="pt-2 mt-auto border-t border-slate-100/90 flex items-center justify-between text-[10px] sm:text-[11px] w-full">
+                <div className="pt-1.5 mt-auto border-t border-slate-100/90 flex items-center justify-between text-[9px] sm:text-[10px] w-full">
                   <span
-                    className={`font-black transition-colors ${
+                    className={`font-black transition-colors truncate ${
                       isDeptActive ? theme.activeText : 'text-slate-400 group-hover:text-slate-800'
                     }`}
                   >
-                    {isDeptActive ? 'صفحة القسم مفتوحة' : 'فتح صفحة القسم'}
+                    {isDeptActive ? 'القسم مفتوح' : 'فتح القسم'}
                   </span>
                   <ChevronLeft
-                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    className={`w-3 h-3 transition-transform duration-200 shrink-0 ${
                       isDeptActive
                         ? `${theme.iconText} -translate-x-0.5`
                         : 'text-slate-400 group-hover:text-slate-700 group-hover:-translate-x-1'
@@ -552,16 +552,16 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
 
         {/* Tier 3: Sub-pages Bar of Active Department (if it has more than 1 tab and not on dashboard) */}
         {currentDept.id !== 'dashboard' && currentDept.tabs.length > 1 && (
-          <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3 sm:p-3.5 mt-2">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-slate-800 shrink-0">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-2.5 sm:p-3.5 mt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-center gap-1.5 text-slate-800 shrink-0">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
                 <span className="text-xs sm:text-sm font-black">
                   شاشات وأدوات قسم {currentDept.title}:
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none flex-nowrap sm:flex-wrap">
                 {currentDept.tabs.map((tab) => {
                   const Icon = tab.icon;
                   const isTabActive = activeTab === tab.id;
@@ -570,13 +570,13 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
                       key={tab.id}
                       onClick={() => onSelectTab(tab.id)}
                       type="button"
-                      className={`flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-black rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                      className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-black rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                         isTabActive
                           ? `${currentDept.theme.subTabActiveBg} ${currentDept.theme.subTabActiveText} shadow-xs ring-2 ${currentDept.theme.subTabActiveRing}`
                           : 'bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 shadow-2xs'
                       }`}
                     >
-                      <Icon className="w-4 h-4 shrink-0" />
+                      <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                       <span>{tab.label}</span>
                     </button>
                   );

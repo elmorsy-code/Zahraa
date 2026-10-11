@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, PackagePlus, AlertCircle } from 'lucide-react';
+import { X, Plus, Trash2, PackagePlus, AlertCircle, Sparkles, Tag, Scale } from 'lucide-react';
 import { Product, ProductUnit } from '../../types/database';
 import { storage } from '../../lib/storage';
 
@@ -9,6 +9,23 @@ interface ProductModalProps {
   productToEdit?: Product | null;
   onSaved: (product: Product) => void;
 }
+
+const COMMON_BASE_UNITS = [
+  'جرام',
+  'كجم',
+  'كيلوجرام',
+  'مل',
+  'لتر',
+  'سنتيمتر مكعب',
+  'قرص',
+  'حبة',
+  'أمبول',
+  'كيس',
+  'عبوة',
+  'شيكارة',
+  'زجاجة',
+  'لتر / مل',
+];
 
 export const ProductModal: React.FC<ProductModalProps> = ({
   isOpen,
@@ -25,6 +42,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [activeIngredient, setActiveIngredient] = useState('');
   const [manufacturer, setManufacturer] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [categoryNameInput, setCategoryNameInput] = useState('');
   const [description, setDescription] = useState('');
   const [baseUnitName, setBaseUnitName] = useState('جرام');
   const [defaultPurchasePrice, setDefaultPurchasePrice] = useState('0');
@@ -46,6 +64,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setActiveIngredient(productToEdit.active_ingredient || '');
       setManufacturer(productToEdit.manufacturer || '');
       setCategoryId(productToEdit.category_id || categories[0]?.id || '');
+      const existingCat = categories.find((c) => c.id === productToEdit.category_id);
+      setCategoryNameInput(existingCat?.name || productToEdit.category?.name || '');
       setDescription(productToEdit.description || '');
       setBaseUnitName(productToEdit.base_unit_name || 'جرام');
       setDefaultPurchasePrice(productToEdit.default_purchase_price?.toString() || '0');
@@ -61,7 +81,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setCommercialName('');
       setActiveIngredient('');
       setManufacturer('');
-      setCategoryId(categories[0]?.id || '');
+      const defaultCat = categories[0];
+      setCategoryId(defaultCat?.id || '');
+      setCategoryNameInput(defaultCat?.name || 'مبيدات فطرية وحشرية');
       setDescription('');
       setBaseUnitName('جرام');
       setDefaultPurchasePrice('0');
@@ -133,10 +155,29 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     setLoading(true);
     setError('');
     try {
+      // 1. Resolve or create category if user typed a custom/new category name
+      let finalCategoryId = categoryId;
+      const trimmedCatName = categoryNameInput.trim();
+      if (trimmedCatName) {
+        const found = categories.find((c) => c.name.trim().toLowerCase() === trimmedCatName.toLowerCase());
+        if (found) {
+          finalCategoryId = found.id;
+        } else {
+          // Auto create new category on the fly so the user can type any custom category
+          const newCat = await storage.saveCategory({
+            name: trimmedCatName,
+            description: 'تم إنشاؤها تلقائياً عند تعريف الصنف',
+          });
+          finalCategoryId = newCat.id;
+        }
+      }
+
+      const cleanBaseUnit = baseUnitName.trim() || 'جرام';
+
       const sanitizedUnits: ProductUnit[] = units.map((u, i) => ({
         id: u.id || `u-${Date.now()}-${i}`,
         product_id: productToEdit?.id || '',
-        unit_name: u.unit_name?.trim() || `${baseUnitName}`,
+        unit_name: u.unit_name?.trim() || `${cleanBaseUnit}`,
         conversion_factor: Math.max(0.0001, Number(u.conversion_factor) || 1),
         sale_price: Math.max(0, Number(u.sale_price) || 0),
         purchase_price: Math.max(0, Number(u.purchase_price) || 0),
@@ -153,9 +194,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         commercial_name: commercialName.trim(),
         active_ingredient: activeIngredient.trim(),
         manufacturer: manufacturer.trim(),
-        category_id: categoryId,
+        category_id: finalCategoryId || undefined,
         description: description.trim(),
-        base_unit_name: baseUnitName.trim(),
+        base_unit_name: cleanBaseUnit,
         default_purchase_price: parseFloat(defaultPurchasePrice) || 0,
         default_sale_price: parseFloat(defaultSalePrice) || 0,
         min_stock_alert: parseFloat(minStockAlert) || 10,
@@ -256,40 +297,109 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                التصنيف
-              </label>
-              <select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-              >
+              <div className="flex items-center justify-between mb-1">
+                <label className="font-semibold text-slate-700 flex items-center gap-1">
+                  <Tag className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>التصنيف (اكتب أو اختر)</span>
+                </label>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-bold">
+                  كتابة حرة
+                </span>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  list="categories-datalist"
+                  value={categoryNameInput}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCategoryNameInput(val);
+                    const matched = categories.find((c) => c.name.trim().toLowerCase() === val.trim().toLowerCase());
+                    if (matched) {
+                      setCategoryId(matched.id);
+                    } else {
+                      setCategoryId('');
+                    }
+                  }}
+                  placeholder="اكتب اسم التصنيف (مثال: مبيدات فطرية، أسمدة ورقية...)"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-800"
+                />
+                <datalist id="categories-datalist">
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.name} />
+                  ))}
+                </datalist>
+              </div>
+              {/* Quick Suggestion Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mt-1.5 scrollbar-none flex-nowrap">
+                <span className="text-[10px] text-slate-400 shrink-0">اقتراحات:</span>
                 {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => {
+                      setCategoryNameInput(c.name);
+                      setCategoryId(c.id);
+                    }}
+                    className={`text-[10px] px-2 py-0.5 rounded-md font-bold transition-colors shrink-0 ${
+                      categoryNameInput.trim().toLowerCase() === c.name.trim().toLowerCase()
+                        ? 'bg-emerald-600 text-white shadow-2xs'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    }`}
+                  >
                     {c.name}
-                  </option>
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                الوحدة الأساسية للمخزون <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={baseUnitName}
-                onChange={(e) => setBaseUnitName(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 font-bold text-emerald-800"
-              >
-                <option value="جرام">جرام (للمبيدات البودر والعينات الصغيرة)</option>
-                <option value="كجم">كيلوجرام (للأسمدة والشكاير والتقاوي)</option>
-                <option value="مل">مل / سنتيمتر مكعب (للمبيدات السائلة والمركزة)</option>
-                <option value="لتر">لتر (للسوائل والمغذيات الكبيرة)</option>
-                <option value="حبة / قرص">حبة / قرص (للأقراص والأدوية البيطرية)</option>
-                <option value="كيس">كيس</option>
-              </select>
-              <span className="text-[11px] text-slate-500 mt-0.5 block">
-                جميع الحسابات والتحويلات ستخصم وتضاف بدلالة هذه الوحدة الأساسية
+              <div className="flex items-center justify-between mb-1">
+                <label className="font-semibold text-slate-700 flex items-center gap-1">
+                  <Scale className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>الوحدة الأساسية للمخزون (اكتب أو اختر)</span>
+                  <span className="text-rose-500">*</span>
+                </label>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-bold">
+                  كتابة حرة
+                </span>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  list="base-units-datalist"
+                  required
+                  value={baseUnitName}
+                  onChange={(e) => setBaseUnitName(e.target.value)}
+                  placeholder="اكتب الوحدة الأساسية (مثال: جرام، كجم، لتر، مل، قرص...)"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 font-bold text-emerald-800"
+                />
+                <datalist id="base-units-datalist">
+                  {COMMON_BASE_UNITS.map((u) => (
+                    <option key={u} value={u} />
+                  ))}
+                </datalist>
+              </div>
+              {/* Quick Suggestion Pills for Units */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mt-1.5 scrollbar-none flex-nowrap">
+                <span className="text-[10px] text-slate-400 shrink-0">شائع:</span>
+                {['جرام', 'كجم', 'مل', 'لتر', 'قرص', 'كيس', 'عبوة'].map((u) => (
+                  <button
+                    key={u}
+                    type="button"
+                    onClick={() => setBaseUnitName(u)}
+                    className={`text-[10px] px-2 py-0.5 rounded-md font-bold transition-colors shrink-0 ${
+                      baseUnitName.trim() === u
+                        ? 'bg-emerald-600 text-white shadow-2xs'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {u}
+                  </button>
+                ))}
+              </div>
+              <span className="text-[11px] text-slate-500 mt-1 block">
+                تُحسب جميع العمليات والأرصدة بالمعادلات بدلالة هذه الوحدة الأساسية.
               </span>
             </div>
 

@@ -107,29 +107,29 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* REAL DATA STATUS & CONTROLS BANNER */}
-      <div className="card-box p-6 border-2 border-emerald-300 bg-emerald-50/80 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-sm">
-        <div className="flex items-start sm:items-center gap-4">
-          <div className="p-3.5 bg-emerald-700 text-white rounded-2xl shadow-sm shrink-0">
-            <CheckCircle2 className="w-7 h-7" />
+      <div className="card-box p-4 sm:p-6 border-2 border-emerald-300 bg-emerald-50/80 rounded-2xl sm:rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-5 shadow-sm">
+        <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+          <div className="p-2.5 sm:p-3.5 bg-emerald-700 text-white rounded-2xl shadow-sm shrink-0">
+            <CheckCircle2 className="w-5 h-5 sm:w-7 sm:h-7" />
           </div>
           <div>
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="text-lg font-black text-emerald-950">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm sm:text-lg font-black text-emerald-950">
                 وضع البيانات الحقيقية والتشغيل الفعلي نشط (Live Production Mode)
               </span>
-              <span className="px-3 py-1 rounded-xl text-xs font-black bg-emerald-200 text-emerald-950 border border-emerald-300">
-                0% بيانات اختبار وهمية
+              <span className="px-2.5 py-0.5 rounded-lg text-[11px] sm:text-xs font-black bg-emerald-200 text-emerald-950 border border-emerald-300">
+                بيانات واقعية 100%
               </span>
             </div>
-            <p className="text-base font-medium text-emerald-900 mt-1 leading-relaxed">
-              تم إزالة أي بيانات وهمية أو hardcoded — سجلات الفواتير والتحصيلات وحركات الخزينة والمخزون تعكس العمليات الواقعية المحفوظة للمؤسسة.
+            <p className="text-xs sm:text-sm font-medium text-emerald-900 mt-1 leading-relaxed">
+              سجلات الفواتير والتحصيلات وحركات الخزينة والمخزون تعكس العمليات الواقعية المحفوظة للمؤسسة بدقة تامة.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0 self-end md:self-auto">
+        <div className="flex items-center gap-2.5 shrink-0 self-end md:self-auto">
           <button
             onClick={async () => {
               try {
@@ -140,7 +140,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               }
             }}
             type="button"
-            className="flex items-center gap-2.5 px-5 py-3 text-sm font-black text-slate-800 bg-white hover:bg-slate-100 border-2 border-slate-200 rounded-xl cursor-pointer shadow-xs transition-all active:scale-95 whitespace-nowrap"
+            className="flex items-center gap-2 px-3.5 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm font-black text-slate-800 bg-white hover:bg-slate-100 border-2 border-slate-200 rounded-xl cursor-pointer shadow-xs transition-all active:scale-95 whitespace-nowrap"
             title="تحديث ومزامنة كافة السجلات لحظياً"
           >
             <RotateCcw className="w-4 h-4 text-emerald-600" />
@@ -150,57 +150,57 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       </div>
 
       {/* 2. CARD SWITCHER TABS - Large, clear card navigation */}
-      <div className="flex items-center gap-3 border-b border-slate-200 pb-4 overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-2 sm:gap-3 border-b border-slate-200 pb-3 sm:pb-4 overflow-x-auto scrollbar-none flex-nowrap">
         <button
           onClick={() => setActiveTab('cards_hub')}
           type="button"
-          className={`flex items-center gap-2.5 px-6 py-3.5 text-base font-black rounded-2xl transition-all whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3.5 text-xs sm:text-base font-black rounded-xl sm:rounded-2xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
             activeTab === 'cards_hub'
               ? 'bg-slate-900 text-white shadow-md'
               : 'bg-white text-slate-700 hover:text-slate-950 hover:bg-slate-50 border border-slate-200 shadow-xs'
           }`}
         >
-          <BarChart3 className="w-5 h-5 text-emerald-500" />
-          <span>1. شبكة البطاقات والأقسام الرئيسية</span>
+          <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 shrink-0" />
+          <span>1. شبكة البطاقات والأقسام</span>
         </button>
 
         <button
           onClick={() => setActiveTab('sales_cards')}
           type="button"
-          className={`flex items-center gap-2.5 px-6 py-3.5 text-base font-black rounded-2xl transition-all whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3.5 text-xs sm:text-base font-black rounded-xl sm:rounded-2xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
             activeTab === 'sales_cards'
               ? 'bg-slate-900 text-white shadow-md'
               : 'bg-white text-slate-700 hover:text-slate-950 hover:bg-slate-50 border border-slate-200 shadow-xs'
           }`}
         >
-          <Receipt className="w-5 h-5 text-blue-500" />
-          <span>2. بطاقات فواتير المبيعات ({salesInvoices.length})</span>
+          <Receipt className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 shrink-0" />
+          <span>2. فواتير المبيعات ({salesInvoices.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('stock_cards')}
           type="button"
-          className={`flex items-center gap-2.5 px-6 py-3.5 text-base font-black rounded-2xl transition-all whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3.5 text-xs sm:text-base font-black rounded-xl sm:rounded-2xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
             activeTab === 'stock_cards'
               ? 'bg-slate-900 text-white shadow-md'
               : 'bg-white text-slate-700 hover:text-slate-950 hover:bg-slate-50 border border-slate-200 shadow-xs'
           }`}
         >
-          <AlertTriangle className="w-5 h-5 text-amber-500" />
-          <span>3. بطاقات نواقص المخزون ({lowStockItems.length})</span>
+          <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
+          <span>3. نواقص المخزون ({lowStockItems.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('expiring_batches')}
           type="button"
-          className={`flex items-center gap-2.5 px-6 py-3.5 text-base font-black rounded-2xl transition-all whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3.5 text-xs sm:text-base font-black rounded-xl sm:rounded-2xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
             activeTab === 'expiring_batches'
               ? 'bg-slate-900 text-white shadow-md'
               : 'bg-white text-slate-700 hover:text-slate-950 hover:bg-slate-50 border border-slate-200 shadow-xs'
           }`}
         >
-          <Clock className="w-5 h-5 text-rose-500" />
-          <span>4. ويدجت قرب الانتهاء والتشغيلات ({expiringBatchesCount})</span>
+          <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-rose-500 shrink-0" />
+          <span>4. قرب الانتهاء ({expiringBatchesCount})</span>
         </button>
       </div>
 
@@ -218,22 +218,22 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
               {/* Stat Card 1: Treasury */}
               <div
                 onClick={() => onNavigate('treasury_dept')}
-                className="card-box p-7 border-2 border-emerald-200 hover:border-emerald-500 cursor-pointer space-y-4 group"
+                className="card-box p-4 sm:p-7 border-2 border-emerald-200 hover:border-emerald-500 cursor-pointer space-y-3 sm:space-y-4 group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-base font-bold text-slate-700">سيولة الخزائن النقدية</span>
-                  <div className="p-3 bg-emerald-100 text-emerald-800 rounded-2xl group-hover:scale-110 transition-transform">
-                    <Coins className="w-6 h-6" />
+                  <span className="text-xs sm:text-base font-bold text-slate-700">سيولة الخزائن النقدية</span>
+                  <div className="p-2 sm:p-3 bg-emerald-100 text-emerald-800 rounded-2xl group-hover:scale-110 transition-transform">
+                    <Coins className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                 </div>
-                <div className="text-3xl sm:text-4xl font-black text-emerald-800 tabular-nums">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-emerald-800 tabular-nums">
                   {formatCurrency(totalCash)}
                 </div>
-                <div className="flex items-center justify-between text-sm font-bold text-slate-500 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-slate-500 pt-2 border-t border-slate-100">
                   <span>في {cashAccounts.length} خزينة ودرج</span>
                   <span className="text-emerald-700 group-hover:translate-x-[-4px] transition-transform flex items-center">
                     صفحة قسم الخزينة ←
@@ -244,18 +244,18 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               {/* Stat Card 2: Customer Debts */}
               <div
                 onClick={() => onNavigate('customers_dept')}
-                className="card-box p-7 border-2 border-amber-200 hover:border-amber-500 cursor-pointer space-y-4 group"
+                className="card-box p-4 sm:p-7 border-2 border-amber-200 hover:border-amber-500 cursor-pointer space-y-3 sm:space-y-4 group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-base font-bold text-slate-700">مديونيات العملاء والمزارعين</span>
-                  <div className="p-3 bg-amber-100 text-amber-800 rounded-2xl group-hover:scale-110 transition-transform">
-                    <Users className="w-6 h-6" />
+                  <span className="text-xs sm:text-base font-bold text-slate-700">مديونيات العملاء والمزارعين</span>
+                  <div className="p-2 sm:p-3 bg-amber-100 text-amber-800 rounded-2xl group-hover:scale-110 transition-transform">
+                    <Users className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                 </div>
-                <div className="text-3xl sm:text-4xl font-black text-amber-800 tabular-nums">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-amber-800 tabular-nums">
                   {formatCurrency(totalCustomerDebt)}
                 </div>
-                <div className="flex items-center justify-between text-sm font-bold text-slate-500 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-slate-500 pt-2 border-t border-slate-100">
                   <span>على {customers.filter((c) => c.current_balance > 0).length} مزارع مدين</span>
                   <span className="text-amber-700 group-hover:translate-x-[-4px] transition-transform flex items-center">
                     صفحة قسم العملاء ←
@@ -266,18 +266,18 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               {/* Stat Card 3: Supplier Debts */}
               <div
                 onClick={() => onNavigate('purchases_dept')}
-                className="card-box p-7 border-2 border-blue-200 hover:border-blue-500 cursor-pointer space-y-4 group"
+                className="card-box p-4 sm:p-7 border-2 border-blue-200 hover:border-blue-500 cursor-pointer space-y-3 sm:space-y-4 group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-base font-bold text-slate-700">مستحقات شركات التوريد</span>
-                  <div className="p-3 bg-blue-100 text-blue-800 rounded-2xl group-hover:scale-110 transition-transform">
-                    <Building2 className="w-6 h-6" />
+                  <span className="text-xs sm:text-base font-bold text-slate-700">مستحقات شركات التوريد</span>
+                  <div className="p-2 sm:p-3 bg-blue-100 text-blue-800 rounded-2xl group-hover:scale-110 transition-transform">
+                    <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                 </div>
-                <div className="text-3xl sm:text-4xl font-black text-blue-900 tabular-nums">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-blue-900 tabular-nums">
                   {formatCurrency(totalSupplierDebt)}
                 </div>
-                <div className="flex items-center justify-between text-sm font-bold text-slate-500 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-slate-500 pt-2 border-t border-slate-100">
                   <span>لصالح {suppliers.filter((s) => s.current_balance > 0).length} شركة موردة</span>
                   <span className="text-blue-700 group-hover:translate-x-[-4px] transition-transform flex items-center">
                     صفحة قسم المشتريات ←
@@ -288,18 +288,18 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               {/* Stat Card 4: Low Stock Alert */}
               <div
                 onClick={() => onNavigate('inventory_dept')}
-                className="card-box p-7 border-2 border-rose-200 hover:border-rose-500 cursor-pointer space-y-4 group"
+                className="card-box p-4 sm:p-7 border-2 border-rose-200 hover:border-rose-500 cursor-pointer space-y-3 sm:space-y-4 group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-base font-bold text-slate-700">أصناف تحت حد الأمان</span>
-                  <div className="p-3 bg-rose-100 text-rose-800 rounded-2xl group-hover:scale-110 transition-transform">
-                    <AlertTriangle className="w-6 h-6" />
+                  <span className="text-xs sm:text-base font-bold text-slate-700">أصناف تحت حد الأمان</span>
+                  <div className="p-2 sm:p-3 bg-rose-100 text-rose-800 rounded-2xl group-hover:scale-110 transition-transform">
+                    <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                 </div>
-                <div className="text-3xl sm:text-4xl font-black text-rose-700 tabular-nums">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-rose-700 tabular-nums">
                   {lowStockItems.length} صنف
                 </div>
-                <div className="flex items-center justify-between text-sm font-bold text-slate-500 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-slate-500 pt-2 border-t border-slate-100">
                   <span>تحتاج إعادة طلب وتوريد</span>
                   <span className="text-rose-700 group-hover:translate-x-[-4px] transition-transform flex items-center">
                     صفحة قسم المخازن ←
@@ -310,87 +310,87 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           </div>
 
           {/* QUICK ACTION CARDS GRID - 6 Direct Action Cards */}
-          <div className="card-box p-8 sm:p-9 border-2 border-slate-200">
-            <div className="mb-6">
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900">
+          <div className="card-box p-4 sm:p-8 border-2 border-slate-200">
+            <div className="mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-2xl font-black text-slate-900">
                 بطاقات العمليات الميدانية السريعة
               </h2>
-              <p className="text-base text-slate-600 mt-1 font-medium">
+              <p className="text-xs sm:text-sm text-slate-600 mt-0.5 font-medium">
                 تنفيذ المعاملات اليومية الشائعة بنقرة واحدة داخل بطاقات تفاعلية واضحة
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-5">
               {/* Action Card 1: POS */}
               <button
                 onClick={onOpenPos}
                 type="button"
-                className="flex flex-col items-center justify-center p-6 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border-2 border-emerald-300 text-emerald-950 transition-all gap-3 cursor-pointer group active:scale-95"
+                className="flex flex-col items-center justify-center p-3 sm:p-6 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border-2 border-emerald-300 text-emerald-950 transition-all gap-2 sm:gap-3 cursor-pointer group active:scale-95"
               >
-                <div className="p-3 bg-emerald-600 text-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
-                  <ShoppingCart className="w-7 h-7" />
+                <div className="p-2 sm:p-3 bg-emerald-600 text-white rounded-xl sm:rounded-2xl shadow-xs group-hover:scale-110 transition-transform">
+                  <ShoppingCart className="w-5 h-5 sm:w-7 sm:h-7" />
                 </div>
-                <span className="text-base font-black text-center">فاتورة بيع (POS)</span>
+                <span className="text-xs sm:text-base font-black text-center truncate w-full">فاتورة بيع (POS)</span>
               </button>
 
               {/* Action Card 2: Purchases */}
               <button
                 onClick={() => onNavigate('purchases')}
                 type="button"
-                className="flex flex-col items-center justify-center p-6 rounded-2xl bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 text-blue-950 transition-all gap-3 cursor-pointer group active:scale-95"
+                className="flex flex-col items-center justify-center p-3 sm:p-6 rounded-2xl bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 text-blue-950 transition-all gap-2 sm:gap-3 cursor-pointer group active:scale-95"
               >
-                <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
-                  <Receipt className="w-7 h-7" />
+                <div className="p-2 sm:p-3 bg-blue-600 text-white rounded-xl sm:rounded-2xl shadow-xs group-hover:scale-110 transition-transform">
+                  <Receipt className="w-5 h-5 sm:w-7 sm:h-7" />
                 </div>
-                <span className="text-base font-black text-center">توريد مشتريات</span>
+                <span className="text-xs sm:text-base font-black text-center truncate w-full">توريد مشتريات</span>
               </button>
 
               {/* Action Card 3: Customer Receipt */}
               <button
                 onClick={() => onNavigate('customer_ledgers')}
                 type="button"
-                className="flex flex-col items-center justify-center p-6 rounded-2xl bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 text-amber-950 transition-all gap-3 cursor-pointer group active:scale-95"
+                className="flex flex-col items-center justify-center p-3 sm:p-6 rounded-2xl bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 text-amber-950 transition-all gap-2 sm:gap-3 cursor-pointer group active:scale-95"
               >
-                <div className="p-3 bg-amber-600 text-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
-                  <ArrowDownLeft className="w-7 h-7" />
+                <div className="p-2 sm:p-3 bg-amber-600 text-white rounded-xl sm:rounded-2xl shadow-xs group-hover:scale-110 transition-transform">
+                  <ArrowDownLeft className="w-5 h-5 sm:w-7 sm:h-7" />
                 </div>
-                <span className="text-base font-black text-center">سند قبض مزارع</span>
+                <span className="text-xs sm:text-base font-black text-center truncate w-full">سند قبض مزارع</span>
               </button>
 
               {/* Action Card 4: Operational Expense */}
               <button
                 onClick={() => onNavigate('treasury')}
                 type="button"
-                className="flex flex-col items-center justify-center p-6 rounded-2xl bg-rose-50 hover:bg-rose-100 border-2 border-rose-200 text-rose-950 transition-all gap-3 cursor-pointer group active:scale-95"
+                className="flex flex-col items-center justify-center p-3 sm:p-6 rounded-2xl bg-rose-50 hover:bg-rose-100 border-2 border-rose-200 text-rose-950 transition-all gap-2 sm:gap-3 cursor-pointer group active:scale-95"
               >
-                <div className="p-3 bg-rose-600 text-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
-                  <ArrowUpRight className="w-7 h-7" />
+                <div className="p-2 sm:p-3 bg-rose-600 text-white rounded-xl sm:rounded-2xl shadow-xs group-hover:scale-110 transition-transform">
+                  <ArrowUpRight className="w-5 h-5 sm:w-7 sm:h-7" />
                 </div>
-                <span className="text-base font-black text-center">تسجيل مصروف</span>
+                <span className="text-xs sm:text-base font-black text-center truncate w-full">تسجيل مصروف</span>
               </button>
 
               {/* Action Card 5: Warehouse Transfer */}
               <button
                 onClick={() => onNavigate('transfers')}
                 type="button"
-                className="flex flex-col items-center justify-center p-6 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-200 text-indigo-950 transition-all gap-3 cursor-pointer group active:scale-95"
+                className="flex flex-col items-center justify-center p-3 sm:p-6 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-200 text-indigo-950 transition-all gap-2 sm:gap-3 cursor-pointer group active:scale-95"
               >
-                <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
-                  <ArrowLeftRight className="w-7 h-7" />
+                <div className="p-2 sm:p-3 bg-indigo-600 text-white rounded-xl sm:rounded-2xl shadow-xs group-hover:scale-110 transition-transform">
+                  <ArrowLeftRight className="w-5 h-5 sm:w-7 sm:h-7" />
                 </div>
-                <span className="text-base font-black text-center">تحويل مخزني</span>
+                <span className="text-xs sm:text-base font-black text-center truncate w-full">تحويل مخزني</span>
               </button>
 
               {/* Action Card 6: Migrate Old Ledgers */}
               <button
                 onClick={() => onNavigate('old_ledgers')}
                 type="button"
-                className="flex flex-col items-center justify-center p-6 rounded-2xl bg-purple-50 hover:bg-purple-100 border-2 border-purple-200 text-purple-950 transition-all gap-3 cursor-pointer group active:scale-95"
+                className="flex flex-col items-center justify-center p-3 sm:p-6 rounded-2xl bg-purple-50 hover:bg-purple-100 border-2 border-purple-200 text-purple-950 transition-all gap-2 sm:gap-3 cursor-pointer group active:scale-95"
               >
-                <div className="p-3 bg-purple-600 text-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
-                  <Scale className="w-7 h-7" />
+                <div className="p-2 sm:p-3 bg-purple-600 text-white rounded-xl sm:rounded-2xl shadow-xs group-hover:scale-110 transition-transform">
+                  <Scale className="w-5 h-5 sm:w-7 sm:h-7" />
                 </div>
-                <span className="text-base font-black text-center">ترحيل الدفاتر</span>
+                <span className="text-xs sm:text-base font-black text-center truncate w-full">ترحيل الدفاتر</span>
               </button>
             </div>
           </div>

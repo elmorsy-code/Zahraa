@@ -51,6 +51,7 @@ export const PosScreen: React.FC = () => {
   // Modals
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [completedInvoice, setCompletedInvoice] = useState<SalesInvoice | null>(null);
+  const [mobilePosTab, setMobilePosTab] = useState<'products' | 'cart'>('products');
 
   useEffect(() => {
     loadData();
@@ -256,163 +257,218 @@ export const PosScreen: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[calc(100vh-13rem)] lg:h-[calc(100vh-13rem)]">
-      {/* Right Column (7 cols): Products catalog & Multi-unit selector */}
-      <div className="lg:col-span-7 flex flex-col h-full bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
-        {/* Search & Warehouse Bar */}
-        <div className="p-4 border-b border-slate-200 bg-slate-50/70 space-y-3">
-          <div className="flex items-center gap-2.5">
-            <div className="relative flex-1">
-              <Search className="absolute right-3.5 top-3 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="ابحث بالاسم، المادة الفعالة، الكود، الباركود..."
-                className="w-full pr-11 pl-4 py-2.5 text-sm md:text-base bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-              />
+    <div className="space-y-3">
+      {/* Mobile Tab Switcher (Visible on Mobile & Tablet screens < lg) */}
+      <div className="flex lg:hidden items-center bg-slate-200/80 p-1 rounded-2xl gap-1 border border-slate-300">
+        <button
+          type="button"
+          onClick={() => setMobilePosTab('products')}
+          className={`flex-1 py-2 px-3 text-xs sm:text-sm font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            mobilePosTab === 'products'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Layers className="w-4 h-4 text-emerald-600" />
+          <span>أصناف البيع ({filteredProducts.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMobilePosTab('cart')}
+          className={`flex-1 py-2 px-3 text-xs sm:text-sm font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            mobilePosTab === 'cart'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <ShoppingCart className="w-4 h-4 text-emerald-600" />
+          <span>سلة الفاتورة ({cart.length})</span>
+          {cart.length > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-600 text-white font-black tabular-nums">
+              {formatCurrency(netTotal)}
+            </span>
+          )}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 min-h-[calc(100vh-14rem)] lg:h-[calc(100vh-13rem)]">
+        {/* Right Column (7 cols): Products catalog & Multi-unit selector */}
+        <div className={`lg:col-span-7 flex flex-col h-full bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden ${
+          mobilePosTab === 'cart' ? 'hidden lg:flex' : 'flex'
+        }`}>
+          {/* Search & Warehouse Bar */}
+          <div className="p-3 sm:p-4 border-b border-slate-200 bg-slate-50/70 space-y-2.5 sm:space-y-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5">
+              <div className="relative flex-1">
+                <Search className="absolute right-3.5 top-3 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="ابحث بالاسم، المادة الفعالة، الكود، الباركود..."
+                  className="w-full pr-11 pl-4 py-2.5 text-xs sm:text-sm md:text-base bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <Store className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
+                <select
+                  value={selectedWarehouseId}
+                  onChange={(e) => setSelectedWarehouseId(e.target.value)}
+                  className="text-xs sm:text-sm py-2 sm:py-2.5 px-2.5 sm:px-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800"
+                >
+                  {warehouses.map((wh) => (
+                    <option key={wh.id} value={wh.id}>
+                      {wh.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <Store className="w-5 h-5 text-slate-600" />
-              <select
-                value={selectedWarehouseId}
-                onChange={(e) => setSelectedWarehouseId(e.target.value)}
-                className="text-sm py-2.5 px-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800"
-              >
-                {warehouses.map((wh) => (
-                  <option key={wh.id} value={wh.id}>
-                    {wh.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Category Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-sm">
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className={`px-4 py-1.5 rounded-lg font-bold whitespace-nowrap transition-colors ${
-                selectedCategory === 'all'
-                  ? 'bg-emerald-800 text-white shadow-xs'
-                  : 'bg-slate-200/80 text-slate-700 hover:bg-slate-300'
-              }`}
-            >
-              الكل ({products.length})
-            </button>
-            {categories.map((cat) => (
+            {/* Category Tabs */}
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 text-xs sm:text-sm scrollbar-none">
               <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-1.5 rounded-lg font-bold whitespace-nowrap transition-colors ${
-                  selectedCategory === cat.id
+                onClick={() => setSelectedCategory('all')}
+                className={`px-3 sm:px-4 py-1.5 rounded-lg font-bold whitespace-nowrap transition-colors shrink-0 ${
+                  selectedCategory === 'all'
                     ? 'bg-emerald-800 text-white shadow-xs'
                     : 'bg-slate-200/80 text-slate-700 hover:bg-slate-300'
                 }`}
               >
-                {cat.name}
+                الكل ({products.length})
               </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Product Cards Grid */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {filteredProducts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-center">
-              <Layers className="w-10 h-10 mb-2 stroke-1" />
-              <p className="text-sm font-bold">لا توجد منتجات مطابقة للبحث</p>
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-3 sm:px-4 py-1.5 rounded-lg font-bold whitespace-nowrap transition-colors shrink-0 ${
+                    selectedCategory === cat.id
+                      ? 'bg-emerald-800 text-white shadow-xs'
+                      : 'bg-slate-200/80 text-slate-700 hover:bg-slate-300'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {filteredProducts.map((prod) => {
-                const stockInSelectedWh = storage.getProductStock(prod.id, selectedWarehouseId);
-                const isLow = stockInSelectedWh <= prod.min_stock_alert;
-                const isOutOfStock = stockInSelectedWh <= 0;
+          </div>
 
-                const defaultUnit =
-                  prod.units?.find((u) => u.is_default_sale) || prod.units?.[0];
+          {/* Product Cards Grid */}
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 pb-20 lg:pb-4">
+            {filteredProducts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-center">
+                <Layers className="w-10 h-10 mb-2 stroke-1" />
+                <p className="text-sm font-bold">لا توجد منتجات مطابقة للبحث</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 min-[480px]:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+                {filteredProducts.map((prod) => {
+                  const stockInSelectedWh = storage.getProductStock(prod.id, selectedWarehouseId);
+                  const isLow = stockInSelectedWh <= prod.min_stock_alert;
+                  const isOutOfStock = stockInSelectedWh <= 0;
 
-                return (
-                  <div
-                    key={prod.id}
-                    onClick={() => addToCart(prod)}
-                    className={`flex flex-col justify-between p-4 rounded-2xl border-2 text-right transition-all cursor-pointer ${
-                      isOutOfStock
-                        ? 'bg-slate-50 border-slate-200 opacity-80 hover:border-slate-300'
-                        : 'bg-white border-slate-200 hover:border-emerald-500 hover:shadow-md'
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-start justify-between gap-1.5 mb-2">
-                        <span className="text-xs text-slate-500 font-bold tabular-nums bg-slate-100 px-2 py-0.5 rounded-md">{prod.code}</span>
-                        {prod.is_pesticide && (
-                          <span className="text-xs text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-md font-bold">مبيد زراعي</span>
-                        )}
-                      </div>
+                  const defaultUnit =
+                    prod.units?.find((u) => u.is_default_sale) || prod.units?.[0];
 
-                      <h4 className="text-base font-black text-slate-900 line-clamp-1 leading-snug">
-                        {prod.name}
-                      </h4>
-
-                      {prod.active_ingredient && (
-                        <p className="text-sm text-slate-500 line-clamp-1 mt-1 font-medium">
-                          {prod.active_ingredient}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-sm">
+                  return (
+                    <div
+                      key={prod.id}
+                      onClick={() => addToCart(prod)}
+                      className={`flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl border-2 text-right transition-all cursor-pointer select-none active:scale-98 ${
+                        isOutOfStock
+                          ? 'bg-slate-50 border-slate-200 opacity-80 hover:border-slate-300'
+                          : 'bg-white border-slate-200 hover:border-emerald-500 hover:shadow-md'
+                      }`}
+                    >
                       <div>
-                        <span className="font-black text-emerald-800 tabular-nums text-base">
-                          {defaultUnit ? formatCurrency(defaultUnit.sale_price) : formatCurrency(prod.default_sale_price)}
-                        </span>
-                        {defaultUnit && (
-                          <span className="text-xs text-slate-500 mr-1 font-semibold">
-                            / {defaultUnit.unit_name}
-                          </span>
+                        <div className="flex items-start justify-between gap-1.5 mb-1.5 sm:mb-2 flex-wrap">
+                          <span className="text-[11px] sm:text-xs text-slate-500 font-bold tabular-nums bg-slate-100 px-2 py-0.5 rounded-md">{prod.code}</span>
+                          <div className="flex items-center gap-1">
+                            {prod.category?.name && (
+                              <span className="text-[10px] sm:text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded font-semibold truncate max-w-[110px]">
+                                {prod.category.name}
+                              </span>
+                            )}
+                            {prod.is_pesticide && (
+                              <span className="text-[10px] sm:text-xs text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md font-bold">مبيد</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <h4 className="text-sm sm:text-base font-black text-slate-900 line-clamp-1 leading-snug">
+                          {prod.name}
+                        </h4>
+
+                        {prod.active_ingredient && (
+                          <p className="text-xs sm:text-sm text-slate-500 line-clamp-1 mt-0.5 font-medium">
+                            {prod.active_ingredient}
+                          </p>
                         )}
                       </div>
 
-                      <div className="text-sm text-left">
-                        <span className="text-slate-500 text-xs">المخزون: </span>
-                        <span
-                          className={`font-black tabular-nums ${
-                            isOutOfStock
-                              ? 'text-rose-600'
-                              : isLow
-                              ? 'text-amber-600'
-                              : 'text-slate-800'
-                          }`}
-                        >
-                          {formatQuantity(stockInSelectedWh)} {prod.base_unit_name}
-                        </span>
+                      <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm">
+                        <div>
+                          <span className="font-black text-emerald-800 tabular-nums text-sm sm:text-base">
+                            {defaultUnit ? formatCurrency(defaultUnit.sale_price) : formatCurrency(prod.default_sale_price)}
+                          </span>
+                          {defaultUnit && (
+                            <span className="text-[10px] sm:text-xs text-slate-500 mr-1 font-semibold">
+                              / {defaultUnit.unit_name}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="text-xs sm:text-sm text-left">
+                          <span className="text-slate-500 text-[10px] sm:text-xs">المخزون: </span>
+                          <span
+                            className={`font-black tabular-nums ${
+                              isOutOfStock
+                                ? 'text-rose-600'
+                                : isLow
+                                ? 'text-amber-600'
+                                : 'text-slate-800'
+                            }`}
+                          >
+                            {formatQuantity(stockInSelectedWh)} {prod.base_unit_name}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Left Column (5 cols): POS Invoice Cart & Immediate Settlement */}
-      <div className="lg:col-span-5 flex flex-col h-full bg-white rounded-2xl shadow-xs border-2 border-slate-200 overflow-hidden">
-        {/* Customer Header */}
-        <div className="p-4 bg-slate-900 text-white border-b border-slate-800 space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-sm font-bold text-slate-300">العميل / المشتري:</span>
-            <button
-              onClick={() => setShowAddCustomerModal(true)}
-              type="button"
-              className="flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 font-bold cursor-pointer"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>+ عميل جديد</span>
-            </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* Left Column (5 cols): POS Invoice Cart & Immediate Settlement */}
+        <div className={`lg:col-span-5 flex flex-col h-full bg-white rounded-2xl shadow-xs border-2 border-slate-200 overflow-hidden ${
+          mobilePosTab === 'products' ? 'hidden lg:flex' : 'flex'
+        }`}>
+          {/* Customer Header */}
+          <div className="p-3.5 sm:p-4 bg-slate-900 text-white border-b border-slate-800 space-y-2.5 sm:space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMobilePosTab('products')}
+                  className="lg:hidden text-xs font-bold text-slate-300 hover:text-white bg-slate-800 px-2.5 py-1 rounded-lg"
+                >
+                  ← كتالوج الأصناف
+                </button>
+                <span className="text-xs sm:text-sm font-bold text-slate-300">العميل / المشتري:</span>
+              </div>
+              <button
+                onClick={() => setShowAddCustomerModal(true)}
+                type="button"
+                className="flex items-center gap-1.5 text-xs sm:text-sm text-emerald-400 hover:text-emerald-300 font-bold cursor-pointer"
+              >
+                <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span>+ عميل جديد</span>
+              </button>
+            </div>
 
           <div className="flex items-center gap-2">
             <select
@@ -431,7 +487,7 @@ export const PosScreen: React.FC = () => {
               <option value="">-- عميل نقدي مباشر (بدون حساب) --</option>
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} {c.phone ? `(${c.phone})` : ''} - [الرصيد: {c.current_balance.toFixed(2)} ج.م]
+                  [{c.code}] {c.name} {c.phone ? `(${c.phone})` : ''} - [الرصيد: {c.current_balance.toFixed(2)} ج.م]
                 </option>
               ))}
             </select>
@@ -679,6 +735,31 @@ export const PosScreen: React.FC = () => {
           </div>
         </div>
       </div>
+    </div>
+
+      {/* Floating Quick-Checkout Bar on Mobile when browsing products */}
+      {mobilePosTab === 'products' && cart.length > 0 && (
+        <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-slate-900/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center justify-between animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div>
+            <div className="text-[11px] text-slate-300 font-bold flex items-center gap-1.5">
+              <ShoppingCart className="w-3.5 h-3.5 text-emerald-400" />
+              <span>السلة ({cart.length} أصناف)</span>
+            </div>
+            <div className="text-sm font-black text-emerald-400 tabular-nums">
+              {formatCurrency(netTotal)}
+            </div>
+          </div>
+
+          <button
+            onClick={() => setMobilePosTab('cart')}
+            type="button"
+            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-black rounded-xl shadow-xs cursor-pointer active:scale-95"
+          >
+            <span>استكمال الفاتورة</span>
+            <Receipt className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Sub-modals */}
       <QuickAddCustomerModal

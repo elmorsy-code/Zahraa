@@ -119,15 +119,24 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                كود العميل
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="font-semibold text-slate-700">
+                  كود العميل
+                </label>
+                <span className="text-[10px] text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded font-bold font-mono">
+                  تسلسلي تلقائي (CUST-1)
+                </span>
+              </div>
               <input
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                className="w-full px-3 py-2 font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                placeholder="CUST-1"
+                className="w-full px-3 py-2 font-mono font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
               />
+              <span className="text-[10px] text-slate-500 mt-0.5 block">
+                يبدأ الترقيم من CUST-1 ويزيد تصاعدياً تلقائياً مع كل عميل جديد
+              </span>
             </div>
 
             <div>

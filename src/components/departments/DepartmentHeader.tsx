@@ -108,51 +108,51 @@ export const DepartmentHeader: React.FC<DepartmentHeaderProps> = ({
   const theme = colorMap[themeColor] || colorMap.emerald;
 
   return (
-    <div className={`card-box border-2 ${theme.border} p-5 sm:p-6 mb-6 bg-gradient-to-b ${theme.topGradient} shadow-xs`}>
+    <div className={`card-box border-2 ${theme.border} p-3.5 sm:p-6 mb-4 sm:mb-6 bg-gradient-to-b ${theme.topGradient} shadow-xs`}>
       {/* Top Bar: Breadcrumb + Return to Dashboard */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-200/80">
-        <div className="flex items-center gap-2 text-xs sm:text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 sm:pb-4 mb-3 sm:mb-4 border-b border-slate-200/80">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
           <button
             onClick={onNavigateHome}
             type="button"
             className="flex items-center gap-1.5 font-bold text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
           >
-            <LayoutDashboard className="w-4 h-4" />
-            <span>لوحة التحكم الرئيسية</span>
+            <LayoutDashboard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden min-[420px]:inline">الرئيسية</span>
           </button>
-          <ChevronLeft className="w-4 h-4 text-slate-400" />
-          <span className="font-black text-slate-900 flex items-center gap-1.5">
-            <Layers className="w-3.5 h-3.5 text-slate-400" />
-            {title}
+          <ChevronLeft className="w-3.5 h-3.5 text-slate-400" />
+          <span className="font-black text-slate-900 flex items-center gap-1 sm:gap-1.5 truncate max-w-[200px] sm:max-w-none">
+            <Layers className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className="truncate">{title}</span>
           </span>
         </div>
 
         <button
           onClick={onNavigateHome}
           type="button"
-          className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-950 bg-white hover:bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-xl shadow-2xs transition-all cursor-pointer"
+          className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-950 bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs transition-all cursor-pointer"
         >
           <ArrowRight className="w-3.5 h-3.5" />
-          <span>العودة للرئيسية</span>
+          <span>الرئيسية</span>
         </button>
       </div>
 
       {/* Main Department Title & Action Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-start sm:items-center gap-4">
-          <div className={`w-13 h-13 sm:w-15 sm:h-15 rounded-2xl flex items-center justify-center shrink-0 shadow-md ${theme.iconBg}`}>
-            <Icon className="w-7 h-7 sm:w-8 sm:h-8" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-md ${theme.iconBg}`}>
+            <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h1 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
                 {title}
               </h1>
-              <span className={`text-[11px] sm:text-xs font-black px-2.5 py-0.5 rounded-full border ${theme.badgeBg}`}>
-                صفحة القسم المستقلة
+              <span className={`text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 rounded-full border ${theme.badgeBg}`}>
+                صفحة القسم
               </span>
             </div>
-            <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-1">
+            <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-0.5 line-clamp-2 sm:line-clamp-none">
               {subtitle} {tagline ? `— ${tagline}` : ''}
             </p>
           </div>
@@ -160,7 +160,7 @@ export const DepartmentHeader: React.FC<DepartmentHeaderProps> = ({
 
         {/* Extra Action Buttons if provided */}
         {extraActions && (
-          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
             {extraActions}
           </div>
         )}
@@ -168,9 +168,9 @@ export const DepartmentHeader: React.FC<DepartmentHeaderProps> = ({
 
       {/* Department Sub-Tabs / Tools Switcher */}
       {tabs.length > 0 && (
-        <div className="mt-5 pt-4 border-t border-slate-200/80">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            <span className="text-xs text-slate-500 font-black pl-1 shrink-0 hidden sm:inline">
+        <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-slate-200/80">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-none flex-nowrap">
+            <span className="text-xs text-slate-500 font-black pl-1 shrink-0 hidden md:inline">
               أدوات وشاشات القسم:
             </span>
             {tabs.map((tab) => {
@@ -181,17 +181,17 @@ export const DepartmentHeader: React.FC<DepartmentHeaderProps> = ({
                   key={tab.id}
                   onClick={() => onSelectSubTab(tab.id)}
                   type="button"
-                  className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-black rounded-xl transition-all cursor-pointer whitespace-nowrap select-none ${
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-black rounded-xl transition-all cursor-pointer whitespace-nowrap select-none shrink-0 ${
                     isActive
                       ? theme.activeTabBg
                       : 'bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 shadow-2xs'
                   }`}
                 >
-                  <TabIcon className="w-4 h-4 shrink-0" />
+                  <TabIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                   <span>{tab.label}</span>
                   {typeof tab.count === 'number' && (
                     <span
-                      className={`text-[10px] font-black px-2 py-0.2 rounded-full ${
+                      className={`text-[10px] font-black px-1.5 sm:px-2 py-0.2 rounded-full ${
                         isActive
                           ? 'bg-white/20 text-white'
                           : 'bg-slate-100 text-slate-600'

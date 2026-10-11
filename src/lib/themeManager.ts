@@ -570,7 +570,7 @@ export function applyThemeConfig(config: ThemeConfig): void {
 
   // Resolve 11-step color scale for primary
   const shades =
-    config.palette !== 'custom' && PRESET_SHADES[config.palette]
+    config.palette !== 'custom' && PRESET_SHADES[config.palette] && Object.keys(PRESET_SHADES[config.palette]).length > 0
       ? PRESET_SHADES[config.palette]
       : generateShadeScale(colors.primary);
 
@@ -687,6 +687,45 @@ export function applyThemeConfig(config: ThemeConfig): void {
       --theme-card-bg: ${colors.cardBg} !important;
       --theme-card-border: ${colors.cardBorder} !important;
       --theme-text-color: ${colors.textColor} !important;
+      --theme-dark-bg: ${colors.darkBg} !important;
+      --theme-dark-surface: ${colors.darkSurface} !important;
+      --theme-dark-border: ${colors.darkBorder} !important;
+    }
+
+    /* Live element transforms for immediate visual feedback */
+    .bg-emerald-600, .bg-emerald-700, .bg-emerald-800,
+    button.bg-emerald-600, button.bg-emerald-700 {
+      background-color: ${shades['600']} !important;
+    }
+    .hover\\:bg-emerald-700:hover, .hover\\:bg-emerald-800:hover {
+      background-color: ${shades['700']} !important;
+    }
+    .active\\:bg-emerald-800:active {
+      background-color: ${shades['800']} !important;
+    }
+    .text-emerald-600, .text-emerald-700, .text-emerald-800 {
+      color: ${shades['700']} !important;
+    }
+    .text-emerald-400, .text-emerald-300, .text-emerald-500 {
+      color: ${shades['500']} !important;
+    }
+    .border-emerald-300, .border-emerald-400, .border-emerald-500, .border-emerald-600 {
+      border-color: ${shades['500']} !important;
+    }
+    .border-emerald-200 {
+      border-color: ${shades['200']} !important;
+    }
+    .bg-emerald-50, .bg-emerald-100 {
+      background-color: ${shades['50']} !important;
+    }
+    .text-emerald-900, .text-emerald-950 {
+      color: ${shades['950']} !important;
+    }
+    .ring-emerald-500 {
+      --tw-ring-color: ${shades['500']} !important;
+    }
+    .focus\\:ring-emerald-500:focus, .focus\\:ring-emerald-400:focus {
+      --tw-ring-color: ${shades['500']} !important;
     }
 
     header.app-header, html.dark header.app-header, html[data-mode="dark"] header.app-header {
