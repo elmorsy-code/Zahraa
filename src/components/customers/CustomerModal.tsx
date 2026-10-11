@@ -18,6 +18,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
 }) => {
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
+  const [partnerName, setPartnerName] = useState('');
   const [phone, setPhone] = useState('');
   const [village, setVillage] = useState('');
   const [nationalId, setNationalId] = useState('');
@@ -32,15 +33,19 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     if (customerToEdit) {
       setCode(customerToEdit.code || '');
       setName(customerToEdit.name || '');
+      setPartnerName(customerToEdit.partner_name || '');
       setPhone(customerToEdit.phone || '');
       setVillage(customerToEdit.village_or_address || '');
       setNationalId(customerToEdit.national_id || '');
       setCreditLimit(customerToEdit.credit_limit?.toString() || '0');
       setOpeningBalance(customerToEdit.opening_balance?.toString() || '0');
-      setNotes(customerToEdit.notes || '');
+      // Clean notes from [شريك: ...] if present
+      const cleanNotes = (customerToEdit.notes || '').replace(/\[شريك:\s*[^\]]+\]\s*/g, '').trim();
+      setNotes(cleanNotes);
     } else {
       setCode('');
       setName('');
+      setPartnerName('');
       setPhone('');
       setVillage('');
       setNationalId('');
@@ -73,6 +78,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
         id: customerToEdit?.id,
         code: code.trim(),
         name: name.trim(),
+        partner_name: partnerName.trim() || undefined,
         phone: phone.trim(),
         village_or_address: village.trim(),
         national_id: nationalId.trim(),
@@ -141,7 +147,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
 
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
-                اسم العميل <span className="text-rose-500">*</span>
+                اسم العميل الأساسي <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -152,6 +158,33 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 font-medium"
               />
             </div>
+          </div>
+
+          {/* خانة الشريك (إن وُجد) */}
+          <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-amber-950 flex items-center gap-1.5">
+                <span>اسم الشريك (إن وُجد معه شريك)</span>
+              </label>
+              <span className="text-[11px] text-amber-800 font-medium">
+                اختياري - يظهر بين قوسين بجوار الاسم الأساسي
+              </span>
+            </div>
+            <input
+              type="text"
+              value={partnerName}
+              onChange={(e) => setPartnerName(e.target.value)}
+              placeholder="مثال: وشريكه الحاج مصطفى أو مصطفى إبراهيم"
+              className="w-full px-3 py-2 text-xs bg-white border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 font-medium text-slate-900"
+            />
+            {partnerName.trim() && (
+              <div className="text-[11px] text-amber-900 bg-white/90 p-2 rounded-lg border border-amber-200 flex items-center justify-between">
+                <span className="text-slate-500">طريقة الظهور في الفواتير وكشوف الحساب:</span>
+                <span className="font-bold text-slate-900">
+                  {name.trim() || 'اسم العميل'} <span className="text-amber-800 font-bold">({partnerName.trim()})</span>
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

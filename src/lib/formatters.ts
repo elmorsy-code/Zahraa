@@ -42,3 +42,17 @@ export function formatDateTime(dateStr: string | Date): string {
     minute: '2-digit',
   }).format(d);
 }
+
+/**
+ * دالة تنسيق اسم العميل بحيث يظهر الشريك بين قوسين بجوار الاسم الأساسي
+ * مثال: "محمد إبراهيم (شريك: أحمد علي)" أو "محمد إبراهيم (أحمد علي)"
+ */
+export function formatCustomerDisplayName(customer?: { name?: string; partner_name?: string } | null): string {
+  if (!customer || !customer.name) return '';
+  const trimmedName = customer.name.trim();
+  const trimmedPartner = customer.partner_name?.trim();
+  if (trimmedPartner) {
+    return `${trimmedName} (شريك: ${trimmedPartner})`;
+  }
+  return trimmedName;
+}

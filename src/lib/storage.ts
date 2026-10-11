@@ -191,7 +191,23 @@ class DataStorage {
       if (stockBatchesRes.data) this.stockBatches = stockBatchesRes.data;
       if (salesInvoiceBatchesRes.data) this.salesInvoiceItemBatches = salesInvoiceBatchesRes.data;
       if (stockMovementsRes.data) this.stockMovements = stockMovementsRes.data;
-      if (customersRes.data) this.customers = customersRes.data;
+      if (customersRes.data) {
+        this.customers = customersRes.data.map((c: any) => {
+          let partnerName = c.partner_name || '';
+          let cleanNotes = c.notes || '';
+          // Fallback parsing from notes if partner_name column is not populated
+          if (!partnerName && c.notes) {
+            const m = c.notes.match(/\[شريك:\s*([^\]]+)\]/);
+            if (m) {
+              partnerName = m[1].trim();
+            }
+          }
+          return {
+            ...c,
+            partner_name: partnerName || undefined,
+          };
+        });
+      }
       if (suppliersRes.data) this.suppliers = suppliersRes.data;
       if (customerLedgerRes.data) this.customerLedger = customerLedgerRes.data;
       if (supplierLedgerRes.data) this.supplierLedger = supplierLedgerRes.data;
@@ -770,48 +786,85 @@ class DataStorage {
     const supabase = getSupabaseClient();
     if (!supabase) throw new Error('الاتصال بقاعدة البيانات غير متوفر');
 
+    // Build encoded notes to ensure partner_name persists reliably across all DB environments
+    const partner = (customerData.partner_name || '').trim();
+    let rawNotes = (customerData.notes || '').replace(/\[شريك:\s*[^\]]+\]\s*/g, '').trim();
+    const encodedNotes = partner ? `[شريك: ${partner}] ${rawNotes}`.trim() : rawNotes;
+
     if (customerData.id) {
-      const { data, error } = await supabase
+      // First try updating with partner_name field; if column doesn't exist, update with encoded notes
+      let updatePayload: any = {
+        name: customerData.name,
+        partner_name: partner || null,
+        phone: customerData.phone,
+        village_or_address: customerData.village_or_address,
+        national_id: customerData.national_id,
+        notes: encodedNotes,
+        credit_limit: Number(customerData.credit_limit) || 0,
+        is_active: customerData.is_active ?? true,
+        updated_at: new Date().toISOString(),
+      };
+
+      let { data, error } = await supabase
         .from('customers')
-        .update({
-          name: customerData.name,
-          phone: customerData.phone,
-          village_or_address: customerData.village_or_address,
-          national_id: customerData.national_id,
-          notes: customerData.notes,
-          credit_limit: Number(customerData.credit_limit) || 0,
-          is_active: customerData.is_active ?? true,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', customerData.id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error && error.message?.includes('partner_name')) {
+        // Fallback without partner_name column
+        delete updatePayload.partner_name;
+        const res = await supabase
+          .from('customers')
+          .update(updatePayload)
+          .eq('id', customerData.id)
+          .select()
+          .single();
+        if (res.error) throw res.error;
+        data = res.data;
+      } else if (error) {
+        throw error;
+      }
+
       await this.hydrate();
-      return data;
+      return { ...data, partner_name: partner || undefined };
     } else {
       const code = customerData.code || (await this.getNextDocNumber('CUST'));
       const openingBal = Number(customerData.opening_balance) || 0;
 
-      const { data: newCust, error } = await supabase
+      let insertPayload: any = {
+        code,
+        name: customerData.name,
+        partner_name: partner || null,
+        phone: customerData.phone,
+        village_or_address: customerData.village_or_address,
+        national_id: customerData.national_id,
+        notes: encodedNotes,
+        credit_limit: Number(customerData.credit_limit) || 0,
+        opening_balance: openingBal,
+        current_balance: openingBal,
+        is_active: customerData.is_active ?? true,
+      };
+
+      let { data: newCust, error } = await supabase
         .from('customers')
-        .insert({
-          code,
-          name: customerData.name,
-          phone: customerData.phone,
-          village_or_address: customerData.village_or_address,
-          national_id: customerData.national_id,
-          notes: customerData.notes,
-          credit_limit: Number(customerData.credit_limit) || 0,
-          opening_balance: openingBal,
-          current_balance: openingBal,
-          is_active: customerData.is_active ?? true,
-        })
+        .insert(insertPayload)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error && error.message?.includes('partner_name')) {
+        delete insertPayload.partner_name;
+        const res = await supabase
+          .from('customers')
+          .insert(insertPayload)
+          .select()
+          .single();
+        if (res.error) throw res.error;
+        newCust = res.data;
+      } else if (error) {
+        throw error;
+      }
 
       // If opening balance > 0, log customer ledger entry
       if (openingBal !== 0) {
@@ -828,7 +881,7 @@ class DataStorage {
       }
 
       await this.hydrate();
-      return newCust;
+      return { ...newCust, partner_name: partner || undefined };
     }
   }
 

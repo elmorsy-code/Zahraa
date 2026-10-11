@@ -141,6 +141,7 @@ export interface Customer {
   id: string;
   code: string;
   name: string;
+  partner_name?: string; // الشريك (إن وُجد) يظهر بين قوسين بجوار اسم العميل
   phone?: string;
   village_or_address?: string;
   national_id?: string;
