@@ -689,6 +689,11 @@ export function applyThemeConfig(config: ThemeConfig): void {
       --theme-text-color: ${colors.textColor} !important;
     }
 
+    header.app-header, html.dark header.app-header, html[data-mode="dark"] header.app-header {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+
     body {
       background-color: var(--theme-page-bg, #f8fafc) !important;
       color: var(--theme-text-color, #0f172a) !important;
@@ -703,10 +708,6 @@ export function applyThemeConfig(config: ThemeConfig): void {
     html.dark body, html[data-mode="dark"] body {
       background-color: ${colors.pageBg} !important;
       color: ${colors.textColor} !important;
-    }
-    html.dark header, html[data-mode="dark"] header {
-      background-color: ${colors.cardBg} !important;
-      border-color: ${colors.cardBorder} !important;
     }
     html.dark .card-box, html[data-mode="dark"] .card-box {
       background-color: ${colors.cardBg} !important;
