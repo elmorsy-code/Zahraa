@@ -16,7 +16,9 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
   customerToEdit,
   onSaved,
 }) => {
+  const PREFIX_KEY = 'customer_code_prefix';
   const [code, setCode] = useState('');
+  const [prefix, setPrefix] = useState('CUST');
   const [name, setName] = useState('');
   const [partnerName, setPartnerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -32,6 +34,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     let isMounted = true;
     if (customerToEdit) {
       setCode(customerToEdit.code || '');
+      setPrefix('');
       setName(customerToEdit.name || '');
       setPartnerName(customerToEdit.partner_name || '');
       setPhone(customerToEdit.phone || '');
@@ -52,7 +55,12 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
       setCreditLimit('10000');
       setOpeningBalance('0');
       setNotes('');
-      storage.getNextDocNumber('CUST').then((nextCode) => {
+      let savedPrefix = 'CUST';
+      try {
+        savedPrefix = localStorage.getItem(PREFIX_KEY) || 'CUST';
+      } catch {}
+      setPrefix(savedPrefix);
+      storage.getNextDocNumber('CUST', savedPrefix).then((nextCode) => {
         if (isMounted) setCode(nextCode);
       });
     }
@@ -62,6 +70,14 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     };
   }, [customerToEdit, isOpen]);
 
+  const handlePrefixChange = async (value: string) => {
+    const clean = value.replace(/\s+/g, '');
+    setPrefix(clean);
+    if (!clean.replace(/-/g, '')) return;
+    const next = await storage.getNextDocNumber('CUST', clean);
+    setCode(next);
+  };
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,6 +85,12 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     if (!name.trim()) {
       setError('اسم العميل مطلوب');
       return;
+    }
+
+    if (!customerToEdit && prefix.trim()) {
+      try {
+        localStorage.setItem(PREFIX_KEY, prefix.trim().replace(/-+$/g, ''));
+      } catch {}
     }
 
     setLoading(true);
@@ -130,9 +152,21 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                   كود العميل
                 </label>
                 <span className="text-[10px] text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded font-bold font-mono">
-                  تسلسلي تلقائي (CUST-1)
+                  تسلسلي تلقائي
                 </span>
               </div>
+              {!customerToEdit && (
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[11px] text-slate-600 shrink-0">البادئة:</span>
+                  <input
+                    type="text"
+                    value={prefix}
+                    onChange={(e) => handlePrefixChange(e.target.value)}
+                    placeholder="CUST"
+                    className="w-full px-2 py-1.5 font-mono font-bold text-slate-800 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              )}
               <input
                 type="text"
                 value={code}
@@ -141,7 +175,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 className="w-full px-3 py-2 font-mono font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
               />
               <span className="text-[10px] text-slate-500 mt-0.5 block">
-                يبدأ الترقيم من CUST-1 ويزيد تصاعدياً تلقائياً مع كل عميل جديد
+                اكتب أي بادئة (مثلاً ZAH) والرقم يكمل تلقائياً: ZAH-1، ZAH-2... وهتتحفظ للعميل الجاي
               </span>
             </div>
 
