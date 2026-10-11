@@ -413,3 +413,50 @@
     margin: 0 !important;
   }
 }
+
+
+/* ===== Responsive hardening: works on any screen size ===== */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+img, svg, video, canvas {
+  max-width: 100%;
+}
+
+/* Modal overlays: scroll when the dialog is taller than the screen (small phones, landscape, short laptops) */
+.fixed.inset-0.flex.items-center.justify-center {
+  overflow-y: auto;
+  align-items: safe center;
+  overscroll-behavior: contain;
+}
+.fixed.inset-0.flex.items-center.justify-center > div {
+  max-width: 100%;
+}
+
+/* Wide tables scroll sideways inside their own container instead of breaking the page */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* Phones: stop iOS from zooming into inputs, bigger tap targets */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  button {
+    touch-action: manipulation;
+  }
+}
+
+/* Very large screens: keep content centered and readable */
+@media (min-width: 2200px) {
+  html { font-size: 17px; }
+}
