@@ -14,6 +14,9 @@ import { CashAccount, CashTransaction, Expense } from '../../types/database';
 import { storage } from '../../lib/storage';
 import { formatCurrency, formatDateTime } from '../../lib/formatters';
 import { ExpenseModal } from './ExpenseModal';
+import { authService } from '../../lib/auth';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
+import { Trash2 } from 'lucide-react';
 
 interface TreasuryScreenProps {
   onOpenCustomerPayment?: () => void;
@@ -27,6 +30,8 @@ export const TreasuryScreen: React.FC<TreasuryScreenProps> = ({
   const [cashAccounts, setCashAccounts] = useState<CashAccount[]>([]);
   const [transactions, setTransactions] = useState<CashTransaction[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null);
+  const isAdmin = authService.getCurrentUser()?.role === 'admin';
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<'transactions' | 'expenses'>('transactions');
   const [directionFilter, setDirectionFilter] = useState<'all' | 'in' | 'out'>('all');
@@ -288,12 +293,13 @@ export const TreasuryScreen: React.FC<TreasuryScreenProps> = ({
                   <th className="py-3 px-3">المستلم / صُرف إلى</th>
                   <th className="py-3 px-3">ملاحظات وبيان المصروف</th>
                   <th className="py-3 px-3 text-left">المبلغ المصروف</th>
+                  <th className="py-3 px-3 text-center w-12"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {expenses.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-10 text-center text-slate-400">
+                    <td colSpan={7} className="py-10 text-center text-slate-400">
                       لا توجد مصروفات مسجلة
                     </td>
                   </tr>
@@ -318,6 +324,18 @@ export const TreasuryScreen: React.FC<TreasuryScreenProps> = ({
                       <td className="py-2.5 px-3 text-left font-mono font-bold text-rose-700 text-sm">
                         {formatCurrency(exp.amount)}
                       </td>
+                      <td className="py-2.5 px-3 text-center">
+{isAdmin && (
+  <button
+    type="button"
+    onClick={() => setDeleteTarget(exp)}
+    className="p-1.5 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
+    title="حذف المصروف"
+  >
+    <Trash2 className="w-4 h-4" />
+  </button>
+)}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -326,6 +344,16 @@ export const TreasuryScreen: React.FC<TreasuryScreenProps> = ({
           </div>
         </div>
       )}
+
+
+      <ConfirmDeleteModal
+        isOpen={!!deleteTarget}
+        title="حذف مصروف"
+        itemName={deleteTarget?.expense_number + ' - ' + deleteTarget?.category}
+        description="سيتم إرجاع مبلغ المصروف إلى رصيد الخزينة وحذف حركة الخزينة المرتبطة به."
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => storage.deleteExpense(deleteTarget!.id)}
+      />
 
       <ExpenseModal
         isOpen={expenseModalOpen}
