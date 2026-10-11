@@ -1345,24 +1345,24 @@ class DataStorage {
     }
   }
 
+  public getCustomerDeletionImpact(id: string): { invoices: number; returns: number; payments: number; balance: number } {
+    const cust = this.customers.find((c) => c.id === id);
+    return {
+      invoices: this.salesInvoices.filter((i) => i.customer_id === id).length,
+      returns: this.salesReturns.filter((r) => r.customer_id === id).length,
+      payments: this.customerPayments.filter((p) => p.customer_id === id).length,
+      balance: cust?.current_balance || 0,
+    };
+  }
+
+  // حذف عميل نهائياً مع فواتيره ودفعاته، مع عكس أثرها على المخزون والخزينة (ذرّي في قاعدة البيانات)
   public async deleteCustomer(id: string): Promise<{ success: boolean; error?: string }> {
     const supabase = getSupabaseClient();
     if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
-
-    const cust = this.customers.find((c) => c.id === id);
-    const hasInvoices = this.salesInvoices.some((inv) => inv.customer_id === id);
-    const hasPayments = this.customerPayments.some((p) => p.customer_id === id);
-    const hasMovementsInLedger = this.customerLedger.some((l) => l.customer_id === id && l.entry_type !== 'opening_balance');
-    if (hasInvoices || hasPayments || hasMovementsInLedger || (cust && Math.abs(cust.current_balance || 0) > 0.0001)) {
-      return {
-        success: false,
-        error: 'لا يمكن حذف العميل لأن له فواتير أو دفعات أو رصيد غير صفري. يمكنك إيقافه بدل حذفه من شاشة التعديل.',
-      };
-    }
-
     try {
-      const { error } = await supabase.from('customers').delete().eq('id', id);
+      const { data, error } = await supabase.rpc('delete_customer_full', { p_customer_id: id });
       if (error) return { success: false, error: this.friendlyDeleteError(error) };
+      if (data && data.success === false) return { success: false, error: data.error || 'فشل حذف العميل' };
       await this.hydrate();
       return { success: true };
     } catch (err: any) {
