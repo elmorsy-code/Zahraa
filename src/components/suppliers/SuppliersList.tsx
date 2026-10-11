@@ -6,6 +6,7 @@ import {
   FileSpreadsheet,
   Coins,
   Edit,
+  Trash2,
   Phone,
   Send,
   Download,
@@ -19,6 +20,8 @@ import {
 } from 'lucide-react';
 import { Supplier } from '../../types/database';
 import { storage } from '../../lib/storage';
+import { authService } from '../../lib/auth';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { formatCurrency, formatDate } from '../../lib/formatters';
 import { exportToCsv } from '../../lib/exportUtils';
 import { SupplierModal } from './SupplierModal';
@@ -36,6 +39,8 @@ export const SuppliersList: React.FC = () => {
   // Modals
   const [supplierModalOpen, setSupplierModalOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Supplier | null>(null);
+  const isAdmin = authService.getCurrentUser()?.role === 'admin';
   const [selectedLedgerSupplier, setSelectedLedgerSupplier] = useState<Supplier | null>(null);
   const [selectedPaymentSupplier, setSelectedPaymentSupplier] = useState<Supplier | null>(null);
 
@@ -365,6 +370,16 @@ export const SuppliersList: React.FC = () => {
                           >
                             <Edit className="w-4 h-4" />
                           </button>
+{isAdmin && (
+  <button
+    type="button"
+    onClick={() => setDeleteTarget(supplier)}
+    className="p-1.5 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
+    title="حذف المورد"
+  >
+    <Trash2 className="w-4 h-4" />
+  </button>
+)}
                         </div>
                       </td>
                     </tr>
@@ -531,6 +546,16 @@ export const SuppliersList: React.FC = () => {
           </div>
         </div>
       )}
+
+
+      <ConfirmDeleteModal
+        isOpen={!!deleteTarget}
+        title="حذف مورد"
+        itemName={deleteTarget?.name}
+        description="يتم الحذف فقط للمورد الذي ليس له فواتير أو دفعات ورصيده صفر."
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => storage.deleteSupplier(deleteTarget!.id)}
+      />
 
       {/* Supplier Create / Edit Modal */}
       <SupplierModal
