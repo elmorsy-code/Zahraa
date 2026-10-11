@@ -51,6 +51,7 @@ export const CustomersList: React.FC<CustomersListProps> = ({ initialOpenLedger 
     const matchesSearch =
       !q ||
       c.name.toLowerCase().includes(q) ||
+      (c.partner_name && c.partner_name.toLowerCase().includes(q)) ||
       c.code.toLowerCase().includes(q) ||
       (c.phone && c.phone.includes(q)) ||
       (c.village_or_address && c.village_or_address.toLowerCase().includes(q));
@@ -175,7 +176,14 @@ export const CustomersList: React.FC<CustomersListProps> = ({ initialOpenLedger 
                       </td>
 
                       <td className="py-3.5 px-4 sm:px-5">
-                        <div className="font-bold text-slate-900 text-sm">{customer.name}</div>
+                        <div className="font-bold text-slate-900 text-sm">
+                          {customer.name}
+                          {customer.partner_name && (
+                            <span className="font-semibold text-emerald-700 mr-1.5">
+                              ({customer.partner_name})
+                            </span>
+                          )}
+                        </div>
                         {customer.phone && (
                           <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-1 tabular-nums">
                             <Phone className="w-3.5 h-3.5 text-slate-400" />
