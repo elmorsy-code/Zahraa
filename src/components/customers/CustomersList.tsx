@@ -46,15 +46,31 @@ export const CustomersList: React.FC<CustomersListProps> = ({ initialOpenLedger 
     setCustomers(storage.getCustomers());
   };
 
+  // توحيد النص العربي: يشيل التشكيل والتطويل ويوحّد (أ إ آ ٱ → ا) و(ة → ه) و(ى → ي) و(ؤ → و) و(ئ → ي) والأرقام الهندية
+  const normalize = (text: string) =>
+    (text || '')
+      .toLowerCase()
+      .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+      .replace(/[أإآٱ]/g, 'ا')
+      .replace(/ة/g, 'ه')
+      .replace(/ى/g, 'ي')
+      .replace(/ؤ/g, 'و')
+      .replace(/ئ/g, 'ي')
+      .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+      .replace(/\s+/g, ' ')
+      .trim();
+
   const filtered = customers.filter((c) => {
-    const q = search.toLowerCase().trim();
+    const q = normalize(search);
+    // كل كلمة في البحث لازم تكون موجودة في أي مكان (الاسم/الشريك/الكود/التليفون/العنوان) بأي ترتيب
+    const haystack = normalize(
+      [c.name, c.partner_name, c.code, c.phone, c.village_or_address].filter(Boolean).join(' ')
+    );
+    // ولو الفرق في المسافات بس (عبدالرحمن = عبد الرحمن) نقارن من غير مسافات
     const matchesSearch =
       !q ||
-      c.name.toLowerCase().includes(q) ||
-      (c.partner_name && c.partner_name.toLowerCase().includes(q)) ||
-      c.code.toLowerCase().includes(q) ||
-      (c.phone && c.phone.includes(q)) ||
-      (c.village_or_address && c.village_or_address.toLowerCase().includes(q));
+      q.split(' ').every((word) => haystack.includes(word)) ||
+      haystack.replace(/ /g, '').includes(q.replace(/ /g, ''));
 
     const matchesDebt = !filterDebtorsOnly || c.current_balance > 0;
     return matchesSearch && matchesDebt;
