@@ -112,8 +112,13 @@ export const CustomerLedgerModal: React.FC<CustomerLedgerModalProps> = ({
               <FileSpreadsheet className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-bold text-base sm:text-lg">
-                كشف حساب تفصيلي: {customer.name}
+              <h3 className="font-bold text-base sm:text-lg flex items-center gap-2 flex-wrap">
+                <span>كشف حساب تفصيلي: {customer.name}</span>
+                {customer.partner_name && (
+                  <span className="text-xs font-bold text-amber-300 bg-amber-950/60 border border-amber-500/40 px-2 py-0.5 rounded-lg">
+                    (شريك: {customer.partner_name})
+                  </span>
+                )}
               </h3>
               <p className="text-xs text-slate-300 font-mono mt-0.5">
                 كود العميل: {customer.code}

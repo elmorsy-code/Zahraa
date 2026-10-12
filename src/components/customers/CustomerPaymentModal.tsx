@@ -92,7 +92,14 @@ export const CustomerPaymentModal: React.FC<CustomerPaymentModalProps> = ({
           <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg">
             <div className="flex justify-between items-center mb-1">
               <span className="text-slate-600 font-medium">اسم العميل:</span>
-              <span className="font-bold text-slate-900 text-sm">{customer.name}</span>
+              <span className="font-bold text-slate-900 text-sm flex items-center gap-1.5 flex-wrap">
+                <span>{customer.name}</span>
+                {customer.partner_name && (
+                  <span className="text-xs font-bold text-amber-800 bg-amber-100 border border-amber-200 px-1.5 py-0.2 rounded">
+                    (شريك: {customer.partner_name})
+                  </span>
+                )}
+              </span>
             </div>
             <div className="flex justify-between items-center text-[11px]">
               <span className="text-slate-500">المديونية الحالية على العميل:</span>

@@ -97,6 +97,7 @@ export const CustomerAccountsReport: React.FC = () => {
         const matchesSearch =
           !q ||
           item.customer.name.toLowerCase().includes(q) ||
+          (item.customer.partner_name && item.customer.partner_name.toLowerCase().includes(q)) ||
           item.customer.code.toLowerCase().includes(q) ||
           (item.customer.phone && item.customer.phone.includes(q)) ||
           (item.customer.village_or_address && item.customer.village_or_address.toLowerCase().includes(q));
@@ -510,7 +511,14 @@ export const CustomerAccountsReport: React.FC = () => {
                     >
                       {/* Name & Code */}
                       <td className="py-3.5 px-4 sm:px-5">
-                        <div className="font-bold text-slate-900 text-sm">{item.customer.name}</div>
+                        <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5 flex-wrap">
+                          <span>{item.customer.name}</span>
+                          {item.customer.partner_name && (
+                            <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded">
+                              (شريك: {item.customer.partner_name})
+                            </span>
+                          )}
+                        </div>
                         <span className="tabular-nums text-xs text-slate-400 mt-0.5 block">
                           {item.customer.code}
                         </span>

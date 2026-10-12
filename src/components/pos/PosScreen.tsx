@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Product, Customer, SalesInvoice, ProductUnit } from '../../types/database';
 import { storage } from '../../lib/storage';
-import { formatCurrency, formatQuantity } from '../../lib/formatters';
+import { formatCurrency, formatQuantity, formatCustomerDisplayName } from '../../lib/formatters';
 import { QuickAddCustomerModal } from './QuickAddCustomerModal';
 import { InvoiceReceiptModal } from './InvoiceReceiptModal';
 
@@ -210,7 +210,7 @@ export const PosScreen: React.FC = () => {
     setErrorMessage('');
 
     try {
-      const customerName = selectedCustomer ? selectedCustomer.name : customCustomerName.trim() || 'عميل نقدي';
+      const customerName = selectedCustomer ? formatCustomerDisplayName(selectedCustomer) : customCustomerName.trim() || 'عميل نقدي';
       const defaultCash = cashAccounts.find((c) => c.is_primary)?.id || cashAccounts[0]?.id;
 
       const result = await storage.processSaleAtomic({
@@ -487,7 +487,7 @@ export const PosScreen: React.FC = () => {
               <option value="">-- عميل نقدي مباشر (بدون حساب) --</option>
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
-                  [{c.code}] {c.name} {c.phone ? `(${c.phone})` : ''} - [الرصيد: {c.current_balance.toFixed(2)} ج.م]
+                  [{c.code}] {c.name}{c.partner_name ? ` (شريك: ${c.partner_name})` : ''} {c.phone ? `(${c.phone})` : ''} - [الرصيد: {c.current_balance.toFixed(2)} ج.م]
                 </option>
               ))}
             </select>
