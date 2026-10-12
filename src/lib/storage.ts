@@ -1408,16 +1408,6 @@ class DataStorage {
     const supabase = getSupabaseClient();
     if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
 
-    const inSales = this.salesInvoices.some((inv) => (inv.items || []).some((i) => i.product_id === id));
-    const inPurchases = this.purchaseInvoices.some((inv) => (inv.items || []).some((i) => i.product_id === id));
-    const hasMovements = this.stockMovements.some((m) => m.product_id === id);
-    if (inSales || inPurchases || hasMovements) {
-      return {
-        success: false,
-        error: 'لا يمكن حذف المنتج لأن له فواتير أو حركات مخزون سابقة. يمكنك إيقافه بدل حذفه من شاشة التعديل.',
-      };
-    }
-
     try {
       const { error } = await supabase.from('products').delete().eq('id', id);
       if (error) return { success: false, error: this.friendlyDeleteError(error) };
@@ -1470,17 +1460,6 @@ class DataStorage {
     const supabase = getSupabaseClient();
     if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
 
-    const sup = this.suppliers.find((s) => s.id === id);
-    const hasInvoices = this.purchaseInvoices.some((inv) => inv.supplier_id === id);
-    const hasPayments = this.supplierPayments.some((p) => p.supplier_id === id);
-    const hasMovementsInLedger = this.supplierLedger.some((l) => l.supplier_id === id && l.entry_type !== 'opening_balance');
-    if (hasInvoices || hasPayments || hasMovementsInLedger || (sup && Math.abs(sup.current_balance || 0) > 0.0001)) {
-      return {
-        success: false,
-        error: 'لا يمكن حذف المورد لأن له فواتير أو دفعات أو رصيد غير صفري. يمكنك إيقافه بدل حذفه من شاشة التعديل.',
-      };
-    }
-
     try {
       const { error } = await supabase.from('suppliers').delete().eq('id', id);
       if (error) return { success: false, error: this.friendlyDeleteError(error) };
@@ -1509,10 +1488,6 @@ class DataStorage {
     const supabase = getSupabaseClient();
     if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
 
-    const entry = this.oldLedgers.find((e) => e.id === id);
-    if (entry?.is_transferred_to_system) {
-      return { success: false, error: 'لا يمكن حذف قيد تم ترحيله للنظام' };
-    }
     try {
       const { error } = await supabase.from('old_ledgers').delete().eq('id', id);
       if (error) return { success: false, error: this.friendlyDeleteError(error) };
