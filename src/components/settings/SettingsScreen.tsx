@@ -668,14 +668,16 @@ export const SettingsScreen: React.FC = () => {
                   type="number"
                   min="0"
                   max="100"
-                  step="0.5"
-                  value={settings.pos_settings.tax_percentage}
+                  step="any"
+                  inputMode="decimal"
+                  value={settings.pos_settings.tax_percentage === 0 ? '' : settings.pos_settings.tax_percentage}
+                  onFocus={(e) => e.target.select()}
                   onChange={(e) =>
                     setSettings({
                       ...settings,
                       pos_settings: {
                         ...settings.pos_settings,
-                        tax_percentage: parseFloat(e.target.value) || 0,
+                        tax_percentage: e.target.value === '' ? 0 : parseFloat(e.target.value) || 0,
                       },
                     })
                   }

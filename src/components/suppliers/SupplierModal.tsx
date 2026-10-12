@@ -36,7 +36,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
       setPhone(supplierToEdit.phone || '');
       setAddress(supplierToEdit.address || '');
       setTaxNumber(supplierToEdit.tax_number || '');
-      setOpeningBalance(supplierToEdit.opening_balance?.toString() || '0');
+      setOpeningBalance(supplierToEdit.opening_balance ? supplierToEdit.opening_balance.toString() : '');
       setNotes(supplierToEdit.notes || '');
     } else {
       setCode('');
@@ -45,7 +45,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
       setPhone('');
       setAddress('');
       setTaxNumber('');
-      setOpeningBalance('0');
+      setOpeningBalance('');
       setNotes('');
       storage.getNextDocNumber('SUPP').then((nextCode) => {
         if (isMounted) setCode(nextCode);
@@ -181,8 +181,8 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
               <input
                 type="text"
                 value={taxNumber}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setTaxNumber(e.target.value)}
-                placeholder="300-400-500"
                 className="w-full px-3 py-2 font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -193,9 +193,11 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
               </label>
               <input
                 type="number"
-                step="0.01"
+                step="any"
+                inputMode="decimal"
                 disabled={Boolean(supplierToEdit)}
                 value={openingBalance}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setOpeningBalance(e.target.value)}
                 className="w-full px-3 py-2 font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100"
               />
@@ -209,8 +211,8 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
             <input
               type="text"
               value={address}
+              onFocus={(e) => e.target.select()}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="المنطقة الصناعية، القاهرة، طنطا..."
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
             />
           </div>

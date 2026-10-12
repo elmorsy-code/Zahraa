@@ -186,35 +186,62 @@ const allDepartments: Department[] = [
     ],
   },
   {
-    id: 'inventory_dept',
-    title: 'المخازن والأصناف',
-    subtitle: 'الجرد والتحويل',
-    tagline: 'الرصيد والوحدات والمستودعات',
-    icon: Warehouse,
-    defaultTab: 'inventory_dept',
+    id: 'shop_dept',
+    title: 'محل البيع المباشر',
+    subtitle: 'المبيعات والأصناف',
+    tagline: 'مخزون وبضاعة المحل ونقاط البيع',
+    icon: Store,
+    defaultTab: 'warehouse_shop',
     theme: {
-      colorName: 'teal',
-      iconBg: 'bg-teal-50',
-      iconText: 'text-teal-700',
-      iconBorder: 'border-teal-200',
-      activeBg: 'bg-gradient-to-b from-teal-50/70 via-white to-white',
-      activeBorder: 'border-teal-500',
-      activeRing: 'ring-teal-500/20',
-      activeBar: 'bg-teal-500',
-      activeText: 'text-teal-950',
-      activeBadgeBg: 'bg-teal-100',
-      activeBadgeText: 'text-teal-800',
-      subTabActiveBg: 'bg-teal-600 hover:bg-teal-700',
+      colorName: 'emerald',
+      iconBg: 'bg-emerald-50',
+      iconText: 'text-emerald-700',
+      iconBorder: 'border-emerald-200',
+      activeBg: 'bg-gradient-to-b from-emerald-50/70 via-white to-white',
+      activeBorder: 'border-emerald-500',
+      activeRing: 'ring-emerald-500/20',
+      activeBar: 'bg-emerald-500',
+      activeText: 'text-emerald-950',
+      activeBadgeBg: 'bg-emerald-100',
+      activeBadgeText: 'text-emerald-800',
+      subTabActiveBg: 'bg-emerald-600 hover:bg-emerald-700',
       subTabActiveText: 'text-white',
-      subTabActiveRing: 'ring-teal-700',
+      subTabActiveRing: 'ring-emerald-700',
     },
     tabs: [
-      { id: 'inventory_dept', label: 'صفحة قسم المخازن', icon: LayoutDashboard },
-      { id: 'products', label: 'دليل الأصناف والوحدات', icon: PackageCheck },
-      { id: 'warehouse_main', label: 'المستودع الرئيسي', icon: Warehouse },
-      { id: 'warehouse_shop', label: 'مخزون محل البيع', icon: Store },
-      { id: 'transfers', label: 'التحويل بين المخازن', icon: ArrowLeftRight },
-      { id: 'stock_movements', label: 'سجل حركة المخزون', icon: History },
+      { id: 'warehouse_shop', label: 'مخزون المحل', icon: Store },
+      { id: 'pos', label: 'نقطة البيع (POS)', icon: ShoppingCart },
+      { id: 'sales', label: 'فواتير بيع المحل', icon: Receipt },
+      { id: 'products', label: 'دليل المنتجات والأسعار', icon: PackageCheck },
+    ],
+  },
+  {
+    id: 'warehouse_dept',
+    title: 'المستودع الرئيسي',
+    subtitle: 'المخزن المنفصل',
+    tagline: 'بضاعة المستودع وحركات المخزن',
+    icon: Warehouse,
+    defaultTab: 'warehouse_main',
+    theme: {
+      colorName: 'blue',
+      iconBg: 'bg-blue-50',
+      iconText: 'text-blue-700',
+      iconBorder: 'border-blue-200',
+      activeBg: 'bg-gradient-to-b from-blue-50/70 via-white to-white',
+      activeBorder: 'border-blue-500',
+      activeRing: 'ring-blue-500/20',
+      activeBar: 'bg-blue-500',
+      activeText: 'text-blue-950',
+      activeBadgeBg: 'bg-blue-100',
+      activeBadgeText: 'text-blue-800',
+      subTabActiveBg: 'bg-blue-600 hover:bg-blue-700',
+      subTabActiveText: 'text-white',
+      subTabActiveRing: 'ring-blue-700',
+    },
+    tabs: [
+      { id: 'warehouse_main', label: 'بضاعة ومخزون المخزن', icon: Warehouse },
+      { id: 'purchases', label: 'وارد وتوريد المخزن', icon: Truck },
+      { id: 'stock_movements', label: 'سجل حركات المخزن', icon: History },
     ],
   },
   {
@@ -339,11 +366,17 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
           value: formatCurrency(totalSupplierDues),
           isAlert: false,
         };
-      case 'inventory_dept':
+      case 'shop_dept':
         return {
-          label: lowStockCount > 0 ? 'نواقص المخزون' : 'الأصناف',
-          value: lowStockCount > 0 ? `${lowStockCount} صنف ناقص` : `${products.length} صنف`,
-          isAlert: lowStockCount > 0,
+          label: 'مخزون المحل',
+          value: `${products.reduce((sum, p) => sum + (p.stock_shop || 0), 0)} وحدة`,
+          isAlert: false,
+        };
+      case 'warehouse_dept':
+        return {
+          label: 'مخزون المستودع',
+          value: `${products.reduce((sum, p) => sum + (p.stock_warehouse || 0), 0)} وحدة`,
+          isAlert: false,
         };
       case 'treasury_dept':
         return {
@@ -395,16 +428,9 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
             <div>
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <h2 className="text-xs sm:text-base font-black text-slate-900 leading-tight">
-                  أقسام المنظومة الرئيسية (الصفحات المستقلة)
+                  أقسام المنظومة
                 </h2>
-                <span className="hidden md:inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  <Sparkles className="w-3 h-3 text-emerald-600" />
-                  لكل قسم صفحته المستقلة
-                </span>
               </div>
-              <p className="text-[10px] sm:text-xs text-slate-500 font-medium line-clamp-1">
-                انقر على أي قسم لفتح صفحته المخصصة ومؤشراته وأدواته المتكاملة
-              </p>
             </div>
           </div>
 

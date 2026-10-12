@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Search,
   ShoppingCart,
@@ -11,6 +11,11 @@ import {
   RotateCcw,
   Store,
   Layers,
+  Package,
+  ChevronDown,
+  Check,
+  X,
+  User,
 } from 'lucide-react';
 import { Product, Customer, SalesInvoice, ProductUnit } from '../../types/database';
 import { storage } from '../../lib/storage';
@@ -42,7 +47,7 @@ export const PosScreen: React.FC = () => {
   const [customCustomerName, setCustomCustomerName] = useState<string>('عميل نقدي سريع');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentType, setPaymentType] = useState<'cash' | 'credit' | 'partial'>('cash');
-  const [discountAmount, setDiscountAmount] = useState<string>('0');
+  const [discountAmount, setDiscountAmount] = useState<string>('');
   const [paidAmountInput, setPaidAmountInput] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,6 +57,49 @@ export const PosScreen: React.FC = () => {
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [completedInvoice, setCompletedInvoice] = useState<SalesInvoice | null>(null);
   const [mobilePosTab, setMobilePosTab] = useState<'products' | 'cart'>('products');
+
+  // Searchable Customer Combobox State
+  const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
+  const [customerSearchText, setCustomerSearchText] = useState('');
+  const customerDropdownRef = useRef<HTMLDivElement>(null);
+  const customerSearchInputRef = useRef<HTMLInputElement>(null);
+
+  // Close customer dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        customerDropdownRef.current &&
+        !customerDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsCustomerDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Autofocus customer search input when dropdown opens
+  useEffect(() => {
+    if (isCustomerDropdownOpen) {
+      setTimeout(() => {
+        customerSearchInputRef.current?.focus();
+      }, 50);
+    } else {
+      setCustomerSearchText('');
+    }
+  }, [isCustomerDropdownOpen]);
+
+  const handleSelectCustomer = (customer: Customer | null) => {
+    if (customer) {
+      setSelectedCustomerId(customer.id);
+      setCustomCustomerName(customer.name);
+    } else {
+      setSelectedCustomerId('');
+      setCustomCustomerName('عميل نقدي سريع');
+    }
+    setIsCustomerDropdownOpen(false);
+    setCustomerSearchText('');
+  };
 
   useEffect(() => {
     loadData();
@@ -80,6 +128,19 @@ export const PosScreen: React.FC = () => {
   const settings = storage.getSettings();
 
   const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
+
+  // Filter customers for POS customer search
+  const filteredCustomers = customers.filter((c) => {
+    if (!customerSearchText.trim()) return true;
+    const q = customerSearchText.toLowerCase().trim();
+    return (
+      c.name.toLowerCase().includes(q) ||
+      (c.partner_name && c.partner_name.toLowerCase().includes(q)) ||
+      (c.phone && c.phone.includes(q)) ||
+      (c.code && c.code.toLowerCase().includes(q)) ||
+      (c.village_or_address && c.village_or_address.toLowerCase().includes(q))
+    );
+  });
 
   // Filter products
   const filteredProducts = products.filter((p) => {
@@ -311,19 +372,9 @@ export const PosScreen: React.FC = () => {
                 />
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <Store className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
-                <select
-                  value={selectedWarehouseId}
-                  onChange={(e) => setSelectedWarehouseId(e.target.value)}
-                  className="text-xs sm:text-sm py-2 sm:py-2.5 px-2.5 sm:px-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800"
-                >
-                  {warehouses.map((wh) => (
-                    <option key={wh.id} value={wh.id}>
-                      {wh.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="flex items-center gap-2 shrink-0 px-3 py-2 bg-emerald-50 text-emerald-950 border border-emerald-300 rounded-xl font-bold text-xs sm:text-sm">
+                <Store className="w-4 h-4 text-emerald-700 shrink-0" />
+                <span>محل البيع المباشر</span>
               </div>
             </div>
 
@@ -397,15 +448,29 @@ export const PosScreen: React.FC = () => {
                           </div>
                         </div>
 
-                        <h4 className="text-sm sm:text-base font-black text-slate-900 line-clamp-1 leading-snug">
-                          {prod.name}
-                        </h4>
+                        <div className="flex items-start gap-2.5">
+                          {prod.image_url ? (
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200">
+                              <img
+                                src={prod.image_url}
+                                alt={prod.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : null}
 
-                        {prod.active_ingredient && (
-                          <p className="text-xs sm:text-sm text-slate-500 line-clamp-1 mt-0.5 font-medium">
-                            {prod.active_ingredient}
-                          </p>
-                        )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm sm:text-base font-black text-slate-900 line-clamp-1 leading-snug">
+                              {prod.name}
+                            </h4>
+
+                            {prod.active_ingredient && (
+                              <p className="text-xs sm:text-sm text-slate-500 line-clamp-1 mt-0.5 font-medium">
+                                {prod.active_ingredient}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
 
                       <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm">
@@ -470,27 +535,213 @@ export const PosScreen: React.FC = () => {
               </button>
             </div>
 
-          <div className="flex items-center gap-2">
-            <select
-              value={selectedCustomerId}
-              onChange={(e) => {
-                setSelectedCustomerId(e.target.value);
-                if (e.target.value) {
-                  const cust = customers.find((c) => c.id === e.target.value);
-                  if (cust) setCustomCustomerName(cust.name);
-                } else {
-                  setCustomCustomerName('عميل نقدي سريع');
-                }
-              }}
-              className="flex-1 text-sm sm:text-base py-2.5 px-3.5 bg-slate-800 text-white border border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-400 font-medium"
+          {/* Searchable Customer Combobox */}
+          <div className="relative" ref={customerDropdownRef}>
+            {/* Trigger Button */}
+            <div
+              onClick={() => setIsCustomerDropdownOpen((prev) => !prev)}
+              className="w-full flex items-center justify-between gap-2 py-2 px-3 bg-slate-800 hover:bg-slate-750 text-white border border-slate-700 hover:border-slate-600 rounded-xl cursor-pointer transition-colors focus:ring-2 focus:ring-emerald-400 select-none shadow-xs"
             >
-              <option value="">-- عميل نقدي مباشر (بدون حساب) --</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  [{c.code}] {c.name}{c.partner_name ? ` (شريك: ${c.partner_name})` : ''} {c.phone ? `(${c.phone})` : ''} - [الرصيد: {c.current_balance.toFixed(2)} ج.م]
-                </option>
-              ))}
-            </select>
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div
+                  className={`p-1.5 rounded-lg shrink-0 ${
+                    selectedCustomer ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-300'
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1 text-right">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <span className="font-bold text-xs sm:text-sm text-white truncate">
+                      {selectedCustomer ? selectedCustomer.name : 'عميل نقدي مباشر (بدون حساب)'}
+                    </span>
+                    {selectedCustomer?.partner_name && (
+                      <span className="text-[10px] text-amber-300 font-medium truncate">
+                        (شريك: {selectedCustomer.partner_name})
+                      </span>
+                    )}
+                    {selectedCustomer?.code && (
+                      <span className="text-[10px] bg-slate-700 text-slate-300 px-1 rounded font-mono">
+                        {selectedCustomer.code}
+                      </span>
+                    )}
+                  </div>
+                  {selectedCustomer?.village_or_address && (
+                    <div className="text-[10px] text-slate-400 truncate">
+                      {selectedCustomer.village_or_address}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                {selectedCustomer && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectCustomer(null);
+                    }}
+                    title="الرجوع لعميل نقدي سريع"
+                    className="p-1 hover:bg-slate-750 rounded text-slate-400 hover:text-rose-400 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <ChevronDown
+                  className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                    isCustomerDropdownOpen ? 'rotate-180 text-emerald-400' : ''
+                  }`}
+                />
+              </div>
+            </div>
+
+            {/* Dropdown Menu with Live Search */}
+            {isCustomerDropdownOpen && (
+              <div className="absolute top-full left-0 right-0 mt-1.5 z-40 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
+                {/* Search Header Input */}
+                <div className="p-2.5 bg-slate-950/90 border-b border-slate-800">
+                  <div className="relative">
+                    <Search className="absolute right-3 top-2.5 w-4 h-4 text-slate-400" />
+                    <input
+                      ref={customerSearchInputRef}
+                      type="text"
+                      value={customerSearchText}
+                      onChange={(e) => setCustomerSearchText(e.target.value)}
+                      onFocus={(e) => e.target.select()}
+                      placeholder="ابحث بالاسم، الشريك، الهاتف، الكود، القرية..."
+                      className="w-full pr-9 pl-8 py-2 text-xs sm:text-sm bg-slate-800 text-white placeholder-slate-400 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 font-medium"
+                    />
+                    {customerSearchText && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomerSearchText('')}
+                        className="absolute left-2.5 top-2.5 text-slate-400 hover:text-white"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Quick Option: Cash Direct Customer */}
+                <div className="p-1 border-b border-slate-800 bg-slate-900/60">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectCustomer(null)}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors cursor-pointer ${
+                      !selectedCustomerId
+                        ? 'bg-emerald-600 text-white'
+                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Store className="w-4 h-4 text-emerald-300" />
+                      <span>عميل نقدي مباشر (بدون حساب دائن / مدين)</span>
+                    </div>
+                    {!selectedCustomerId && <Check className="w-4 h-4" />}
+                  </button>
+                </div>
+
+                {/* Filtered Customers List */}
+                <div className="max-h-60 overflow-y-auto p-1 divide-y divide-slate-800/60">
+                  {filteredCustomers.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-slate-400 space-y-2.5">
+                      <p>لا يوجد عملاء يطابقون: "{customerSearchText}"</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCustomerDropdownOpen(false);
+                          setShowAddCustomerModal(true);
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg cursor-pointer"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span>تسجيل عميل جديد</span>
+                      </button>
+                    </div>
+                  ) : (
+                    filteredCustomers.map((cust) => {
+                      const isSelected = cust.id === selectedCustomerId;
+                      const hasDebt = cust.current_balance > 0;
+
+                      return (
+                        <div
+                          key={cust.id}
+                          onClick={() => handleSelectCustomer(cust)}
+                          className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-colors ${
+                            isSelected
+                              ? 'bg-emerald-950/80 border border-emerald-500/50 text-white'
+                              : 'hover:bg-slate-800 text-slate-200'
+                          }`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-xs sm:text-sm text-white truncate">
+                                {cust.name}
+                              </span>
+                              {cust.partner_name && (
+                                <span className="text-[10px] text-amber-300 bg-amber-950/40 px-1.5 py-0.5 rounded font-medium border border-amber-700/40 shrink-0">
+                                  شريك: {cust.partner_name}
+                                </span>
+                              )}
+                              <span className="text-[10px] bg-slate-800 text-slate-400 px-1 py-0.5 rounded font-mono shrink-0">
+                                {cust.code}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-400">
+                              {cust.phone && (
+                                <span className="font-mono text-slate-300">
+                                  📞 {cust.phone}
+                                </span>
+                              )}
+                              {cust.village_or_address && (
+                                <span className="truncate">
+                                  📍 {cust.village_or_address}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0 text-left mr-2">
+                            <div className="text-right">
+                              <span className="text-[10px] text-slate-400 block">الرصيد:</span>
+                              <span
+                                className={`text-xs font-mono font-bold ${
+                                  hasDebt ? 'text-amber-400' : 'text-emerald-400'
+                                }`}
+                              >
+                                {cust.current_balance.toFixed(2)} ج.م
+                              </span>
+                            </div>
+                            {isSelected && (
+                              <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Footer with summary and add customer action */}
+                <div className="p-2 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                  <span>عدد المطابق: {filteredCustomers.length} عميل</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCustomerDropdownOpen(false);
+                      setShowAddCustomerModal(true);
+                    }}
+                    className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <UserPlus className="w-3 h-3" />
+                    <span>+ عميل جديد</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {selectedCustomer && (
@@ -528,19 +779,31 @@ export const PosScreen: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <h5 className="font-bold text-slate-900 leading-normal text-sm">{item.product.name}</h5>
-                      {/* Multi-unit Conversion Explanation */}
-                      <div className="text-xs text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
-                        <span>الخصم من المخزون: </span>
-                        <span className="font-bold text-emerald-800 tabular-nums">
-                          {formatQuantity(item.qtyInBaseUnit)} {item.product.base_unit_name}
-                        </span>
-                        {isOverStock && (
-                          <span className="text-rose-600 font-bold mr-1">
-                            (المتاح: {formatQuantity(currentStock)} فقط!)
+                    <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                      {item.product.image_url ? (
+                        <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-white border border-slate-200">
+                          <img
+                            src={item.product.image_url}
+                            alt={item.product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : null}
+
+                      <div className="flex-1 min-w-0">
+                        <h5 className="font-bold text-slate-900 leading-normal text-sm truncate">{item.product.name}</h5>
+                        {/* Multi-unit Conversion Explanation */}
+                        <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                          <span>الخصم من المخزون: </span>
+                          <span className="font-bold text-emerald-800 tabular-nums">
+                            {formatQuantity(item.qtyInBaseUnit)} {item.product.base_unit_name}
                           </span>
-                        )}
+                          {isOverStock && (
+                            <span className="text-rose-600 font-bold mr-1">
+                              (المتاح: {formatQuantity(currentStock)} فقط!)
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -582,11 +845,13 @@ export const PosScreen: React.FC = () => {
                       </button>
                       <input
                         type="number"
-                        step="0.01"
-                        min="0.01"
-                        value={item.qty}
-                        onChange={(e) => updateCartItemQty(idx, parseFloat(e.target.value) || 0)}
-                        className="w-14 text-center text-xs font-bold tabular-nums focus:outline-none"
+                        step="any"
+                        min="0.001"
+                        inputMode="decimal"
+                        value={item.qty === 0 ? '' : item.qty}
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => updateCartItemQty(idx, e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
+                        className="w-14 text-center text-xs font-bold tabular-nums focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded"
                       />
                       <button
                         onClick={() => updateCartItemQty(idx, item.qty + 1)}
@@ -664,10 +929,12 @@ export const PosScreen: React.FC = () => {
               <input
                 type="number"
                 min="0"
-                step="1"
+                step="any"
+                inputMode="decimal"
                 value={discountAmount}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setDiscountAmount(e.target.value)}
-                className="w-full py-1.5 px-3 text-sm tabular-nums font-semibold bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500"
+                className="w-full py-1.5 px-3 text-sm tabular-nums font-semibold bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-emerald-500"
               />
             </div>
 
@@ -677,9 +944,10 @@ export const PosScreen: React.FC = () => {
                 <input
                   type="number"
                   min="0"
-                  step="1"
-                  placeholder="0.00"
+                  step="any"
+                  inputMode="decimal"
                   value={paidAmountInput}
+                  onFocus={(e) => e.target.select()}
                   onChange={(e) => setPaidAmountInput(e.target.value)}
                   className="w-full py-1.5 px-3 text-sm tabular-nums bg-white border border-indigo-300 rounded-lg focus:ring-1 focus:ring-indigo-500 font-bold"
                 />
@@ -768,6 +1036,7 @@ export const PosScreen: React.FC = () => {
         onCustomerCreated={(c) => {
           setSelectedCustomerId(c.id);
           setCustomCustomerName(c.name);
+          setIsCustomerDropdownOpen(false);
         }}
       />
 

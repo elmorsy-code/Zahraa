@@ -133,9 +133,11 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
             </label>
             <input
               type="number"
-              step="0.001"
+              step="any"
               required
+              inputMode="decimal"
               value={newQty}
+              onFocus={(e) => e.target.select()}
               onChange={(e) => setNewQty(e.target.value)}
               className="w-full px-3 py-2 text-sm font-bold font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
             />

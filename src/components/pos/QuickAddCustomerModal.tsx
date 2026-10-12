@@ -18,7 +18,7 @@ export const QuickAddCustomerModal: React.FC<QuickAddCustomerModalProps> = ({
   const [partnerName, setPartnerName] = useState('');
   const [phone, setPhone] = useState('');
   const [village, setVillage] = useState('');
-  const [openingBalance, setOpeningBalance] = useState('0');
+  const [openingBalance, setOpeningBalance] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -79,7 +79,7 @@ export const QuickAddCustomerModal: React.FC<QuickAddCustomerModalProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              اسم العميل / المزارع الأساسي <span className="text-rose-500">*</span>
+              اسم العميل <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
@@ -89,26 +89,21 @@ export const QuickAddCustomerModal: React.FC<QuickAddCustomerModalProps> = ({
                 setName(e.target.value);
                 setError('');
               }}
-              placeholder="مثال: الحاج فريد عبد الحميد"
+              placeholder="اسم العميل"
               className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
             />
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-semibold text-amber-900">
-                اسم الشريك (إن وُجد)
-              </label>
-              <span className="text-[10px] text-amber-700 font-medium">
-                يظهر بين قوسين بجوار اسم العميل
-              </span>
-            </div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              اسم الشريك
+            </label>
             <input
               type="text"
               value={partnerName}
               onChange={(e) => setPartnerName(e.target.value)}
-              placeholder="مثال: وشريكه الحاج مصطفى أو مصطفى إبراهيم"
-              className="w-full px-3 py-2 text-sm bg-amber-50/40 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+              placeholder="اسم الشريك (إن وُجد)"
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
@@ -133,8 +128,8 @@ export const QuickAddCustomerModal: React.FC<QuickAddCustomerModalProps> = ({
               <input
                 type="text"
                 value={village}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setVillage(e.target.value)}
-                placeholder="مثال: سنديون"
                 className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -146,14 +141,13 @@ export const QuickAddCustomerModal: React.FC<QuickAddCustomerModalProps> = ({
             </label>
             <input
               type="number"
-              step="0.01"
+              step="any"
+              inputMode="decimal"
               value={openingBalance}
+              onFocus={(e) => e.target.select()}
               onChange={(e) => setOpeningBalance(e.target.value)}
               className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-left"
             />
-            <span className="text-[11px] text-slate-500 mt-0.5 block">
-              موجب = مديونية قديمة على العميل للمحل
-            </span>
           </div>
 
           <div>

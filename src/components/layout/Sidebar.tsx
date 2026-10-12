@@ -49,11 +49,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navGroups: NavGroup[] = [
     {
-      groupTitle: 'الرئيسية والمبيعات',
+      groupTitle: 'الرئيسية',
       items: [
         { id: 'dashboard', label: 'لوحة التحكم والملخص', icon: LayoutDashboard },
+        { id: 'products', label: 'دليل المنتجات والأسعار', icon: PackageCheck },
+      ],
+    },
+    {
+      groupTitle: 'قسم المحل (مستقل)',
+      items: [
         { id: 'pos', label: 'نقطة البيع السريعة (POS)', icon: ShoppingCart },
-        { id: 'sales', label: 'فواتير البيع المسجلة', icon: Receipt },
+        { id: 'sales', label: 'فواتير مبيعات المحل', icon: Receipt },
+        { id: 'warehouse_shop', label: 'بضاعة ومخزون المحل', icon: Store },
+      ],
+    },
+    {
+      groupTitle: 'قسم المخزن (مستقل)',
+      items: [
+        { id: 'warehouse_main', label: 'بضاعة ومخزون المخزن', icon: WarehouseIcon },
+        { id: 'purchases', label: 'فواتير توريد ووارد المخزن', icon: Truck },
+        { id: 'stock_movements', label: 'حركة مخزون المخزن', icon: History },
       ],
     },
     {
@@ -64,20 +79,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ],
     },
     {
-      groupTitle: 'المشتريات والموردون',
+      groupTitle: 'الموردون والشركات',
       items: [
-        { id: 'purchases', label: 'فواتير المشتريات والتوريد', icon: Truck },
         { id: 'suppliers', label: 'دليل وحسابات الموردين', icon: Building2 },
-      ],
-    },
-    {
-      groupTitle: 'المخزون والمستودعات',
-      items: [
-        { id: 'warehouse_main', label: 'المخزن الرئيسي (المستودع)', icon: WarehouseIcon },
-        { id: 'warehouse_shop', label: 'مخزون محل البيع المباشر', icon: Store },
-        { id: 'transfers', label: 'التحويل بين المخزن والمحل', icon: ArrowLeftRight },
-        { id: 'products', label: 'دليل المنتجات والوحدات', icon: PackageCheck },
-        { id: 'stock_movements', label: 'سجل حركة المخزون العام', icon: History },
       ],
     },
     {

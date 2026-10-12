@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Warehouse,
   PackageCheck,
-  Store,
-  ArrowLeftRight,
   History,
   LayoutGrid,
   AlertTriangle,
@@ -50,23 +48,21 @@ export const InventoryDeptPage: React.FC<InventoryDeptPageProps> = ({
   );
 
   const totalStockUnits = products.reduce(
-    (sum, p) => sum + (p.stock_shop || 0) + (p.stock_warehouse || 0),
+    (sum, p) => sum + (p.stock_warehouse || 0),
     0
   );
 
   const estimatedStockValue = products.reduce((sum, p) => {
-    const totalQty = (p.stock_shop || 0) + (p.stock_warehouse || 0);
+    const totalQty = p.stock_warehouse || 0;
     return sum + totalQty * (p.default_purchase_price || 0);
   }, 0);
 
-  const shopStockTotal = products.reduce((sum, p) => sum + (p.stock_shop || 0), 0);
   const warehouseStockTotal = products.reduce((sum, p) => sum + (p.stock_warehouse || 0), 0);
 
   const tabs: DepartmentTabItem[] = [
-    { id: 'overview', label: 'نظرة عامة على المخازن والمخزون', icon: LayoutGrid },
+    { id: 'overview', label: 'نظرة عامة على المخزن', icon: LayoutGrid },
     { id: 'products_list', label: 'دليل الأصناف والوحدات', icon: PackageCheck, count: products.length },
-    { id: 'warehouse_main', label: 'المستودع الرئيسي', icon: Warehouse },
-    { id: 'warehouse_shop', label: 'مخزون محل البيع', icon: Store },
+    { id: 'warehouse_main', label: 'بضاعة ومخزون المخزن', icon: Warehouse },
     { id: 'movements', label: 'سجل حركة المخزون', icon: History },
   ];
 
@@ -77,9 +73,9 @@ export const InventoryDeptPage: React.FC<InventoryDeptPageProps> = ({
       {/* Department Master Header */}
       <DepartmentHeader
         deptId="inventory_dept"
-        title="قسم المخازن والأصناف والمستودعات"
-        subtitle="إدارة الأصناف الزراعية والمبيدات، الوحدات والتحويلات، أرصدة المستودع الرئيسي ومحل البيع، وحركات المخزون"
-        tagline="الرصيد والوحدات والمستودعات"
+        title="قسم المخزن والأصناف"
+        subtitle="إدارة الأصناف الزراعية، الوحدات، أرصدة بضاعة المخزن، وحركات التوريد والمنصرف"
+        tagline="المخزون والأصناف"
         icon={Warehouse}
         themeColor="teal"
         tabs={tabs}
@@ -101,8 +97,8 @@ export const InventoryDeptPage: React.FC<InventoryDeptPageProps> = ({
               type="button"
               className="flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-2xs transition-all cursor-pointer"
             >
-              <ArrowLeftRight className="w-4 h-4 text-teal-700" />
-              <span>التحويل والجرد</span>
+              <Warehouse className="w-4 h-4 text-teal-700" />
+              <span>جرد المخزن</span>
             </button>
           </>
         }
@@ -164,27 +160,20 @@ export const InventoryDeptPage: React.FC<InventoryDeptPageProps> = ({
               </div>
             </div>
 
-            {/* KPI 4: Stock Distribution */}
+            {/* KPI 4: Total Warehouse Units */}
             <div className="card-box p-5 sm:p-6 border-2 border-slate-200 bg-white shadow-2xs">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs sm:text-sm font-bold text-slate-700">توزيع أرصدة المستودعات</span>
+                <span className="text-xs sm:text-sm font-bold text-slate-700">رصيد بضاعة المخزن</span>
                 <div className="p-2.5 bg-blue-100 text-blue-800 rounded-xl">
-                  <Store className="w-5 h-5" />
+                  <Warehouse className="w-5 h-5" />
                 </div>
               </div>
-              <div className="text-base sm:text-lg font-black text-slate-900 flex flex-col gap-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500">محل البيع:</span>
-                  <span className="font-mono font-bold text-slate-800">{formatQuantity(shopStockTotal)} وحدة</span>
-                </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500">المستودع الرئيسي:</span>
-                  <span className="font-mono font-bold text-slate-800">{formatQuantity(warehouseStockTotal)} وحدة</span>
-                </div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 tabular-nums">
+                {formatQuantity(warehouseStockTotal)}
               </div>
               <div className="flex items-center justify-between text-xs font-semibold text-slate-500 pt-3 mt-3 border-t border-slate-100">
-                <span>موقعين تخزين نشطين</span>
-                <span className="text-blue-700 font-bold">جاهزية البيع</span>
+                <span>إجمالي الوحدات بالمخزن</span>
+                <span className="text-blue-700 font-bold">بضاعة المخزن</span>
               </div>
             </div>
           </div>
@@ -318,27 +307,7 @@ export const InventoryDeptPage: React.FC<InventoryDeptPageProps> = ({
         </div>
       )}
 
-      {/* VIEW 4: Warehouse Shop */}
-      {subTab === 'warehouse_shop' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between bg-slate-50 border border-slate-200 p-3 rounded-2xl">
-            <span className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
-              <Store className="w-4 h-4 text-slate-600" />
-              مخزون محل البيع المباشر والكاشير
-            </span>
-            <button
-              onClick={() => setSubTab('overview')}
-              type="button"
-              className="text-xs font-bold text-slate-700 hover:text-slate-950 underline cursor-pointer"
-            >
-              العودة للوحة قسم المخازن
-            </button>
-          </div>
-          <WarehousesStock initialLocationType="shop" />
-        </div>
-      )}
-
-      {/* VIEW 5: Stock Movements */}
+      {/* VIEW 4: Stock Movements */}
       {subTab === 'movements' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between bg-slate-50 border border-slate-200 p-3 rounded-2xl">

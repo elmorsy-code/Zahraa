@@ -40,8 +40,8 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
       setPhone(customerToEdit.phone || '');
       setVillage(customerToEdit.village_or_address || '');
       setNationalId(customerToEdit.national_id || '');
-      setCreditLimit(customerToEdit.credit_limit?.toString() || '0');
-      setOpeningBalance(customerToEdit.opening_balance?.toString() || '0');
+      setCreditLimit(customerToEdit.credit_limit ? customerToEdit.credit_limit.toString() : '');
+      setOpeningBalance(customerToEdit.opening_balance ? customerToEdit.opening_balance.toString() : '');
       // Clean notes from [شريك: ...] if present
       const cleanNotes = (customerToEdit.notes || '').replace(/\[شريك:\s*[^\]]+\]\s*/g, '').trim();
       setNotes(cleanNotes);
@@ -52,8 +52,8 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
       setPhone('');
       setVillage('');
       setNationalId('');
-      setCreditLimit('10000');
-      setOpeningBalance('0');
+      setCreditLimit('');
+      setOpeningBalance('');
       setNotes('');
       let savedPrefix = 'CUST';
       try {
@@ -174,51 +174,35 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 placeholder="CUST-1"
                 className="w-full px-3 py-2 font-mono font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
               />
-              <span className="text-[10px] text-slate-500 mt-0.5 block">
-                اكتب أي بادئة (مثلاً ZAH) والرقم يكمل تلقائياً: ZAH-1، ZAH-2... وهتتحفظ للعميل الجاي
-              </span>
             </div>
 
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
-                اسم العميل الأساسي <span className="text-rose-500">*</span>
+                اسم العميل <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="مثال: الحاج رضوان عبد الحفيظ"
+                placeholder="اسم العميل"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 font-medium"
               />
             </div>
           </div>
 
-          {/* خانة الشريك (إن وُجد) */}
-          <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="font-bold text-amber-950 flex items-center gap-1.5">
-                <span>اسم الشريك (إن وُجد معه شريك)</span>
-              </label>
-              <span className="text-[11px] text-amber-800 font-medium">
-                اختياري - يظهر بين قوسين بجوار الاسم الأساسي
-              </span>
-            </div>
+          {/* خانة الشريك */}
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">
+              اسم الشريك
+            </label>
             <input
               type="text"
               value={partnerName}
+              onFocus={(e) => e.target.select()}
               onChange={(e) => setPartnerName(e.target.value)}
-              placeholder="مثال: وشريكه الحاج مصطفى أو مصطفى إبراهيم"
-              className="w-full px-3 py-2 text-xs bg-white border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 font-medium text-slate-900"
+              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 font-medium text-slate-900"
             />
-            {partnerName.trim() && (
-              <div className="text-[11px] text-amber-900 bg-white/90 p-2 rounded-lg border border-amber-200 flex items-center justify-between">
-                <span className="text-slate-500">طريقة الظهور في الفواتير وكشوف الحساب:</span>
-                <span className="font-bold text-slate-900">
-                  {name.trim() || 'اسم العميل'} <span className="text-amber-800 font-bold">({partnerName.trim()})</span>
-                </span>
-              </div>
-            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -229,8 +213,8 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
               <input
                 type="text"
                 value={phone}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="01012345678"
                 className="w-full px-3 py-2 font-mono text-left border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -242,8 +226,8 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
               <input
                 type="text"
                 value={village}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setVillage(e.target.value)}
-                placeholder="قرية سنديون - حوض الخمسين"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -256,8 +240,10 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
               </label>
               <input
                 type="number"
-                step="100"
+                step="any"
+                inputMode="decimal"
                 value={creditLimit}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setCreditLimit(e.target.value)}
                 className="w-full px-3 py-2 font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
               />
@@ -269,15 +255,14 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
               </label>
               <input
                 type="number"
-                step="0.01"
+                step="any"
+                inputMode="decimal"
                 disabled={Boolean(customerToEdit)}
                 value={openingBalance}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setOpeningBalance(e.target.value)}
                 className="w-full px-3 py-2 font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100"
               />
-              <span className="text-[10px] text-slate-500 mt-0.5 block">
-                موجب = مديونية قديمة على العميل
-              </span>
             </div>
           </div>
 

@@ -263,7 +263,7 @@ class DataStorage {
         const shopWh = this.warehouses.find((w) => w.location_type === 'shop' || w.is_primary);
         const mainWh = this.warehouses.find((w) => w.location_type === 'warehouse' && !w.is_primary);
 
-        this.products = productsRes.data.map((p) => {
+        this.products = productsRes.data.map((p: any) => {
           const pUnits = allUnits.filter((u) => u.product_id === p.id);
           const pCat = this.categories.find((c) => c.id === p.category_id);
 
@@ -282,8 +282,20 @@ class DataStorage {
             .filter((b) => b.product_id === p.id)
             .reduce((sum, b) => sum + Number(b.qty_in_base_unit), 0);
 
+          let imageUrl = p.image_url || '';
+          let cleanDescription = p.description || '';
+          if (!imageUrl && p.description) {
+            const m = p.description.match(/\[صورة:\s*([^\]]+)\]/);
+            if (m) {
+              imageUrl = m[1].trim();
+              cleanDescription = p.description.replace(/\[صورة:\s*[^\]]+\]\s*/g, '').trim();
+            }
+          }
+
           return {
             ...p,
+            image_url: imageUrl || undefined,
+            description: cleanDescription,
             units: pUnits,
             category: pCat,
             stock_shop: stockShop,
@@ -707,55 +719,77 @@ class DataStorage {
     if (!supabase) throw new Error('الاتصال بقاعدة البيانات غير متوفر');
 
     let prodId: string = productData.id || '';
+    const imgUrl = (productData.image_url || '').trim();
+    let rawDesc = (productData.description || '').replace(/\[صورة:\s*[^\]]+\]\s*/g, '').trim();
+    const encodedDesc = imgUrl ? `[صورة: ${imgUrl}] ${rawDesc}`.trim() : rawDesc;
 
     if (prodId) {
-      const { error: prodErr } = await supabase
+      let updatePayload: any = {
+        barcode: productData.barcode,
+        name: productData.name,
+        commercial_name: productData.commercial_name,
+        active_ingredient: productData.active_ingredient,
+        manufacturer: productData.manufacturer,
+        category_id: productData.category_id || null,
+        description: encodedDesc,
+        image_url: imgUrl || null,
+        base_unit_name: productData.base_unit_name,
+        default_purchase_price: Number(productData.default_purchase_price) || 0,
+        default_sale_price: Number(productData.default_sale_price) || 0,
+        min_stock_alert: Number(productData.min_stock_alert) || 10,
+        is_pesticide: productData.is_pesticide || false,
+        requires_prescription: productData.requires_prescription || false,
+        is_active: productData.is_active ?? true,
+        updated_at: new Date().toISOString(),
+      };
+
+      let { error: prodErr } = await supabase
         .from('products')
-        .update({
-          barcode: productData.barcode,
-          name: productData.name,
-          commercial_name: productData.commercial_name,
-          active_ingredient: productData.active_ingredient,
-          manufacturer: productData.manufacturer,
-          category_id: productData.category_id || null,
-          description: productData.description,
-          base_unit_name: productData.base_unit_name,
-          default_purchase_price: Number(productData.default_purchase_price) || 0,
-          default_sale_price: Number(productData.default_sale_price) || 0,
-          min_stock_alert: Number(productData.min_stock_alert) || 10,
-          is_pesticide: productData.is_pesticide || false,
-          requires_prescription: productData.requires_prescription || false,
-          is_active: productData.is_active ?? true,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', prodId);
 
-      if (prodErr) throw prodErr;
+      if (prodErr && prodErr.message?.includes('image_url')) {
+        delete updatePayload.image_url;
+        const res = await supabase.from('products').update(updatePayload).eq('id', prodId);
+        if (res.error) throw res.error;
+      } else if (prodErr) {
+        throw prodErr;
+      }
     } else {
       const code = productData.code || (await this.getNextDocNumber('PRD'));
-      const { data: newProd, error: prodErr } = await supabase
+      let insertPayload: any = {
+        code,
+        barcode: productData.barcode,
+        name: productData.name,
+        commercial_name: productData.commercial_name,
+        active_ingredient: productData.active_ingredient,
+        manufacturer: productData.manufacturer,
+        category_id: productData.category_id || null,
+        description: encodedDesc,
+        image_url: imgUrl || null,
+        base_unit_name: productData.base_unit_name,
+        default_purchase_price: Number(productData.default_purchase_price) || 0,
+        default_sale_price: Number(productData.default_sale_price) || 0,
+        min_stock_alert: Number(productData.min_stock_alert) || 10,
+        is_pesticide: productData.is_pesticide || false,
+        requires_prescription: productData.requires_prescription || false,
+        is_active: productData.is_active ?? true,
+      };
+
+      let { data: newProd, error: prodErr } = await supabase
         .from('products')
-        .insert({
-          code,
-          barcode: productData.barcode,
-          name: productData.name,
-          commercial_name: productData.commercial_name,
-          active_ingredient: productData.active_ingredient,
-          manufacturer: productData.manufacturer,
-          category_id: productData.category_id || null,
-          description: productData.description,
-          base_unit_name: productData.base_unit_name,
-          default_purchase_price: Number(productData.default_purchase_price) || 0,
-          default_sale_price: Number(productData.default_sale_price) || 0,
-          min_stock_alert: Number(productData.min_stock_alert) || 10,
-          is_pesticide: productData.is_pesticide || false,
-          requires_prescription: productData.requires_prescription || false,
-          is_active: productData.is_active ?? true,
-        })
+        .insert(insertPayload)
         .select()
         .single();
 
-      if (prodErr) throw prodErr;
+      if (prodErr && prodErr.message?.includes('image_url')) {
+        delete insertPayload.image_url;
+        const res = await supabase.from('products').insert(insertPayload).select().single();
+        if (res.error) throw res.error;
+        newProd = res.data;
+      } else if (prodErr) {
+        throw prodErr;
+      }
       prodId = newProd.id;
     }
 
@@ -780,6 +814,63 @@ class DataStorage {
       }));
 
       await supabase.from('product_units').insert(unitsToInsert);
+    }
+
+    // Handle Opening Stock (رصيد المخزون الافتتاحي عند تعريف الصنف الجديد)
+    const initialShopQty = Number((productData as any).initial_stock_shop) || 0;
+    const initialWhQty = Number((productData as any).initial_stock_warehouse) || 0;
+
+    if (!productData.id && (initialShopQty > 0 || initialWhQty > 0)) {
+      const shopWh = this.warehouses.find((w) => w.location_type === 'shop' || w.is_primary);
+      const mainWh = this.warehouses.find((w) => w.location_type === 'warehouse' && !w.is_primary);
+
+      if (initialShopQty > 0 && shopWh) {
+        await supabase.from('stock_balances').upsert(
+          {
+            warehouse_id: shopWh.id,
+            product_id: prodId,
+            qty_in_base_unit: initialShopQty,
+            last_updated: new Date().toISOString(),
+          },
+          { onConflict: 'warehouse_id,product_id' }
+        );
+
+        await supabase.from('stock_movements').insert({
+          product_id: prodId,
+          warehouse_id: shopWh.id,
+          movement_type: 'opening_stock',
+          quantity: initialShopQty,
+          previous_qty: 0,
+          new_qty: initialShopQty,
+          reference_type: 'opening_stock',
+          reference_id: prodId,
+          notes: 'رصيد مخزون أول المدة للمحل',
+        });
+      }
+
+      if (initialWhQty > 0 && mainWh) {
+        await supabase.from('stock_balances').upsert(
+          {
+            warehouse_id: mainWh.id,
+            product_id: prodId,
+            qty_in_base_unit: initialWhQty,
+            last_updated: new Date().toISOString(),
+          },
+          { onConflict: 'warehouse_id,product_id' }
+        );
+
+        await supabase.from('stock_movements').insert({
+          product_id: prodId,
+          warehouse_id: mainWh.id,
+          movement_type: 'opening_stock',
+          quantity: initialWhQty,
+          previous_qty: 0,
+          new_qty: initialWhQty,
+          reference_type: 'opening_stock',
+          reference_id: prodId,
+          notes: 'رصيد مخزون أول المدة للمستودع الرئيسي',
+        });
+      }
     }
 
     await this.hydrate();

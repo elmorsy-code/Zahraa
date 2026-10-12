@@ -5,7 +5,6 @@ import {
   Users,
   Building2,
   AlertTriangle,
-  ArrowLeftRight,
   Receipt,
   ArrowDownLeft,
   ArrowUpRight,
@@ -22,6 +21,7 @@ import {
   Sparkles,
   Clock,
   MessageSquare,
+  Store,
 } from 'lucide-react';
 import { storage } from '../../lib/storage';
 import { formatCurrency, formatQuantity, formatDateTime } from '../../lib/formatters';
@@ -108,48 +108,35 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* REAL DATA STATUS & CONTROLS BANNER */}
-      <div className="card-box p-4 sm:p-6 border-2 border-emerald-300 bg-emerald-50/80 rounded-2xl sm:rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-5 shadow-sm">
-        <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-          <div className="p-2.5 sm:p-3.5 bg-emerald-700 text-white rounded-2xl shadow-sm shrink-0">
-            <CheckCircle2 className="w-5 h-5 sm:w-7 sm:h-7" />
-          </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm sm:text-lg font-black text-emerald-950">
-                وضع البيانات الحقيقية والتشغيل الفعلي نشط (Live Production Mode)
-              </span>
-              <span className="px-2.5 py-0.5 rounded-lg text-[11px] sm:text-xs font-black bg-emerald-200 text-emerald-950 border border-emerald-300">
-                بيانات واقعية 100%
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm font-medium text-emerald-900 mt-1 leading-relaxed">
-              سجلات الفواتير والتحصيلات وحركات الخزينة والمخزون تعكس العمليات الواقعية المحفوظة للمؤسسة بدقة تامة.
-            </p>
-          </div>
+      {/* Top Header & Refresh */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900">
+            لوحة المؤشرات والعمليات
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+            متابعة المبيعات، الحسابات، الخزينة، والمخزون
+          </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0 self-end md:self-auto">
-          <button
-            onClick={async () => {
-              try {
-                await storage.hydrate();
-                setDataTick((t) => t + 1);
-              } catch (err) {
-                console.error(err);
-              }
-            }}
-            type="button"
-            className="flex items-center gap-2 px-3.5 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm font-black text-slate-800 bg-white hover:bg-slate-100 border-2 border-slate-200 rounded-xl cursor-pointer shadow-xs transition-all active:scale-95 whitespace-nowrap"
-            title="تحديث ومزامنة كافة السجلات لحظياً"
-          >
-            <RotateCcw className="w-4 h-4 text-emerald-600" />
-            <span>تحديث ومزامنة البيانات</span>
-          </button>
-        </div>
+        <button
+          onClick={async () => {
+            try {
+              await storage.hydrate();
+              setDataTick((t) => t + 1);
+            } catch (err) {
+              console.error(err);
+            }
+          }}
+          type="button"
+          className="flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl cursor-pointer transition-all active:scale-95 whitespace-nowrap self-start sm:self-auto"
+        >
+          <RotateCcw className="w-4 h-4 text-emerald-600" />
+          <span>تحديث ومزامنة البيانات</span>
+        </button>
       </div>
 
-      {/* 2. CARD SWITCHER TABS - Large, clear card navigation */}
+      {/* CARD SWITCHER TABS */}
       <div className="flex items-center gap-2 sm:gap-3 border-b border-slate-200 pb-3 sm:pb-4 overflow-x-auto scrollbar-none flex-nowrap">
         <button
           onClick={() => setActiveTab('cards_hub')}
@@ -161,7 +148,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           }`}
         >
           <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 shrink-0" />
-          <span>1. شبكة البطاقات والأقسام</span>
+          <span>البطاقات والأقسام</span>
         </button>
 
         <button
@@ -174,7 +161,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           }`}
         >
           <Receipt className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 shrink-0" />
-          <span>2. فواتير المبيعات ({salesInvoices.length})</span>
+          <span>فواتير المبيعات ({salesInvoices.length})</span>
         </button>
 
         <button
@@ -187,7 +174,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           }`}
         >
           <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
-          <span>3. نواقص المخزون ({lowStockItems.length})</span>
+          <span>نواقص المخزون ({lowStockItems.length})</span>
         </button>
 
         <button
@@ -200,7 +187,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           }`}
         >
           <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-rose-500 shrink-0" />
-          <span>4. قرب الانتهاء ({expiringBatchesCount})</span>
+          <span>قرب الانتهاء ({expiringBatchesCount})</span>
         </button>
       </div>
 
@@ -369,16 +356,16 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 <span className="text-xs sm:text-base font-black text-center truncate w-full">تسجيل مصروف</span>
               </button>
 
-              {/* Action Card 5: Warehouse Transfer */}
+              {/* Action Card 5: Shop Stock */}
               <button
-                onClick={() => onNavigate('transfers')}
+                onClick={() => onNavigate('warehouse_shop')}
                 type="button"
                 className="flex flex-col items-center justify-center p-3 sm:p-6 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-200 text-indigo-950 transition-all gap-2 sm:gap-3 cursor-pointer group active:scale-95"
               >
                 <div className="p-2 sm:p-3 bg-indigo-600 text-white rounded-xl sm:rounded-2xl shadow-xs group-hover:scale-110 transition-transform">
-                  <ArrowLeftRight className="w-5 h-5 sm:w-7 sm:h-7" />
+                  <Store className="w-5 h-5 sm:w-7 sm:h-7" />
                 </div>
-                <span className="text-xs sm:text-base font-black text-center truncate w-full">تحويل مخزني</span>
+                <span className="text-xs sm:text-base font-black text-center truncate w-full">بضاعة المحل</span>
               </button>
 
               {/* Action Card 6: Migrate Old Ledgers */}
@@ -538,7 +525,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                   </h3>
 
                   <p className="text-base text-slate-600 leading-relaxed font-medium">
-                    إدارة الوحدات الصغرى والكبرى، رصيد المستودع الرئيسي ومحل البيع، التحويل الداخلي، وتنبيهات النواقص.
+                    دليل المنتجات والأصناف، وحدات البيع وأسعارها، وجرد بضاعة المخزن وتنبيهات النواقص.
                   </p>
                 </div>
 

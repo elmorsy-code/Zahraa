@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Settings, User, LogOut, Palette, SlidersHorizontal, ChevronDown } from 'lucide-react';
+import { Settings, User, LogOut, Palette, SlidersHorizontal, ChevronDown, Sparkles, Bot } from 'lucide-react';
 import { APP_CONFIG } from '../../lib/branding';
 import { UserAccount } from '../../lib/auth';
 
@@ -10,6 +10,7 @@ interface HeaderProps {
   onOpenThemeModal?: () => void;
   onLogout?: () => void;
   onNavigateToTab?: (tab: string) => void;
+  onOpenSimsim?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -19,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenThemeModal,
   onLogout,
   onNavigateToTab,
+  onOpenSimsim,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -64,8 +66,26 @@ export const Header: React.FC<HeaderProps> = ({
           />
         </div>
 
-        {/* FAR LEFT (in RTL = Last element): Settings Gear ONLY */}
-        <div className="relative flex items-center justify-end" ref={dropdownRef}>
+        {/* FAR LEFT (in RTL = Last element): Simsim AI & Settings Gear */}
+        <div className="relative flex items-center justify-end gap-2 sm:gap-3" ref={dropdownRef}>
+          {/* SIMSIM AI TRIGGER BUTTON */}
+          <button
+            onClick={onOpenSimsim}
+            type="button"
+            className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 md:py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-700 to-emerald-800 hover:from-emerald-700 hover:via-teal-800 hover:to-emerald-900 text-white transition-all cursor-pointer shadow-xs hover:shadow-md active:scale-95 border border-emerald-400/40"
+            title="تحدث مع سمسم - الذكاء الاصطناعي الخاص بالمنظومة"
+            aria-label="سمسم الذكاء الاصطناعي"
+          >
+            <div className="relative flex items-center justify-center">
+              <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-100 group-hover:scale-110 transition-transform" />
+              <Sparkles className="w-2.5 h-2.5 text-amber-300 absolute -top-1 -right-1 animate-pulse" />
+              <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-300 rounded-full ring-2 ring-emerald-700 animate-ping" />
+            </div>
+            <span className="text-xs sm:text-sm font-black tracking-tight whitespace-nowrap">
+              سمسم AI
+            </span>
+          </button>
+
           <button
             onClick={() => setDropdownOpen((prev) => !prev)}
             type="button"

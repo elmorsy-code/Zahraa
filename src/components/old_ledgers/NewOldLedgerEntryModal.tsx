@@ -179,11 +179,12 @@ export const NewOldLedgerEntryModal: React.FC<NewOldLedgerEntryModalProps> = ({
               </label>
               <input
                 type="number"
-                step="0.01"
+                step="any"
                 required
+                inputMode="decimal"
                 value={debitAmount}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setDebitAmount(e.target.value)}
-                placeholder="0.00"
                 className="w-full px-3 py-2 font-mono font-bold text-amber-800 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -194,10 +195,11 @@ export const NewOldLedgerEntryModal: React.FC<NewOldLedgerEntryModalProps> = ({
               </label>
               <input
                 type="number"
-                step="0.01"
+                step="any"
+                inputMode="decimal"
                 value={settledAmount}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setSettledAmount(e.target.value)}
-                placeholder="0.00"
                 className="w-full px-3 py-2 font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
               />
             </div>

@@ -44,6 +44,7 @@ export interface Product {
   code: string;
   barcode?: string;
   name: string;
+  image_url?: string; // رابط أو صورة الصنف (Data URI أو URL)
   commercial_name?: string;
   active_ingredient?: string; // المادة الفعالة والتركيز
   manufacturer?: string; // الشركة المصنعة

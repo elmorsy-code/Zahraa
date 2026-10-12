@@ -54,8 +54,8 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
   );
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
   const [paymentType, setPaymentType] = useState<'cash' | 'credit' | 'partial'>('credit');
-  const [paidAmount, setPaidAmount] = useState('0');
-  const [discountAmount, setDiscountAmount] = useState('0');
+  const [paidAmount, setPaidAmount] = useState('');
+  const [discountAmount, setDiscountAmount] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -402,10 +402,12 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                       <td className="p-2">
                         <input
                           type="number"
-                          step="0.01"
-                          min="0.01"
-                          value={row.qty}
-                          onChange={(e) => handleItemQtyChange(idx, parseFloat(e.target.value) || 0)}
+                          step="any"
+                          min="0.001"
+                          inputMode="decimal"
+                          value={row.qty === 0 ? '' : row.qty}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => handleItemQtyChange(idx, e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                           className="w-20 p-1 font-mono border border-slate-300 rounded"
                         />
                       </td>
@@ -413,10 +415,12 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                       <td className="p-2">
                         <input
                           type="number"
-                          step="0.01"
+                          step="any"
                           min="0"
-                          value={row.costPrice}
-                          onChange={(e) => handleItemPriceChange(idx, parseFloat(e.target.value) || 0)}
+                          inputMode="decimal"
+                          value={row.costPrice === 0 ? '' : row.costPrice}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => handleItemPriceChange(idx, e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                           className="w-24 p-1 font-mono border border-slate-300 rounded"
                         />
                       </td>
@@ -528,8 +532,10 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                   </label>
                   <input
                     type="number"
-                    step="0.01"
+                    step="any"
+                    inputMode="decimal"
                     value={paidAmount}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => setPaidAmount(e.target.value)}
                     className="w-full px-2.5 py-1.5 font-mono border border-slate-300 rounded font-bold"
                   />
@@ -560,8 +566,8 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                 <input
                   type="text"
                   value={notes}
+                  onFocus={(e) => e.target.select()}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="رقم إذن استلام المخزن، تفاصيل الشحن..."
                   className="w-full px-2.5 py-1.5 border border-slate-300 rounded"
                 />
               </div>
@@ -579,8 +585,10 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({
                 <input
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="any"
+                  inputMode="decimal"
                   value={discountAmount}
+                  onFocus={(e) => e.target.select()}
                   onChange={(e) => setDiscountAmount(e.target.value)}
                   className="w-24 px-2 py-1 font-mono border border-slate-300 rounded text-left text-xs"
                 />

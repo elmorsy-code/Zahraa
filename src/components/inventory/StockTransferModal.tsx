@@ -291,10 +291,12 @@ export const StockTransferModal: React.FC<StockTransferModalProps> = ({
                       <td className="p-2">
                         <input
                           type="number"
-                          step="0.01"
-                          min="0.01"
-                          value={row.qty}
-                          onChange={(e) => handleItemQtyChange(idx, parseFloat(e.target.value) || 0)}
+                          step="any"
+                          min="0.001"
+                          inputMode="decimal"
+                          value={row.qty === 0 ? '' : row.qty}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => handleItemQtyChange(idx, e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                           className="w-20 p-1.5 font-mono border border-slate-300 rounded font-bold"
                         />
                       </td>

@@ -2,16 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
   Warehouse as WarehouseIcon,
   Store,
-  ArrowLeftRight,
   Search,
   Scale,
-  History,
-  AlertTriangle,
+  Package,
 } from 'lucide-react';
-import { Product, StockTransfer } from '../../types/database';
+import { Product } from '../../types/database';
 import { storage } from '../../lib/storage';
-import { formatQuantity, formatDateTime } from '../../lib/formatters';
-import { StockTransferModal } from './StockTransferModal';
+import { formatQuantity } from '../../lib/formatters';
 import { StockAdjustmentModal } from './StockAdjustmentModal';
 
 interface WarehousesStockProps {
@@ -19,22 +16,24 @@ interface WarehousesStockProps {
 }
 
 export const WarehousesStock: React.FC<WarehousesStockProps> = ({
-  initialLocationType,
+  initialLocationType = 'shop',
 }) => {
   const warehouses = storage.getWarehouses();
-  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>(
-    initialLocationType === 'warehouse'
-      ? warehouses.find((w) => w.location_type === 'warehouse')?.id || warehouses[0]?.id || ''
-      : warehouses.find((w) => w.location_type === 'shop')?.id || warehouses[0]?.id || ''
-  );
+  const targetWh = warehouses.find((w) => w.location_type === initialLocationType) || warehouses[0];
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>(targetWh?.id || '');
   const [search, setSearch] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
-  const [transfers, setTransfers] = useState<StockTransfer[]>([]);
 
-  // Modals
-  const [transferModalOpen, setTransferModalOpen] = useState(false);
+  // Adjustment Modal
   const [adjustModalOpen, setAdjustModalOpen] = useState(false);
   const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(null);
+
+  useEffect(() => {
+    if (initialLocationType) {
+      const match = warehouses.find((w) => w.location_type === initialLocationType);
+      if (match) setSelectedWarehouseId(match.id);
+    }
+  }, [initialLocationType, warehouses]);
 
   useEffect(() => {
     loadData();
@@ -44,10 +43,10 @@ export const WarehousesStock: React.FC<WarehousesStockProps> = ({
 
   const loadData = () => {
     setProducts(storage.getProducts());
-    setTransfers(storage.getStockTransfers());
   };
 
-  const activeWarehouse = warehouses.find((w) => w.id === selectedWarehouseId);
+  const isShop = initialLocationType === 'shop';
+  const pageTitle = isShop ? 'بضاعة ومخزون المحل' : 'بضاعة ومخزون المخزن';
 
   const filtered = products.filter((p) => {
     const q = search.toLowerCase().trim();
@@ -61,38 +60,24 @@ export const WarehousesStock: React.FC<WarehousesStockProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Location Switcher & Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-        <div className="flex flex-wrap items-center gap-2">
-          {warehouses.map((w) => {
-            const isSelected = selectedWarehouseId === w.id;
-            const Icon = w.location_type === 'shop' ? Store : WarehouseIcon;
-            return (
-              <button
-                key={w.id}
-                onClick={() => setSelectedWarehouseId(w.id)}
-                type="button"
-                className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg border transition-colors ${
-                  isSelected
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isSelected ? 'text-emerald-400' : 'text-slate-500'}`} />
-                <span>{w.name}</span>
-              </button>
-            );
-          })}
+      {/* Header Banner */}
+      <div className={`p-4 rounded-xl border flex items-center justify-between shadow-xs ${
+        isShop
+          ? 'bg-emerald-900 text-white border-emerald-800'
+          : 'bg-slate-900 text-white border-slate-800'
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className={`p-2.5 rounded-xl ${
+            isShop ? 'bg-emerald-800 text-white' : 'bg-blue-600 text-white'
+          }`}>
+            {isShop ? <Store className="w-6 h-6" /> : <WarehouseIcon className="w-6 h-6" />}
+          </div>
+          <div>
+            <h2 className="text-lg font-bold">
+              {pageTitle}
+            </h2>
+          </div>
         </div>
-
-        <button
-          onClick={() => setTransferModalOpen(true)}
-          type="button"
-          className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-xs transition-colors self-start md:self-auto"
-        >
-          <ArrowLeftRight className="w-4 h-4" />
-          <span>+ تحويل بضاعة بين المخزن والمحل</span>
-        </button>
       </div>
 
       {/* Search Input */}
@@ -102,30 +87,31 @@ export const WarehousesStock: React.FC<WarehousesStockProps> = ({
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder={`ابحث في مخزون "${activeWarehouse?.name || 'المستودع'}" بالاسم أو الكود...`}
-          className="w-full text-xs focus:outline-none"
+          placeholder={`بحث في ${pageTitle} بالاسم أو الكود...`}
+          className="w-full text-xs sm:text-sm focus:outline-none"
         />
       </div>
 
-      {/* Stock Table for selected location */}
+      {/* Stock Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center text-xs">
           <span className="font-bold text-slate-800">
-            أرصدة الأصناف الحالية في: {activeWarehouse?.name}
+            أرصدة الأصناف المسجلة
           </span>
           <span className="text-slate-500 font-mono">
-            {filtered.length} صنف مسجل
+            {filtered.length} صنف
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-right text-xs border-collapse">
+          <table className="w-full text-right text-xs sm:text-sm border-collapse">
             <thead className="bg-slate-50/70 border-b border-slate-200 text-slate-600 font-semibold">
               <tr>
+                <th className="py-2.5 px-3">الصورة</th>
                 <th className="py-2.5 px-3">الكود</th>
                 <th className="py-2.5 px-3">اسم المنتج والمادة الفعالة</th>
                 <th className="py-2.5 px-3">الوحدة الأساسية</th>
-                <th className="py-2.5 px-3 text-center">الرصيد في {activeWarehouse?.name}</th>
+                <th className="py-2.5 px-3 text-center">الرصيد المتوفر</th>
                 <th className="py-2.5 px-3 text-center">حد التنبيه الأدنى</th>
                 <th className="py-2.5 px-3 text-center">حالة الرصيد</th>
                 <th className="py-2.5 px-3 text-center">إجراءات</th>
@@ -139,6 +125,20 @@ export const WarehousesStock: React.FC<WarehousesStockProps> = ({
 
                 return (
                   <tr key={prod.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-2.5 px-3 text-center">
+                      <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden mx-auto">
+                        {prod.image_url ? (
+                          <img
+                            src={prod.image_url}
+                            alt={prod.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Package className="w-5 h-5 text-slate-300" />
+                        )}
+                      </div>
+                    </td>
+
                     <td className="py-2.5 px-3 font-mono font-medium text-slate-500">
                       {prod.code}
                     </td>
@@ -174,7 +174,7 @@ export const WarehousesStock: React.FC<WarehousesStockProps> = ({
                             : 'bg-emerald-100 text-emerald-800'
                         }`}
                       >
-                        {isOut ? 'نفد الرصيد' : isLow ? 'منخفض (نواقص)' : 'متوفر ومستقر'}
+                        {isOut ? 'نفد الرصيد' : isLow ? 'منخفض' : 'متوفر'}
                       </span>
                     </td>
 
@@ -184,10 +184,10 @@ export const WarehousesStock: React.FC<WarehousesStockProps> = ({
                           setAdjustingProduct(prod);
                           setAdjustModalOpen(true);
                         }}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded transition-colors"
-                        title="تسوية جردية للرصيد"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded transition-colors cursor-pointer"
+                        title="تسوية جردية"
                       >
-                        <Scale className="w-3 h-3 text-slate-500" />
+                        <Scale className="w-3.5 h-3.5 text-slate-500" />
                         <span>تسوية جرد</span>
                       </button>
                     </td>
@@ -198,46 +198,6 @@ export const WarehousesStock: React.FC<WarehousesStockProps> = ({
           </table>
         </div>
       </div>
-
-      {/* Recent Transfers Log */}
-      {transfers.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-4">
-          <h4 className="font-bold text-slate-900 text-xs mb-3 flex items-center gap-2">
-            <History className="w-4 h-4 text-emerald-600" />
-            <span>سجل التحويلات المنفذة مؤخراً بين المخزن والمحل</span>
-          </h4>
-
-          <div className="divide-y divide-slate-100 text-xs">
-            {transfers.slice(0, 5).map((trf) => {
-              const from = warehouses.find((w) => w.id === trf.from_warehouse_id);
-              const to = warehouses.find((w) => w.id === trf.to_warehouse_id);
-              return (
-                <div key={trf.id} className="py-2 flex justify-between items-center">
-                  <div>
-                    <span className="font-bold font-mono text-slate-800 ml-2">
-                      {trf.transfer_number}
-                    </span>
-                    <span className="text-slate-600">
-                      من {from?.name} إلى {to?.name}
-                    </span>
-                    {trf.notes && <span className="text-slate-400 mr-2">({trf.notes})</span>}
-                  </div>
-                  <div className="text-slate-400 font-mono text-[11px]">
-                    {formatDateTime(trf.transfer_date)}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <StockTransferModal
-        isOpen={transferModalOpen}
-        onClose={() => setTransferModalOpen(false)}
-        defaultFromWarehouse={selectedWarehouseId}
-        onSuccess={loadData}
-      />
 
       <StockAdjustmentModal
         isOpen={adjustModalOpen}

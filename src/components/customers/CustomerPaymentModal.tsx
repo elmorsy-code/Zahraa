@@ -115,10 +115,12 @@ export const CustomerPaymentModal: React.FC<CustomerPaymentModalProps> = ({
             </label>
             <input
               type="number"
-              step="0.01"
+              step="any"
               required
               min="0.01"
+              inputMode="decimal"
               value={amount}
+              onFocus={(e) => e.target.select()}
               onChange={(e) => setAmount(e.target.value)}
               className="w-full px-3 py-2 text-sm font-bold font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-emerald-800"
             />

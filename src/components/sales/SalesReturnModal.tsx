@@ -173,9 +173,10 @@ export const SalesReturnModal: React.FC<SalesReturnModalProps> = ({
                           step="any"
                           min="0"
                           max={item.qty}
+                          inputMode="decimal"
                           value={item.returnQty || ''}
-                          onChange={(e) => handleQtyChange(idx, parseFloat(e.target.value) || 0)}
-                          placeholder="0"
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => handleQtyChange(idx, e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                           className="w-16 px-2 py-1 text-center font-mono border border-slate-300 rounded font-bold focus:ring-1 focus:ring-amber-500"
                         />
                       </td>

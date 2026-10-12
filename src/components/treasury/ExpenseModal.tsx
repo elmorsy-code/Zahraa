@@ -130,12 +130,13 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
             </label>
             <input
               type="number"
-              step="0.01"
+              step="any"
               required
               min="0.01"
+              inputMode="decimal"
               value={amount}
+              onFocus={(e) => e.target.select()}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
               className="w-full px-3 py-2 text-sm font-bold font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 text-rose-800"
             />
           </div>
@@ -164,8 +165,8 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
             <input
               type="text"
               value={paidTo}
+              onFocus={(e) => e.target.select()}
               onChange={(e) => setPaidTo(e.target.value)}
-              placeholder="اسم السائق، المحصل، الموظف..."
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
             />
           </div>
@@ -177,8 +178,8 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
             <input
               type="text"
               value={notes}
+              onFocus={(e) => e.target.select()}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="نقل شحنة سماد، صيانة ماتور رش..."
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
             />
           </div>
