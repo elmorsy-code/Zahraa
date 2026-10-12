@@ -131,7 +131,7 @@ export default {
       return new Response(
         JSON.stringify({
           status: 'ok',
-          service: 'al-khalil-erp',
+          service: 'al-zahraa-erp',
           timestamp: new Date().toISOString(),
           environment: (env.ENVIRONMENT as string) || 'production',
         }),
@@ -156,7 +156,7 @@ export default {
         headers.set('X-Content-Type-Options', 'nosniff');
         headers.set('X-Frame-Options', 'SAMEORIGIN');
         headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        headers.set('Permissions-Policy', 'camera=(), microphone=(self), geolocation=()');
 
         // Fine-tuned caching headers
         if (url.pathname.startsWith('/assets/')) {
