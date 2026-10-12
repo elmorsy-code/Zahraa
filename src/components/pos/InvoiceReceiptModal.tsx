@@ -5,6 +5,7 @@ import { formatCurrency, formatDateTime } from '../../lib/formatters';
 import { storage } from '../../lib/storage';
 import { APP_CONFIG } from '../../lib/branding';
 import { SendWhatsAppModal } from '../sales/SendWhatsAppModal';
+import { printInvoice, getSavedPaper, savePaper, InvoicePaper } from '../../lib/invoiceDocument';
 
 interface InvoiceReceiptModalProps {
   invoice: SalesInvoice | null;
@@ -16,6 +17,7 @@ export const InvoiceReceiptModal: React.FC<InvoiceReceiptModalProps> = ({
   onClose,
 }) => {
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+  const [paper, setPaper] = useState<InvoicePaper>(getSavedPaper());
 
   if (!invoice) return null;
 
@@ -24,7 +26,16 @@ export const InvoiceReceiptModal: React.FC<InvoiceReceiptModalProps> = ({
   const invoiceBatches = storage.getSalesInvoiceBatches(invoice.id);
 
   const handlePrint = () => {
-    window.print();
+    try {
+      printInvoice(invoice, company, invoiceBatches, paper);
+    } catch (e: any) {
+      alert(e?.message || 'تعذر بدء الطباعة');
+    }
+  };
+
+  const handlePaperChange = (p: InvoicePaper) => {
+    setPaper(p);
+    savePaper(p);
   };
 
   return (
@@ -216,6 +227,15 @@ export const InvoiceReceiptModal: React.FC<InvoiceReceiptModalProps> = ({
           </button>
 
           <div className="flex items-center gap-2">
+            <select
+              value={paper}
+              onChange={(e) => handlePaperChange(e.target.value as InvoicePaper)}
+              className="px-2 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg cursor-pointer"
+              title="مقاس الطباعة"
+            >
+              <option value="a4">ورق A4</option>
+              <option value="thermal">إيصال 80 مم</option>
+            </select>
             <button
               onClick={onClose}
               type="button"
