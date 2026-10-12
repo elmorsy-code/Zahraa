@@ -265,6 +265,7 @@ export const ProductsList: React.FC = () => {
         isOpen={!!deleteTarget}
         title="حذف منتج"
         itemName={deleteTarget?.name}
+        description="سيتم حذف المنتج ووحداته وأرصدته. الفواتير والحركات القديمة تفضل محفوظة بنفس اسم المنتج. لا يمكن التراجع."
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => storage.deleteProduct(deleteTarget!.id)}
       />
