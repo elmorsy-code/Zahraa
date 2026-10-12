@@ -552,7 +552,7 @@ export const SuppliersList: React.FC = () => {
         isOpen={!!deleteTarget}
         title="حذف مورد"
         itemName={deleteTarget?.name}
-        description="يتم الحذف فقط للمورد الذي ليس له فواتير أو دفعات ورصيده صفر."
+        description="سيتم حذف المورد مع كشف حسابه. فواتير الشراء والدفعات القديمة تفضل محفوظة بدون ربط بالمورد. لا يمكن التراجع."
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => storage.deleteSupplier(deleteTarget!.id)}
       />
