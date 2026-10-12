@@ -1500,8 +1500,12 @@ class DataStorage {
     if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
 
     try {
-      const { error } = await supabase.from('products').delete().eq('id', id);
+      const { data, error } = await supabase.from('products').delete().eq('id', id).select('id');
       if (error) return { success: false, error: this.friendlyDeleteError(error) };
+      // لو الصلاحيات (RLS) منعت الحذف، Supabase بيرجع نجاح من غير ما يمسح حاجة، فنتأكد إن صف اتمسح فعلاً
+      if (!data || data.length === 0) {
+        return { success: false, error: 'لم يتم الحذف: الحذف متاح للمدير فقط، أو العنصر غير موجود' };
+      }
       await this.hydrate();
       return { success: true };
     } catch (err: any) {
@@ -1513,8 +1517,12 @@ class DataStorage {
     const supabase = getSupabaseClient();
     if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
     try {
-      const { error } = await supabase.from('product_categories').delete().eq('id', id);
+      const { data, error } = await supabase.from('product_categories').delete().eq('id', id).select('id');
       if (error) return { success: false, error: this.friendlyDeleteError(error) };
+      // لو الصلاحيات (RLS) منعت الحذف، Supabase بيرجع نجاح من غير ما يمسح حاجة، فنتأكد إن صف اتمسح فعلاً
+      if (!data || data.length === 0) {
+        return { success: false, error: 'لم يتم الحذف: الحذف متاح للمدير فقط، أو العنصر غير موجود' };
+      }
       await this.hydrate();
       return { success: true };
     } catch (err: any) {
@@ -1552,8 +1560,12 @@ class DataStorage {
     if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
 
     try {
-      const { error } = await supabase.from('suppliers').delete().eq('id', id);
+      const { data, error } = await supabase.from('suppliers').delete().eq('id', id).select('id');
       if (error) return { success: false, error: this.friendlyDeleteError(error) };
+      // لو الصلاحيات (RLS) منعت الحذف، Supabase بيرجع نجاح من غير ما يمسح حاجة، فنتأكد إن صف اتمسح فعلاً
+      if (!data || data.length === 0) {
+        return { success: false, error: 'لم يتم الحذف: الحذف متاح للمدير فقط، أو العنصر غير موجود' };
+      }
       await this.hydrate();
       return { success: true };
     } catch (err: any) {
@@ -1580,8 +1592,12 @@ class DataStorage {
     if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
 
     try {
-      const { error } = await supabase.from('old_ledgers').delete().eq('id', id);
+      const { data, error } = await supabase.from('old_ledgers').delete().eq('id', id).select('id');
       if (error) return { success: false, error: this.friendlyDeleteError(error) };
+      // لو الصلاحيات (RLS) منعت الحذف، Supabase بيرجع نجاح من غير ما يمسح حاجة، فنتأكد إن صف اتمسح فعلاً
+      if (!data || data.length === 0) {
+        return { success: false, error: 'لم يتم الحذف: الحذف متاح للمدير فقط، أو العنصر غير موجود' };
+      }
       await this.hydrate();
       return { success: true };
     } catch (err: any) {
