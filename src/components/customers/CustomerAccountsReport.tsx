@@ -25,6 +25,7 @@ import { CustomerLedgerModal } from './CustomerLedgerModal';
 import { CustomerPaymentModal } from './CustomerPaymentModal';
 import { Pagination } from '../common/Pagination';
 
+import { printVisibleArea } from '../../lib/printUtils';
 export const CustomerAccountsReport: React.FC = () => {
   const [data, setData] = useState<CustomerMasterReportItem[]>([]);
   const [search, setSearch] = useState('');
@@ -338,7 +339,7 @@ export const CustomerAccountsReport: React.FC = () => {
               <span>تصدير Excel</span>
             </button>
             <button
-              onClick={() => window.print()}
+              onClick={() => printVisibleArea()}
               type="button"
               className="flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 transition-colors"
             >

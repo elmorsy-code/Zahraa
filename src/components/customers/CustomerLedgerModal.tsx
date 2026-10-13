@@ -14,6 +14,7 @@ import { storage } from '../../lib/storage';
 import { formatCurrency, formatDate, formatDateTime } from '../../lib/formatters';
 import { exportToCsv } from '../../lib/exportUtils';
 
+import { printVisibleArea } from '../../lib/printUtils';
 interface CustomerLedgerModalProps {
   customer: Customer;
   onClose: () => void;
@@ -147,7 +148,7 @@ export const CustomerLedgerModal: React.FC<CustomerLedgerModalProps> = ({
               <span>تصدير Excel</span>
             </button>
             <button
-              onClick={() => window.print()}
+              onClick={() => printVisibleArea()}
               type="button"
               className="flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors"
             >
