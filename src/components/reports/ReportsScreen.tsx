@@ -26,6 +26,7 @@ import { storage } from '../../lib/storage';
 import { formatCurrency, formatDate, formatDateTime, formatQuantity } from '../../lib/formatters';
 import { exportToCsv } from '../../lib/exportUtils';
 
+import { printVisibleArea } from '../../lib/printUtils';
 type ReportTab =
   | 'daily_monthly_sales'
   | 'sales_by_dimension'
@@ -437,7 +438,7 @@ export const ReportsScreen: React.FC = () => {
       ]);
       exportToCsv(`تقرير_صلاحية_ورواكد_المبيدات_${new Date().toISOString().slice(0, 10)}`, headers, rows);
     } else {
-      window.print();
+      printVisibleArea();
     }
   };
 
@@ -470,7 +471,7 @@ export const ReportsScreen: React.FC = () => {
               <span>تصدير Excel</span>
             </button>
             <button
-              onClick={() => window.print()}
+              onClick={() => printVisibleArea()}
               type="button"
               className="flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 transition-colors"
             >
