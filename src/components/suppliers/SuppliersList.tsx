@@ -28,6 +28,7 @@ import { SupplierModal } from './SupplierModal';
 import { SupplierLedgerModal } from './SupplierLedgerModal';
 import { SupplierPaymentModal } from './SupplierPaymentModal';
 
+import { printVisibleArea } from '../../lib/printUtils';
 export const SuppliersList: React.FC = () => {
   const [viewMode, setViewMode] = useState<'directory' | 'master_report'>('directory');
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -255,7 +256,7 @@ export const SuppliersList: React.FC = () => {
                 <span>تصدير Excel</span>
               </button>
               <button
-                onClick={() => window.print()}
+                onClick={() => printVisibleArea()}
                 type="button"
                 className="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 transition-colors"
               >
