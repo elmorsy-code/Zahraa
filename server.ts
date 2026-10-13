@@ -53,24 +53,49 @@ app.post('/api/ai/simsim', async (req, res) => {
 
     const promptText = buildSimsimPrompt(message, history, liveContext);
 
-    try {
-      const response = await ai.models.generateContent({
-        model: process.env.GEMINI_MODEL || DEFAULT_SIMSIM_MODEL,
-        contents: promptText,
-        config: {
-          systemInstruction: SIMSIM_SYSTEM_INSTRUCTION,
-          responseMimeType: 'application/json',
-        },
-      });
+    // Multi-model resilience: try candidate models if primary experiences spikes or 503
+    const candidateModels = Array.from(
+      new Set([
+        process.env.GEMINI_MODEL,
+        DEFAULT_SIMSIM_MODEL,
+        'gemini-3.1-flash-lite',
+        'gemini-3.8-flash',
+        'gemini-3.1-pro-preview',
+      ].filter(Boolean) as string[])
+    );
 
-      return res.json(parseSimsimResponse(response.text || ''));
-    } catch (genError: any) {
-      console.warn('Gemini generateContent transient error, using smart fallback:', genError?.message);
-      const fallback = resolveSmartFallback(message, liveContext);
-      return res.json(fallback);
+    let generatedText = '';
+    let lastError: any = null;
+
+    for (const modelName of candidateModels) {
+      try {
+        const response = await ai.models.generateContent({
+          model: modelName,
+          contents: promptText,
+          config: {
+            systemInstruction: SIMSIM_SYSTEM_INSTRUCTION,
+            responseMimeType: 'application/json',
+          },
+        });
+        generatedText = response.text || '';
+        if (generatedText) {
+          break;
+        }
+      } catch (genError: any) {
+        lastError = genError;
+        console.warn(`Simsim model [${modelName}] failed (${genError?.status || genError?.message}), trying next candidate...`);
+      }
     }
+
+    if (generatedText) {
+      return res.json(parseSimsimResponse(generatedText));
+    }
+
+    console.warn('All Gemini models exhausted, using smart local expert fallback:', lastError?.message);
+    const fallback = resolveSmartFallback(message, liveContext);
+    return res.json(fallback);
   } catch (error: any) {
-    console.error('Simsim AI error:', error);
+    console.error('Simsim AI critical error:', error);
     const fallback = resolveSmartFallback(req.body?.message || '', req.body?.liveContext);
     return res.json(fallback);
   }

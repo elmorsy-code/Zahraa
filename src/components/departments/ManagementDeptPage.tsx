@@ -49,7 +49,7 @@ export const ManagementDeptPage: React.FC<ManagementDeptPageProps> = ({
 
   const tabs: DepartmentTabItem[] = [
     { id: 'overview', label: 'نظرة عامة على الإدارة والرقابة', icon: LayoutGrid },
-    { id: 'reports', label: 'التقارير المالية والمخزنية', icon: BarChart3 },
+    { id: 'reports', label: 'التقارير المالية والتحليلية', icon: BarChart3 },
     { id: 'users', label: 'المستخدمون والصلاحيات', icon: ShieldCheck },
     { id: 'settings', label: 'إعدادات المنظومة', icon: Settings },
   ];

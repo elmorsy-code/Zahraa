@@ -10,15 +10,12 @@ import { SimsimModal } from '../ai/SimsimModal';
 import { ProductModal } from '../products/ProductModal';
 import { ExpenseModal } from '../treasury/ExpenseModal';
 import { CustomerModal } from '../customers/CustomerModal';
-import { SupplierModal } from '../suppliers/SupplierModal';
-import { NewPurchaseModal } from '../purchases/NewPurchaseModal';
 import { storage } from '../../lib/storage';
 
 interface LayoutProps {
   children: React.ReactNode;
   activeTab: string;
   onSelectTab: (tab: string) => void;
-  onOpenPos: () => void;
   currentUser: UserAccount;
   onLogout: () => void;
   onUserUpdated?: (user: UserAccount) => void;
@@ -28,7 +25,6 @@ export const Layout: React.FC<LayoutProps> = ({
   children,
   activeTab,
   onSelectTab,
-  onOpenPos,
   currentUser,
   onLogout,
   onUserUpdated,
@@ -40,9 +36,7 @@ export const Layout: React.FC<LayoutProps> = ({
   // Quick Action Modals triggered by Simsim
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [expenseModalOpen, setExpenseModalOpen] = useState(false);
-  const [purchaseModalOpen, setPurchaseModalOpen] = useState(false);
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
-  const [supplierModalOpen, setSupplierModalOpen] = useState(false);
 
   const [themeConfig, setThemeConfig] = useState<ThemeConfig>(() => getThemeConfig());
 
@@ -78,7 +72,6 @@ export const Layout: React.FC<LayoutProps> = ({
           {/* Master Hero Card on dashboard view (above department cards) */}
           {activeTab === 'dashboard' && (
             <HeroCard
-              onOpenPos={onOpenPos}
               onNavigate={onSelectTab}
               currentUser={currentUser}
             />
@@ -88,7 +81,6 @@ export const Layout: React.FC<LayoutProps> = ({
           <NavigationCard
             activeTab={activeTab}
             onSelectTab={onSelectTab}
-            onOpenPos={onOpenPos}
             currentUser={currentUser}
             onLogout={onLogout}
           />
@@ -128,9 +120,7 @@ export const Layout: React.FC<LayoutProps> = ({
         }}
         onOpenProductModal={() => setProductModalOpen(true)}
         onOpenExpenseModal={() => setExpenseModalOpen(true)}
-        onOpenPurchaseModal={() => setPurchaseModalOpen(true)}
         onOpenCustomerModal={() => setCustomerModalOpen(true)}
-        onOpenSupplierModal={() => setSupplierModalOpen(true)}
       />
 
       {/* 6. Quick Action Modals triggered by Simsim */}
@@ -146,21 +136,9 @@ export const Layout: React.FC<LayoutProps> = ({
         onSuccess={() => storage.hydrate()}
       />
 
-      <NewPurchaseModal
-        isOpen={purchaseModalOpen}
-        onClose={() => setPurchaseModalOpen(false)}
-        onSaved={() => storage.hydrate()}
-      />
-
       <CustomerModal
         isOpen={customerModalOpen}
         onClose={() => setCustomerModalOpen(false)}
-        onSaved={() => storage.hydrate()}
-      />
-
-      <SupplierModal
-        isOpen={supplierModalOpen}
-        onClose={() => setSupplierModalOpen(false)}
         onSaved={() => storage.hydrate()}
       />
     </div>

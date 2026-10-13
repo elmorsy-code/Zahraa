@@ -167,7 +167,6 @@ export const CustomerAccountsReport: React.FC = () => {
       'اسم العميل',
       'رقم الهاتف',
       'القرية / العنوان',
-      'الرصيد الافتتاحي',
       'إجمالي المبيعات الآجلة',
       'إجمالي التحصيلات',
       'إجمالي المرتجعات',
@@ -182,7 +181,6 @@ export const CustomerAccountsReport: React.FC = () => {
       item.customer.name,
       item.customer.phone || 'غير مسجل',
       item.customer.village_or_address || 'غير محدد',
-      item.openingBalance,
       item.totalSales,
       item.totalPayments,
       item.totalReturns,
@@ -198,7 +196,6 @@ export const CustomerAccountsReport: React.FC = () => {
       `عدد العملاء: ${filteredData.length}`,
       '',
       '',
-      totals.opening,
       totals.sales,
       totals.payments,
       totals.returns,
@@ -476,7 +473,6 @@ export const CustomerAccountsReport: React.FC = () => {
                 <th className="py-4 px-4 sm:px-5 whitespace-nowrap min-w-[200px]">كود واسم العميل</th>
                 <th className="py-4 px-4 sm:px-5 whitespace-nowrap min-w-[140px]">الهاتف</th>
                 <th className="py-4 px-4 sm:px-5 whitespace-nowrap min-w-[150px]">القرية / العنوان</th>
-                <th className="py-4 px-4 sm:px-5 whitespace-nowrap text-left min-w-[130px]">رصيد أول المدة</th>
                 <th className="py-4 px-4 sm:px-5 whitespace-nowrap text-left min-w-[130px]">إجمالي المبيعات</th>
                 <th className="py-4 px-4 sm:px-5 whitespace-nowrap text-left min-w-[130px]">إجمالي التحصيلات</th>
                 <th className="py-4 px-4 sm:px-5 whitespace-nowrap text-left min-w-[110px]">المرتجعات</th>
@@ -492,7 +488,7 @@ export const CustomerAccountsReport: React.FC = () => {
             <tbody className="divide-y divide-slate-100">
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="py-16 text-center text-slate-400">
+                  <td colSpan={11} className="py-16 text-center text-slate-400">
                     <Users className="w-10 h-10 mx-auto mb-3 stroke-1 text-slate-300" />
                     <p className="text-base font-medium">لا يوجد عملاء يطابقون محددات التصفية والبحث</p>
                   </td>
@@ -542,11 +538,6 @@ export const CustomerAccountsReport: React.FC = () => {
                         {item.customer.village_or_address || (
                           <span className="text-slate-300">غير محدد</span>
                         )}
-                      </td>
-
-                      {/* Opening Balance */}
-                      <td className="py-3.5 px-4 sm:px-5 text-left text-slate-700 tabular-nums font-medium">
-                        {item.openingBalance > 0 ? formatCurrency(item.openingBalance) : '-'}
                       </td>
 
                       {/* Total Sales */}

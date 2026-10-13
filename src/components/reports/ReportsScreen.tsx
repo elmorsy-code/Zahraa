@@ -32,9 +32,6 @@ type ReportTab =
   | 'sales_by_dimension'
   | 'collections_receipts'
   | 'customer_debts'
-  | 'supplier_payables'
-  | 'stock_movements'
-  | 'stagnant_expired_stock'
   | 'profit_and_loss'
   | 'treasury_cashflow';
 
@@ -388,9 +385,6 @@ export const ReportsScreen: React.FC = () => {
     { id: 'sales_by_dimension', label: 'المبيعات بالمنتج والعميل', icon: BarChart3 },
     { id: 'collections_receipts', label: 'التحصيلات والمقبوضات', icon: BadgeDollarSign },
     { id: 'customer_debts', label: 'ديون العملاء وأعمار الديون', icon: Users },
-    { id: 'supplier_payables', label: 'مستحقات الموردين', icon: Building2 },
-    { id: 'stock_movements', label: 'حركة المخزون العام', icon: History },
-    { id: 'stagnant_expired_stock', label: 'الرواكد ومنتهي الصلاحية', icon: AlertTriangle },
     { id: 'profit_and_loss', label: 'الأرباح والخسائر التقديرية', icon: Coins },
     { id: 'treasury_cashflow', label: 'حركة الخزينة والمطابقة', icon: Landmark },
   ];
@@ -424,19 +418,6 @@ export const ReportsScreen: React.FC = () => {
         c.lastMovementDate ? formatDate(c.lastMovementDate) : 'لا توجد',
       ]);
       exportToCsv(`تقرير_ديون_العملاء_وأعمار_الديون_${new Date().toISOString().slice(0, 10)}`, headers, rows);
-    } else if (activeTab === 'stagnant_expired_stock') {
-      const headers = ['كود المنتج', 'اسم المنتج', 'رقم التشغيلة', 'تاريخ الصلاحية', 'الأيام المتبقية', 'حالة الصلاحية', 'الرصيد المتاح', 'القيمة التقديرية'];
-      const rows = stagnantAndExpiryList.map((i) => [
-        i.product.code,
-        i.product.name,
-        i.product.batch_number || 'غير محدد',
-        i.product.expiry_date || 'غير محدد',
-        i.daysRemaining ?? '-',
-        i.expiryStatus === 'expired' ? 'منتهي الصلاحية' : i.expiryStatus === 'within30' ? 'ينتهي خلال 30 يوم' : 'صالح',
-        i.totalQty,
-        i.totalValue,
-      ]);
-      exportToCsv(`تقرير_صلاحية_ورواكد_المبيدات_${new Date().toISOString().slice(0, 10)}`, headers, rows);
     } else {
       printVisibleArea();
     }
@@ -453,7 +434,7 @@ export const ReportsScreen: React.FC = () => {
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900">
-                مركز التقارير المالية والمخزنية المتكاملة
+                مركز التقارير المالية والإدارية المتكاملة
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5 leading-relaxed">
                 استخراج تقارير حية ومؤشرات دقيقة من قاعدة البيانات مع فلاتر التاريخ والتصدير
@@ -925,318 +906,9 @@ export const ReportsScreen: React.FC = () => {
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* 5. REPORT: Supplier Payables */}
-      {/* ========================================================= */}
-      {activeTab === 'supplier_payables' && (
-        <div className="space-y-4">
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div>
-              <span className="text-xs text-slate-500 block">إجمالي التزامات المحل للموردين</span>
-              <span className="text-xl font-bold font-mono text-amber-800">
-                {formatCurrency(supplierPayablesReport.reduce((s, item) => s + Math.max(0, item.current_balance), 0))}
-              </span>
-            </div>
-            <div className="text-xs text-slate-500">
-              عدد الشركات المستحقة: {supplierPayablesReport.filter((s) => s.current_balance > 0).length}
-            </div>
-          </div>
-
-          <div className="invoice-print-area bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs border-collapse">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                  <tr>
-                    <th className="py-3 px-3">كود واسم الشركة</th>
-                    <th className="py-3 px-3">المسؤول والهاتف</th>
-                    <th className="py-3 px-3 text-left">إجمالي المشتريات</th>
-                    <th className="py-3 px-3 text-left">إجمالي المسدد</th>
-                    <th className="py-3 px-3 text-left font-bold text-amber-900">
-                      صافي المستحق للمورد
-                    </th>
-                    <th className="py-3 px-3">تاريخ آخر حركة</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {supplierPayablesReport.map((item) => (
-                    <tr key={item.supplier.id} className="hover:bg-slate-50/80">
-                      <td className="py-2.5 px-3">
-                        <div className="font-bold text-slate-900">{item.supplier.name}</div>
-                        <div className="text-slate-500 text-[11px]">{item.supplier.company_name}</div>
-                      </td>
-                      <td className="py-2.5 px-3 font-mono text-slate-600">
-                        {item.supplier.phone || '-'}
-                      </td>
-                      <td className="py-2.5 px-3 text-left font-mono font-medium">
-                        {formatCurrency(item.totalPurchases)}
-                      </td>
-                      <td className="py-2.5 px-3 text-left font-mono font-medium text-emerald-700">
-                        {formatCurrency(item.totalPaid)}
-                      </td>
-                      <td className="py-2.5 px-3 text-left font-mono font-bold text-amber-800 text-sm">
-                        {formatCurrency(item.current_balance)}
-                      </td>
-                      <td className="py-2.5 px-3 font-mono text-slate-500 text-[11px]">
-                        {item.lastMovementDate ? formatDate(item.lastMovementDate) : '-'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ========================================================= */}
-      {/* 6. REPORT: Stock Movements */}
-      {/* ========================================================= */}
-      {activeTab === 'stock_movements' && (
-        <div className="space-y-4">
-          <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center gap-3 text-xs">
-            <div className="flex items-center gap-1">
-              <span className="text-slate-500">المخزن:</span>
-              <select
-                value={selectedWarehouseId}
-                onChange={(e) => setSelectedWarehouseId(e.target.value)}
-                className="px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs"
-              >
-                <option value="all">جميع المستودعات</option>
-                {warehouses.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <span className="text-slate-500">نوع الحركة:</span>
-              <select
-                value={selectedMovementType}
-                onChange={(e) => setSelectedMovementType(e.target.value)}
-                className="px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs"
-              >
-                <option value="all">جميع أنواع الحركات</option>
-                <option value="sale">مبيعات صيدلية</option>
-                <option value="purchase">مشتريات وتوريد</option>
-                <option value="transfer_out">تحويل منصرف</option>
-                <option value="transfer_in">تحويل وارد</option>
-                <option value="adjustment_plus">تسوية جردية (+)</option>
-                <option value="adjustment_minus">تسوية جردية (-)</option>
-                <option value="sale_return">مرتجع مبيعات</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="invoice-print-area bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs border-collapse">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                  <tr>
-                    <th className="py-3 px-3">رقم الحركة</th>
-                    <th className="py-3 px-3">التاريخ والوقت</th>
-                    <th className="py-3 px-3">المخزن</th>
-                    <th className="py-3 px-3">المنتج</th>
-                    <th className="py-3 px-3">نوع الحركة</th>
-                    <th className="py-3 px-3 text-center">الكمية (أساسي)</th>
-                    <th className="py-3 px-3 text-left">الرصيد بعدها</th>
-                    <th className="py-3 px-3">البيان والملاحظات</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredStockMovements.map((m) => (
-                    <tr key={m.id} className="hover:bg-slate-50/80">
-                      <td className="py-2.5 px-3 font-mono font-bold text-slate-700">
-                        {m.movement_number}
-                      </td>
-                      <td className="py-2.5 px-3 font-mono text-slate-500 text-[11px]">
-                        {formatDateTime(m.created_at)}
-                      </td>
-                      <td className="py-2.5 px-3 font-medium text-slate-800">
-                        {m.warehouse_name}
-                      </td>
-                      <td className="py-2.5 px-3 font-bold text-slate-900">
-                        {m.product_name}
-                      </td>
-                      <td className="py-2.5 px-3">
-                        <span className="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-800">
-                          {m.movement_type === 'sale'
-                            ? 'صرف مبيعات'
-                            : m.movement_type === 'purchase'
-                            ? 'توريد مشتريات'
-                            : m.movement_type === 'transfer_out'
-                            ? 'تحويل منصرف'
-                            : m.movement_type === 'transfer_in'
-                            ? 'تحويل وارد'
-                            : m.movement_type === 'sale_return'
-                            ? 'مرتجع مبيعات'
-                            : 'تسوية رصيد'}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono font-bold">
-                        <span className={m.qty_in_base_unit > 0 ? 'text-emerald-700' : 'text-rose-700'}>
-                          {m.qty_in_base_unit > 0 ? `+${m.qty_in_base_unit}` : m.qty_in_base_unit}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 text-left font-mono font-semibold">
-                        {m.balance_after}
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-500 max-w-xs truncate">
-                        {m.notes}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* 7. REPORT: Stagnant & Expired Products */}
-      {/* ========================================================= */}
-      {activeTab === 'stagnant_expired_stock' && (
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2.5">
-            <div className="flex items-center bg-slate-100 p-0.5 rounded-lg text-xs font-semibold">
-              <button
-                onClick={() => setExpiryCategoryFilter('all')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
-                  expiryCategoryFilter === 'all'
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                الكل والمخاطر ({stagnantAndExpiryList.length})
-              </button>
-              <button
-                onClick={() => setExpiryCategoryFilter('expired')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
-                  expiryCategoryFilter === 'expired'
-                    ? 'bg-rose-100 text-rose-900 font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                منتهية الصلاحية
-              </button>
-              <button
-                onClick={() => setExpiryCategoryFilter('within30')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
-                  expiryCategoryFilter === 'within30'
-                    ? 'bg-amber-100 text-amber-900 font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                تنتهي خلال 30 يوماً
-              </button>
-              <button
-                onClick={() => setExpiryCategoryFilter('stagnant')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
-                  expiryCategoryFilter === 'stagnant'
-                    ? 'bg-blue-100 text-blue-900 font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                منتجات راكدة (بلا مبيعات)
-              </button>
-            </div>
-          </div>
-
-          <div className="invoice-print-area bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs border-collapse">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                  <tr>
-                    <th className="py-3 px-3">كود واسم المبيد / الصنف</th>
-                    <th className="py-3 px-3">المادة الفعالة والشركة</th>
-                    <th className="py-3 px-3">رقم التشغيلة</th>
-                    <th className="py-3 px-3">تاريخ الصلاحية</th>
-                    <th className="py-3 px-3 text-center">الأيام المتبقية</th>
-                    <th className="py-3 px-3 text-center">الرصيد المتوفر</th>
-                    <th className="py-3 px-3 text-left">القيمة الراكدة</th>
-                    <th className="py-3 px-3 text-center">حالة التنبيه</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {stagnantAndExpiryList.map((item) => (
-                    <tr key={item.product.id} className="hover:bg-slate-50/80">
-                      <td className="py-2.5 px-3">
-                        <div className="font-bold text-slate-900">{item.product.name}</div>
-                        <span className="font-mono text-[10px] text-slate-400">
-                          {item.product.code}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-600">
-                        <div>{item.product.active_ingredient || '-'}</div>
-                        <div className="text-[10px] text-slate-400">
-                          {item.product.manufacturer}
-                        </div>
-                      </td>
-                      <td className="py-2.5 px-3 font-mono text-slate-700">
-                        {item.product.batch_number || 'غير مسجل'}
-                      </td>
-                      <td className="py-2.5 px-3 font-mono font-bold text-slate-800">
-                        {item.product.expiry_date || 'غير محدد'}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono">
-                        {item.daysRemaining !== null ? (
-                          <span
-                            className={
-                              item.daysRemaining <= 0
-                                ? 'text-rose-700 font-bold'
-                                : item.daysRemaining <= 30
-                                ? 'text-amber-700 font-bold'
-                                : 'text-slate-700'
-                            }
-                          >
-                            {item.daysRemaining <= 0
-                              ? `منتهي (${Math.abs(item.daysRemaining)} يوم)`
-                              : `${item.daysRemaining} يوم`}
-                          </span>
-                        ) : (
-                          '-'
-                        )}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono font-bold">
-                        {item.totalQty} {item.product.base_unit_name}
-                      </td>
-                      <td className="py-2.5 px-3 text-left font-mono font-semibold text-rose-800">
-                        {formatCurrency(item.totalValue)}
-                      </td>
-                      <td className="py-2.5 px-3 text-center">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            item.expiryStatus === 'expired'
-                              ? 'bg-rose-100 text-rose-900 border border-rose-300'
-                              : item.expiryStatus === 'within30'
-                              ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                              : item.isStagnant
-                              ? 'bg-blue-100 text-blue-900 border border-blue-200'
-                              : 'bg-yellow-50 text-yellow-800'
-                          }`}
-                        >
-                          {item.expiryStatus === 'expired'
-                            ? 'منتهي الصلاحية فوراً'
-                            : item.expiryStatus === 'within30'
-                            ? 'إشعار انتهاء وشيك (أقل من شهر)'
-                            : item.isStagnant
-                            ? 'صنف راكد بلا سحب'
-                            : 'قريب الانتهاء (3 أشهر)'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* 8. REPORT: Estimated Profit & Loss (P&L) */}
+      {/* 5. REPORT: Estimated Profit & Loss (P&L) */}
       {/* ========================================================= */}
       {activeTab === 'profit_and_loss' && (
         <div className="space-y-4">

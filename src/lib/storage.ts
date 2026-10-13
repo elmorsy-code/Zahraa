@@ -284,18 +284,46 @@ class DataStorage {
 
           let imageUrl = p.image_url || '';
           let cleanDescription = p.description || '';
-          if (!imageUrl && p.description) {
-            const m = p.description.match(/\[صورة:\s*([^\]]+)\]/);
-            if (m) {
-              imageUrl = m[1].trim();
-              cleanDescription = p.description.replace(/\[صورة:\s*[^\]]+\]\s*/g, '').trim();
+          let weightOrSize = p.weight_or_size || '';
+          let categoryName = p.category_name || (pCat?.name || '');
+          let activeIngredient = p.active_ingredient || '';
+          let defaultSalePrice = Number(p.default_sale_price) || 0;
+
+          if (p.description) {
+            const mImg = p.description.match(/\[صورة:\s*([^\]]+)\]/);
+            if (mImg && !imageUrl) imageUrl = mImg[1].trim();
+
+            const mWeight = p.description.match(/\[وزن:\s*([^\]]+)\]/);
+            if (mWeight && !weightOrSize) weightOrSize = mWeight[1].trim();
+
+            const mCat = p.description.match(/\[تصنيف:\s*([^\]]+)\]/);
+            if (mCat && !categoryName) categoryName = mCat[1].trim();
+
+            const mActive = p.description.match(/\[مادة_فعالة:\s*([^\]]+)\]/);
+            if (mActive && !activeIngredient) activeIngredient = mActive[1].trim();
+
+            const mPrice = p.description.match(/\[سعر:\s*([^\]]+)\]/);
+            if (mPrice && (!defaultSalePrice || defaultSalePrice === 0)) {
+              defaultSalePrice = parseFloat(mPrice[1].trim()) || 0;
             }
+
+            cleanDescription = p.description
+              .replace(/\[صورة:\s*[^\]]+\]\s*/g, '')
+              .replace(/\[وزن:\s*[^\]]+\]\s*/g, '')
+              .replace(/\[تصنيف:\s*[^\]]+\]\s*/g, '')
+              .replace(/\[مادة_فعالة:\s*[^\]]+\]\s*/g, '')
+              .replace(/\[سعر:\s*[^\]]+\]\s*/g, '')
+              .trim();
           }
 
           return {
             ...p,
             image_url: imageUrl || undefined,
             description: cleanDescription,
+            weight_or_size: weightOrSize || undefined,
+            category_name: categoryName || undefined,
+            active_ingredient: activeIngredient || undefined,
+            default_sale_price: defaultSalePrice,
             units: pUnits,
             category: pCat,
             stock_shop: stockShop,
@@ -714,28 +742,48 @@ class DataStorage {
     }
   }
 
-  public async saveProduct(productData: Partial<Product> & { name: string; base_unit_name: string }): Promise<Product> {
+  public async saveProduct(productData: Partial<Product> & { name: string; base_unit_name?: string }): Promise<Product> {
     const supabase = getSupabaseClient();
     if (!supabase) throw new Error('الاتصال بقاعدة البيانات غير متوفر');
 
     let prodId: string = productData.id || '';
     const imgUrl = (productData.image_url || '').trim();
-    let rawDesc = (productData.description || '').replace(/\[صورة:\s*[^\]]+\]\s*/g, '').trim();
-    const encodedDesc = imgUrl ? `[صورة: ${imgUrl}] ${rawDesc}`.trim() : rawDesc;
+    const weightVal = (productData.weight_or_size || '').trim();
+    const catVal = (productData.category_name || '').trim();
+    const activeVal = (productData.active_ingredient || '').trim();
+    const salePrice = Number(productData.default_sale_price) || 0;
+    const baseUnit = (productData.base_unit_name || '').trim() || 'عبوة';
+
+    let rawDesc = (productData.description || '')
+      .replace(/\[صورة:\s*[^\]]+\]\s*/g, '')
+      .replace(/\[وزن:\s*[^\]]+\]\s*/g, '')
+      .replace(/\[تصنيف:\s*[^\]]+\]\s*/g, '')
+      .replace(/\[مادة_فعالة:\s*[^\]]+\]\s*/g, '')
+      .replace(/\[سعر:\s*[^\]]+\]\s*/g, '')
+      .trim();
+
+    let tags = '';
+    if (imgUrl) tags += `[صورة: ${imgUrl}] `;
+    if (weightVal) tags += `[وزن: ${weightVal}] `;
+    if (catVal) tags += `[تصنيف: ${catVal}] `;
+    if (activeVal) tags += `[مادة_فعالة: ${activeVal}] `;
+    if (salePrice > 0) tags += `[سعر: ${salePrice}] `;
+
+    const encodedDesc = (tags + rawDesc).trim();
 
     if (prodId) {
       let updatePayload: any = {
         barcode: productData.barcode,
         name: productData.name,
         commercial_name: productData.commercial_name,
-        active_ingredient: productData.active_ingredient,
+        active_ingredient: activeVal || null,
         manufacturer: productData.manufacturer,
         category_id: productData.category_id || null,
         description: encodedDesc,
         image_url: imgUrl || null,
-        base_unit_name: productData.base_unit_name,
+        base_unit_name: baseUnit,
         default_purchase_price: Number(productData.default_purchase_price) || 0,
-        default_sale_price: Number(productData.default_sale_price) || 0,
+        default_sale_price: salePrice,
         min_stock_alert: Number(productData.min_stock_alert) || 10,
         is_pesticide: productData.is_pesticide || false,
         requires_prescription: productData.requires_prescription || false,
@@ -762,14 +810,14 @@ class DataStorage {
         barcode: productData.barcode,
         name: productData.name,
         commercial_name: productData.commercial_name,
-        active_ingredient: productData.active_ingredient,
+        active_ingredient: activeVal || null,
         manufacturer: productData.manufacturer,
         category_id: productData.category_id || null,
         description: encodedDesc,
         image_url: imgUrl || null,
-        base_unit_name: productData.base_unit_name,
+        base_unit_name: baseUnit,
         default_purchase_price: Number(productData.default_purchase_price) || 0,
-        default_sale_price: Number(productData.default_sale_price) || 0,
+        default_sale_price: salePrice,
         min_stock_alert: Number(productData.min_stock_alert) || 10,
         is_pesticide: productData.is_pesticide || false,
         requires_prescription: productData.requires_prescription || false,
@@ -1344,6 +1392,169 @@ class DataStorage {
       return { success: true, payment: saved };
     } catch (err: any) {
       return { success: false, error: err?.message || 'خطأ أثناء تسجيل سند القبض' };
+    }
+  }
+
+  /**
+   * تسجيل مديونية جديدة على العميل بكتابة رقم الفاتورة والمبلغ واسم الشيء المشترى وتاريخ الشراء
+   */
+  public async addCustomerDebt(data: {
+    customer_id: string;
+    amount: number;
+    item_name?: string;
+    items?: Array<{
+      item_name: string;
+      is_sub_quantity?: boolean;
+      quantity?: number;
+      unit?: string;
+      unit_price?: number;
+      sub_quantity?: number;
+      sub_unit?: string;
+      full_capacity?: number;
+      package_type?: string;
+      package_price?: number;
+      total_price: number;
+    }>;
+    quantity?: number;
+    unit?: string;
+    unit_price?: number;
+    invoice_number?: string;
+    purchase_date?: string;
+    notes?: string;
+  }): Promise<{ success: boolean; entry?: CustomerLedgerEntry; error?: string }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, error: 'الاتصال بقاعدة البيانات غير متوفر' };
+
+    try {
+      const cust = this.customers.find((c) => c.id === data.customer_id);
+      if (!cust) return { success: false, error: 'العميل المحدد غير موجود' };
+
+      const totalAmount = data.amount > 0
+        ? data.amount
+        : (data.items && data.items.length > 0
+            ? data.items.reduce((s, it) => s + (it.total_price || 0), 0)
+            : 0);
+
+      if (!totalAmount || totalAmount <= 0) {
+        return { success: false, error: 'يرجى إدخال مبلغ مديونية صحيح أكبر من الصفر' };
+      }
+
+      if ((!data.items || data.items.length === 0) && (!data.item_name || !data.item_name.trim())) {
+        return { success: false, error: 'يرجى كتابة أو اختيار اسم الدواء / الشيء المشترى' };
+      }
+
+      const oldBalance = Number(cust.current_balance) || 0;
+      const newBalance = oldBalance + totalAmount;
+      const docNumber = data.invoice_number && data.invoice_number.trim()
+        ? data.invoice_number.trim()
+        : await this.getNextDocNumber('INV');
+      const entryDate = data.purchase_date
+        ? new Date(data.purchase_date).toISOString()
+        : new Date().toISOString();
+
+      let desc = '';
+      if (data.items && data.items.length > 0) {
+        desc = data.items.map((it) => {
+          const name = it.item_name.trim();
+          if (it.is_sub_quantity) {
+            const subUnit = it.sub_unit || 'مل';
+            const cap = it.full_capacity || 100;
+            const subQty = it.sub_quantity || 0;
+            const pkg = it.package_type || 'زجاجة';
+            const priceText = it.total_price ? ` بسعر ${it.total_price} ج.م` : '';
+            return `${name} [كمية فرعية: ${subQty} ${subUnit} من أصل ${cap} ${subUnit} (${pkg})${priceText}]`;
+          } else {
+            const qty = it.quantity !== undefined ? it.quantity : 1;
+            const unitText = it.unit ? ` ${it.unit.trim()}` : '';
+            const priceText = it.unit_price ? ` بسعر ${it.unit_price} ج.م` : (it.total_price ? ` بسعر ${it.total_price} ج.م` : '');
+            return `${name} [كمية: ${qty}${unitText}${priceText}]`;
+          }
+        }).join(' + ');
+      } else if (data.item_name) {
+        desc = data.item_name.trim();
+        if (data.quantity !== undefined && data.quantity > 0) {
+          const unitText = data.unit ? ` ${data.unit.trim()}` : '';
+          const priceText = data.unit_price ? ` بسعر ${data.unit_price} ج.م` : '';
+          desc += ` [كمية: ${data.quantity}${unitText}${priceText}]`;
+        }
+      }
+
+      if (data.notes && data.notes.trim()) {
+        desc += ` (${data.notes.trim()})`;
+      }
+
+      const { data: newEntry, error: insertError } = await supabase
+        .from('customer_ledger_entries')
+        .insert({
+          customer_id: data.customer_id,
+          entry_date: entryDate,
+          entry_type: 'invoice',
+          document_number: docNumber,
+          debit: totalAmount,
+          credit: 0,
+          running_balance: newBalance,
+          description: desc,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({
+          current_balance: newBalance,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', data.customer_id);
+
+      if (updateError) throw updateError;
+
+      await this.hydrate();
+      return { success: true, entry: newEntry };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'فشل تسجيل المديونية' };
+    }
+  }
+
+  /**
+   * حذف قيد مديونية وتحديث رصيد العميل عكسياً
+   */
+  public async deleteCustomerDebtEntry(entryId: string): Promise<{ success: boolean; error?: string }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, error: 'الاتصال بقاعدة البيانات غير متوفر' };
+
+    try {
+      const entry = this.customerLedger.find((l) => l.id === entryId);
+      if (!entry) return { success: false, error: 'قيد المديونية غير موجود' };
+
+      const cust = this.customers.find((c) => c.id === entry.customer_id);
+      if (!cust) return { success: false, error: 'العميل غير موجود' };
+
+      const netEffect = (Number(entry.debit) || 0) - (Number(entry.credit) || 0);
+      const newBalance = (Number(cust.current_balance) || 0) - netEffect;
+
+      const { error: delError } = await supabase
+        .from('customer_ledger_entries')
+        .delete()
+        .eq('id', entryId);
+
+      if (delError) throw delError;
+
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({
+          current_balance: newBalance,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', cust.id);
+
+      if (updateError) throw updateError;
+
+      await this.hydrate();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'فشل حذف القيد' };
     }
   }
 

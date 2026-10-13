@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
   ShoppingCart,
-  Warehouse,
+  ShoppingBag,
+  Pill,
+  BarChart3,
+  PackageCheck,
   Users,
   Store,
   Calendar,
@@ -24,13 +27,11 @@ import { storage } from '../../lib/storage';
 import { formatCurrency } from '../../lib/formatters';
 
 interface HeroCardProps {
-  onOpenPos: () => void;
   onNavigate?: (tab: string) => void;
   currentUser?: UserAccount;
 }
 
 export const HeroCard: React.FC<HeroCardProps> = ({
-  onOpenPos,
   onNavigate,
   currentUser,
 }) => {
@@ -61,12 +62,12 @@ export const HeroCard: React.FC<HeroCardProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  // Keyboard shortcut listener for F2 -> Open POS, F4 -> Ledgers
+  // Keyboard shortcut listener for F2 -> Sales, F4 -> Ledgers
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'F2') {
         e.preventDefault();
-        onOpenPos();
+        onNavigate?.('sales');
       } else if (e.key === 'F4') {
         e.preventDefault();
         onNavigate?.('customer_ledgers');
@@ -74,7 +75,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onOpenPos, onNavigate]);
+  }, [onNavigate]);
 
   // Current date formatted in Arabic
   const todayArabic = new Intl.DateTimeFormat('ar-EG', {
@@ -95,9 +96,6 @@ export const HeroCard: React.FC<HeroCardProps> = ({
     (sum, c) => sum + Math.max(0, c.current_balance || 0),
     0
   );
-  const lowStockCount = products.filter(
-    (p) => (p.stock_shop || 0) + (p.stock_warehouse || 0) <= (p.min_stock_alert || 0)
-  ).length;
 
   // Today sales count
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -246,25 +244,25 @@ export const HeroCard: React.FC<HeroCardProps> = ({
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1">
-                  الصيدلية الزراعية المتخصصة · المستودعات المركزية · حسابات المزارعين · نقاط البيع المباشر
+                  الصيدلية الزراعية المتخصصة · حسابات المزارعين · فواتير المبيعات والتحصيلات
                 </p>
               </div>
             </div>
 
             <h1 className="text-xl sm:text-2xl lg:text-[30px] font-black tracking-tight leading-snug text-white">
-              منظومة المتابعة والتحكم الفوري للمبيعات والمخازن
+              منظومة المتابعة والتحكم الفوري لحسابات المزارعين والمبيعات
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium max-w-xl">
-              إصدار فواتير البيع الفورية والآجلة، الرقابة التامة على مخزون الأدوية والمبيدات والأسمدة
-              بين المحل والمستودع الرئيسي، وتحصيل مديونيات المزارعين بسلاسة ودقة.
+              إصدار ومتابعة فواتير البيع، إدارة كشوف حسابات المزارعين ومديونياتهم بدقة متناهية،
+              والرقابة التامة على حركة الخزينة والسيولة النقدية.
             </p>
 
             {/* Fast Strategic Actions Bar - Fully Responsive */}
             <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 pt-2">
-              {/* Primary High-Impact POS CTA */}
+              {/* Primary High-Impact Debts CTA */}
               <button
-                onClick={onOpenPos}
+                onClick={() => onNavigate?.('debts')}
                 type="button"
                 className="group relative inline-flex items-center justify-center gap-2.5 px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl active:scale-98 font-black text-xs sm:text-sm cursor-pointer shadow-xl transition-all duration-200 w-full sm:w-auto"
                 style={{
@@ -273,34 +271,34 @@ export const HeroCard: React.FC<HeroCardProps> = ({
                 }}
               >
                 <div className="p-1 rounded-lg bg-black/20 group-hover:scale-110 transition-transform">
-                  <ShoppingCart className="w-4 h-4 text-white" />
+                  <ShoppingBag className="w-4 h-4 text-white" />
                 </div>
-                <span>فتح نقطة البيع السريعة (POS)</span>
+                <span>قسم مديونات العملاء</span>
                 <span className="px-2 py-0.5 rounded-md bg-black/20 text-white text-[11px] font-black tracking-wider">
-                  F2
+                  F4
                 </span>
               </button>
 
               {/* Secondary Actions in Responsive Grid */}
-              <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 w-full sm:w-auto">
-                {/* Secondary Action: Farmer Ledgers */}
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full sm:w-auto">
+                {/* Secondary Action: Customers */}
                 <button
-                  onClick={() => onNavigate?.('customer_ledgers')}
+                  onClick={() => onNavigate?.('customers')}
                   type="button"
                   className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white font-bold text-xs cursor-pointer border border-white/15 transition-all duration-150 active:scale-95 shadow-xs"
                 >
-                  <Users className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                  <span className="truncate">كشوف المزارعين</span>
+                  <Users className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <span className="truncate">قسم العملاء</span>
                 </button>
 
-                {/* Secondary Action: Warehouse */}
+                {/* Secondary Action: Products Catalog */}
                 <button
-                  onClick={() => onNavigate?.('warehouse_main')}
+                  onClick={() => onNavigate?.('products')}
                   type="button"
                   className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white font-bold text-xs cursor-pointer border border-white/15 transition-all duration-150 active:scale-95 shadow-xs"
                 >
-                  <Warehouse className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span className="truncate">المخازن</span>
+                  <Pill className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                  <span className="truncate">قسم الأصناف</span>
                 </button>
 
                 {/* Secondary Action: Treasury */}
@@ -310,7 +308,17 @@ export const HeroCard: React.FC<HeroCardProps> = ({
                   className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white font-bold text-xs cursor-pointer border border-white/15 transition-all duration-150 active:scale-95 shadow-xs"
                 >
                   <Coins className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span className="truncate">الخزينة</span>
+                  <span className="truncate">قسم الخزينة</span>
+                </button>
+
+                {/* Secondary Action: Reports */}
+                <button
+                  onClick={() => onNavigate?.('reports')}
+                  type="button"
+                  className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white font-bold text-xs cursor-pointer border border-white/15 transition-all duration-150 active:scale-95 shadow-xs"
+                >
+                  <BarChart3 className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                  <span className="truncate">قسم التقارير</span>
                 </button>
               </div>
             </div>
@@ -380,15 +388,15 @@ export const HeroCard: React.FC<HeroCardProps> = ({
               </div>
             </div>
 
-            {/* KPI 3: Products & Inventory Safety */}
+            {/* KPI 3: Products Catalog & Pricing */}
             <div
               onClick={() => onNavigate?.('products')}
               className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-amber-500/50 transition-all duration-200 cursor-pointer group flex flex-col justify-between backdrop-blur-xs shadow-md"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-300">الأصناف والمخزون</span>
+                <span className="text-xs font-bold text-slate-300">دليل الأصناف والأسعار</span>
                 <div className="p-1.5 sm:p-2 rounded-xl bg-amber-500/20 text-amber-400 group-hover:scale-110 group-hover:bg-amber-500/30 transition-all">
-                  <Warehouse className="w-4 h-4" />
+                  <PackageCheck className="w-4 h-4" />
                 </div>
               </div>
               <div>
@@ -396,17 +404,10 @@ export const HeroCard: React.FC<HeroCardProps> = ({
                   {products.length} صنف مسجل
                 </div>
                 <div className="flex items-center justify-between mt-1 text-[11px] text-slate-400 font-medium">
-                  {lowStockCount > 0 ? (
-                    <span className="text-amber-400 font-bold flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" />
-                      {lowStockCount} قارب على النفاد
-                    </span>
-                  ) : (
-                    <span className="text-emerald-400 font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" />
-                      المخزون بوضع آمن
-                    </span>
-                  )}
+                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    قوائم أسعار معتمدة
+                  </span>
                   <div className="flex items-center gap-0.5 text-amber-400 group-hover:-translate-x-1 transition-transform font-bold text-[11px]">
                     <span>الأصناف</span>
                     <ChevronLeft className="w-3.5 h-3.5" />
@@ -445,16 +446,16 @@ export const HeroCard: React.FC<HeroCardProps> = ({
           </div>
         </div>
 
-        {/* 3. BOTTOM ARCHITECTURAL TICKER: Multi-warehouse status & fast badges */}
+        {/* 3. BOTTOM ARCHITECTURAL TICKER: Central system status & fast badges */}
         <div className="pt-2.5 sm:pt-3 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] sm:text-xs text-slate-400 font-medium">
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--theme-accent, #10b981)' }} />
-              <span>محل البيع المباشر (SHOP): نشط</span>
+              <span>حسابات وديون المزارعين: نشطة</span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-teal-400" />
-              <span>المستودع الرئيسي (WH-MAIN): متصل</span>
+              <span>الخزينة والتحصيلات: متصلة</span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-amber-400" />
@@ -463,7 +464,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
           </div>
 
           <div className="flex items-center gap-2 text-slate-400 text-[10px] sm:text-[11px]">
-            <span>نظام الباركود والطابعات الحرارية (80mm) مدعوم</span>
+            <span>الطباعة وتصدير كشوف الحسابات مدعومة</span>
           </div>
         </div>
       </div>

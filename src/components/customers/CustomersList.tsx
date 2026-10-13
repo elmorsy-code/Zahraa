@@ -166,8 +166,6 @@ export const CustomersList: React.FC<CustomersListProps> = ({ initialOpenLedger 
                 <th className="py-4 px-4 sm:px-5 whitespace-nowrap min-w-[120px]">كود العميل</th>
                 <th className="py-4 px-4 sm:px-5 whitespace-nowrap min-w-[200px]">الاسم وبيانات الاتصال</th>
                 <th className="py-4 px-4 sm:px-5 whitespace-nowrap min-w-[160px]">العنوان / القرية</th>
-                <th className="py-4 px-4 sm:px-5 whitespace-nowrap text-left min-w-[130px]">الرصيد الافتتاحي</th>
-                <th className="py-4 px-4 sm:px-5 whitespace-nowrap text-left min-w-[130px]">الحد الائتماني</th>
                 <th className="py-4 px-4 sm:px-5 whitespace-nowrap text-left min-w-[160px] bg-amber-50/70 font-bold text-slate-900">
                   الرصيد الحالي (المديونية)
                 </th>
@@ -177,7 +175,7 @@ export const CustomersList: React.FC<CustomersListProps> = ({ initialOpenLedger 
             <tbody className="divide-y divide-slate-100">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-slate-400">
+                  <td colSpan={5} className="py-16 text-center text-slate-400">
                     <Users className="w-10 h-10 mx-auto mb-3 stroke-1 text-slate-300" />
                     <p className="text-base font-medium">لا يوجد عملاء يطابقون محددات البحث</p>
                   </td>
@@ -219,13 +217,7 @@ export const CustomersList: React.FC<CustomersListProps> = ({ initialOpenLedger 
                         )}
                       </td>
 
-                      <td className="py-3.5 px-4 sm:px-5 text-left text-slate-600 tabular-nums font-medium">
-                        {formatCurrency(customer.opening_balance)}
-                      </td>
 
-                      <td className="py-3.5 px-4 sm:px-5 text-left text-slate-600 tabular-nums font-medium">
-                        {customer.credit_limit ? formatCurrency(customer.credit_limit) : '-'}
-                      </td>
 
                       <td className="py-3.5 px-4 sm:px-5 text-left bg-amber-50/70">
                         <span

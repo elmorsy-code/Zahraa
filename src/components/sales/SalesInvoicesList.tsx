@@ -118,7 +118,6 @@ export const SalesInvoicesList: React.FC = () => {
               <tr>
                 <th className="py-4 px-4">رقم الفاتورة</th>
                 <th className="py-4 px-4 min-w-[180px]">العميل والمشتري</th>
-                <th className="py-4 px-4">المخزن / المنفذ</th>
                 <th className="py-4 px-4">تاريخ ووقت البيع</th>
                 <th className="py-4 px-4">طريقة السداد</th>
                 <th className="py-4 px-4 text-left">إجمالي الفاتورة</th>
@@ -130,7 +129,7 @@ export const SalesInvoicesList: React.FC = () => {
             <tbody className="divide-y divide-slate-100">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-14 text-center text-slate-400">
+                  <td colSpan={8} className="py-14 text-center text-slate-400">
                     <Receipt className="w-10 h-10 mx-auto mb-3 stroke-1 text-slate-300" />
                     <p className="text-sm font-medium">لا توجد فواتير مبيعات مسجلة</p>
                   </td>
@@ -144,10 +143,6 @@ export const SalesInvoicesList: React.FC = () => {
 
                     <td className="py-3.5 px-4 font-bold text-slate-900">
                       {inv.customer_name_snapshot}
-                    </td>
-
-                    <td className="py-3.5 px-4 text-slate-600 font-medium">
-                      {inv.warehouse_name || 'محل البيع'}
                     </td>
 
                     <td className="py-3.5 px-4 text-slate-500 tabular-nums">

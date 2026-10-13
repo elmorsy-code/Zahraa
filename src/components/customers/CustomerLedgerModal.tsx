@@ -8,6 +8,9 @@ import {
   CheckCircle2,
   AlertTriangle,
   RotateCcw,
+  Pill,
+  FlaskConical,
+  Scale,
 } from 'lucide-react';
 import { Customer, CustomerLedgerEntry } from '../../types/database';
 import { storage } from '../../lib/storage';
@@ -284,9 +287,9 @@ export const CustomerLedgerModal: React.FC<CustomerLedgerModalProps> = ({
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold">
                   <tr>
                     <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px]">التاريخ</th>
-                    <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px]">رقم المستند</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px]">رقم الفاتورة / المستند</th>
                     <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px]">نوع الحركة</th>
-                    <th className="py-3.5 px-4 whitespace-nowrap min-w-[200px]">البيان</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap min-w-[200px]">اسم الشيء المشترى / البيان</th>
                     <th className="py-3.5 px-4 whitespace-nowrap text-left min-w-[120px]">إجمالي الفاتورة</th>
                     <th className="py-3.5 px-4 whitespace-nowrap text-left min-w-[120px]">المسدد نقداً</th>
                     <th className="py-3.5 px-4 whitespace-nowrap text-left min-w-[110px]">المرتجع</th>
@@ -349,8 +352,49 @@ export const CustomerLedgerModal: React.FC<CustomerLedgerModalProps> = ({
                                 : 'تسوية'}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-slate-700 leading-relaxed max-w-[260px]">
-                            {entry.description}
+                          <td className="py-3 px-4 text-slate-700 leading-relaxed max-w-[280px]">
+                            {(() => {
+                              const raw = entry.description || '-';
+                              const parts = raw.split(/\s+\+\s+/);
+
+                              return (
+                                <div className="space-y-1">
+                                  {parts.length > 1 && (
+                                    <span className="text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-200 px-1.5 py-0.5 rounded-md inline-block">
+                                      {parts.length} أصناف
+                                    </span>
+                                  )}
+                                  {parts.map((part, pIdx) => {
+                                    const subQtyMatch = part.match(/\[كمية فرعية:\s*([^\]]+)\]/);
+                                    const stdQtyMatch = part.match(/\[كمية:\s*([^\]]+)\]/) || part.match(/\(الكمية:\s*([^\)]+)\)/);
+                                    const cleanDesc = part
+                                      .replace(/\[كمية فرعية:\s*[^\]]+\]/g, '')
+                                      .replace(/\[كمية:\s*[^\]]+\]/g, '')
+                                      .replace(/\(الكمية:\s*[^\)]+\)/g, '')
+                                      .trim();
+
+                                    return (
+                                      <div key={pIdx} className="space-y-0.5 border-b border-slate-100 last:border-b-0 pb-1 last:pb-0">
+                                        <div className="font-bold text-slate-900 flex items-center gap-1">
+                                          <Pill className="w-3 h-3 text-amber-700 shrink-0" />
+                                          <span>{cleanDesc || part}</span>
+                                        </div>
+                                        {subQtyMatch && (
+                                          <span className="inline-block text-[10px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-200 px-1.5 py-0.5 rounded-md">
+                                            كمية فرعية: {subQtyMatch[1]}
+                                          </span>
+                                        )}
+                                        {!subQtyMatch && stdQtyMatch && (
+                                          <span className="inline-block text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded-md">
+                                            الكمية: {stdQtyMatch[1]}
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            })()}
                           </td>
                           <td className="py-3 px-4 text-left font-mono tabular-nums text-slate-900">
                             {invoiceVal > 0 ? formatCurrency(invoiceVal) : '-'}

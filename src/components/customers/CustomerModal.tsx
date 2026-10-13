@@ -24,8 +24,6 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
   const [phone, setPhone] = useState('');
   const [village, setVillage] = useState('');
   const [nationalId, setNationalId] = useState('');
-  const [creditLimit, setCreditLimit] = useState('0');
-  const [openingBalance, setOpeningBalance] = useState('0');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,8 +38,6 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
       setPhone(customerToEdit.phone || '');
       setVillage(customerToEdit.village_or_address || '');
       setNationalId(customerToEdit.national_id || '');
-      setCreditLimit(customerToEdit.credit_limit ? customerToEdit.credit_limit.toString() : '');
-      setOpeningBalance(customerToEdit.opening_balance ? customerToEdit.opening_balance.toString() : '');
       // Clean notes from [شريك: ...] if present
       const cleanNotes = (customerToEdit.notes || '').replace(/\[شريك:\s*[^\]]+\]\s*/g, '').trim();
       setNotes(cleanNotes);
@@ -52,8 +48,6 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
       setPhone('');
       setVillage('');
       setNationalId('');
-      setCreditLimit('');
-      setOpeningBalance('');
       setNotes('');
       let savedPrefix = 'CUST';
       try {
@@ -104,8 +98,8 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
         phone: phone.trim(),
         village_or_address: village.trim(),
         national_id: nationalId.trim(),
-        credit_limit: parseFloat(creditLimit) || 0,
-        opening_balance: parseFloat(openingBalance) || 0,
+        credit_limit: customerToEdit ? (customerToEdit.credit_limit || 0) : 0,
+        opening_balance: customerToEdit ? (customerToEdit.opening_balance || 0) : 0,
         notes: notes.trim(),
       });
 
@@ -233,38 +227,6 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                الحد الائتماني المسموح به (ج.م)
-              </label>
-              <input
-                type="number"
-                step="any"
-                inputMode="decimal"
-                value={creditLimit}
-                onFocus={(e) => e.target.select()}
-                onChange={(e) => setCreditLimit(e.target.value)}
-                className="w-full px-3 py-2 font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                الرصيد الافتتاحي (ج.م)
-              </label>
-              <input
-                type="number"
-                step="any"
-                inputMode="decimal"
-                disabled={Boolean(customerToEdit)}
-                value={openingBalance}
-                onFocus={(e) => e.target.select()}
-                onChange={(e) => setOpeningBalance(e.target.value)}
-                className="w-full px-3 py-2 font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100"
-              />
-            </div>
-          </div>
 
           <div>
             <label className="block font-semibold text-slate-700 mb-1">

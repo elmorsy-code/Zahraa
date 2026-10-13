@@ -37,18 +37,16 @@ interface SimsimModalProps {
   onNavigate: (tab: string) => void;
   onOpenProductModal?: () => void;
   onOpenExpenseModal?: () => void;
-  onOpenPurchaseModal?: () => void;
   onOpenCustomerModal?: () => void;
-  onOpenSupplierModal?: () => void;
 }
 
 const QUICK_SUGGESTIONS = [
-  { text: 'افتح الكاشير ونقطة البيع (POS)', icon: '🛒' },
-  { text: 'عايز أشوف بضاعة ومخزون المحل', icon: '🏪' },
-  { text: 'افتح بضاعة ومخزون المخزن', icon: '🏬' },
-  { text: 'عندي كام في الخزينة دلوقتي؟', icon: '💰' },
-  { text: 'إيه الأصناف الناقصة في المخزون؟', icon: '⚠️' },
+  { text: 'كشوف حسابات ومديونيات المزارعين', icon: '👥' },
+  { text: 'عندي كام في الخزينة والسيولة دلوقتي؟', icon: '💰' },
+  { text: 'افتح سجل فواتير المبيعات', icon: '🧾' },
   { text: 'ضيف صنف جديد للمنظومة', icon: '➕' },
+  { text: 'سجل عميل جديد', icon: '👤' },
+  { text: 'سجل مصروف تشغيلي للخزينة', icon: '💸' },
   { text: 'علاج الندوة المتأخرة في البطاطس', icon: '🥔' },
   { text: 'تحديث ومزامنة بيانات الموقع', icon: '🔄' },
 ];
@@ -59,15 +57,13 @@ export const SimsimModal: React.FC<SimsimModalProps> = ({
   onNavigate,
   onOpenProductModal,
   onOpenExpenseModal,
-  onOpenPurchaseModal,
   onOpenCustomerModal,
-  onOpenSupplierModal,
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       id: 'welcome',
       sender: 'simsim',
-      text: 'أهلاً بك يا فندم! أنا "سمسم" 🤖 المساعد الذكي الخاص بيك في المنظومة. \n\nأقدر أتحكم في الموقع كامل وأفتحلك أي شاشة، أراجع الخزينة والمخزون، أسجل أصناف وفواتير، أو أجاوبك على أي استشارة زراعية ومبيدات وأسمدة. اطلب مني أي حاجة وأنا في خدمتك فوراً!',
+      text: 'أهلاً بك يا فندم! أنا "سمسم" 🤖 المساعد الذكي الخاص بيك في المنظومة. \n\nأقدر أتحكم في الموقع وأفتحلك أي شاشة، أراجع الخزينة والسيولة، كشوف حسابات وديون المزارعين، أسجل أصناف ومصروفات، أو أجاوبك على أي استشارة زراعية ومبيدات وأسمدة. اطلب مني أي حاجة وأنا في خدمتك فوراً!',
       timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -147,9 +143,7 @@ export const SimsimModal: React.FC<SimsimModalProps> = ({
     } else if (action.type === 'open_modal') {
       if (action.target === 'product' && onOpenProductModal) onOpenProductModal();
       else if (action.target === 'expense' && onOpenExpenseModal) onOpenExpenseModal();
-      else if (action.target === 'purchase' && onOpenPurchaseModal) onOpenPurchaseModal();
       else if (action.target === 'customer' && onOpenCustomerModal) onOpenCustomerModal();
-      else if (action.target === 'supplier' && onOpenSupplierModal) onOpenSupplierModal();
     } else if (action.type === 'action') {
       if (action.target === 'refresh') {
         storage.hydrate();

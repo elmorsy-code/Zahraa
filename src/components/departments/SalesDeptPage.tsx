@@ -15,7 +15,6 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { DepartmentHeader, DepartmentTabItem } from './DepartmentHeader';
-import { PosScreen } from '../pos/PosScreen';
 import { SalesInvoicesList } from '../sales/SalesInvoicesList';
 import { SendWhatsAppModal } from '../sales/SendWhatsAppModal';
 import { storage } from '../../lib/storage';
@@ -25,13 +24,11 @@ import { formatCurrency, formatDateTime } from '../../lib/formatters';
 interface SalesDeptPageProps {
   initialSubTab?: string;
   onNavigateHome: () => void;
-  onOpenPosFull?: () => void;
 }
 
 export const SalesDeptPage: React.FC<SalesDeptPageProps> = ({
   initialSubTab = 'overview',
   onNavigateHome,
-  onOpenPosFull,
 }) => {
   const [subTab, setSubTab] = useState<string>(initialSubTab);
   const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>([]);
@@ -58,7 +55,6 @@ export const SalesDeptPage: React.FC<SalesDeptPageProps> = ({
 
   const tabs: DepartmentTabItem[] = [
     { id: 'overview', label: 'نظرة عامة على قسم المبيعات', icon: LayoutGrid },
-    { id: 'pos', label: 'نقطة البيع السريعة (POS)', icon: ShoppingCart },
     { id: 'sales_list', label: 'سجل فواتير المبيعات', icon: Receipt, count: salesInvoices.length },
   ];
 
@@ -78,34 +74,24 @@ export const SalesDeptPage: React.FC<SalesDeptPageProps> = ({
       {/* Department Master Header */}
       <DepartmentHeader
         deptId="sales_dept"
-        title="قسم المبيعات ونقاط البيع (POS)"
-        subtitle="إدارة عمليات البيع السريع، الكاشير المباشر، الفواتير النقدية والآجلة، وإرسال الفواتير عبر واتساب"
-        tagline="البيع السريع والطباعة الفورية"
-        icon={ShoppingCart}
+        title="قسم المبيعات والفواتير"
+        subtitle="إدارة فواتير المبيعات الصادرة، الفواتير النقدية والآجلة، كشوف حسابات العمليات، وإرسال الفواتير عبر واتساب"
+        tagline="إدارة فواتير البيع والمتابعة"
+        icon={Receipt}
         themeColor="emerald"
         tabs={tabs}
         activeSubTab={subTab}
         onSelectSubTab={(tab) => setSubTab(tab)}
         onNavigateHome={onNavigateHome}
         extraActions={
-          <>
-            <button
-              onClick={() => setSubTab('pos')}
-              type="button"
-              className="flex items-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-xs transition-all cursor-pointer"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              <span>فتح الكاشير (POS)</span>
-            </button>
-            <button
-              onClick={() => setSubTab('sales_list')}
-              type="button"
-              className="flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-2xs transition-all cursor-pointer"
-            >
-              <Receipt className="w-4 h-4 text-emerald-700" />
-              <span>فواتير البيع</span>
-            </button>
-          </>
+          <button
+            onClick={() => setSubTab('sales_list')}
+            type="button"
+            className="flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-2xs transition-all cursor-pointer"
+          >
+            <Receipt className="w-4 h-4 text-white" />
+            <span>سجل فواتير البيع</span>
+          </button>
         }
       />
 
@@ -183,34 +169,34 @@ export const SalesDeptPage: React.FC<SalesDeptPageProps> = ({
             </div>
           </div>
 
-          {/* Hero POS Quick-Access Banner */}
+          {/* Hero Sales Invoices Quick-Access Banner */}
           <div className="card-box p-6 border-2 border-emerald-400 bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 text-white rounded-3xl shadow-md flex flex-col md:flex-row md:items-center justify-between gap-5">
             <div className="flex items-center gap-4">
               <div className="p-4 bg-emerald-500/20 border border-emerald-400/40 rounded-2xl shrink-0">
-                <ShoppingCart className="w-9 h-9 text-emerald-300" />
+                <Receipt className="w-9 h-9 text-emerald-300" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg sm:text-xl font-black">
-                    شاشة الكاشير السريع (POS) المجهزة للبيع الميداني
+                    سجل فواتير المبيعات الصادرة والطباعة
                   </h3>
                   <span className="bg-emerald-500 text-emerald-950 font-black text-[11px] px-2.5 py-0.5 rounded-full">
-                    شاشة الكاشير
+                    الفواتير
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-emerald-100 mt-1">
-                  تدعم الباركود، بيع الأدوية الزراعية والمبيدات، حساب الوحدات الصغرى والكبرى، والطباعة الفورية على طابعات الإيصالات 80mm و 58mm.
+                  متابعة فواتير البيع الصادرة للمزارعين، البحث الفوري، التحصيل، ومشاركة الإيصالات عبر واتساب.
                 </p>
               </div>
             </div>
 
             <button
-              onClick={() => setSubTab('pos')}
+              onClick={() => setSubTab('sales_list')}
               type="button"
               className="flex items-center justify-center gap-2 px-6 py-3.5 bg-white hover:bg-emerald-50 text-emerald-900 font-black text-sm rounded-2xl shadow-lg transition-all shrink-0 cursor-pointer active:scale-95"
             >
-              <ShoppingCart className="w-5 h-5 text-emerald-700" />
-              <span>بدء عملية بيع جديدة الآن ←</span>
+              <Receipt className="w-5 h-5 text-emerald-700" />
+              <span>عرض سجل الفواتير كاملاً ←</span>
             </button>
           </div>
 
@@ -253,12 +239,12 @@ export const SalesDeptPage: React.FC<SalesDeptPageProps> = ({
                 <Receipt className="w-12 h-12 text-slate-300 mx-auto" />
                 <p className="font-bold text-sm">لا توجد فواتير مبيعات مسجلة حتى الآن</p>
                 <button
-                  onClick={() => setSubTab('pos')}
+                  onClick={() => setSubTab('sales_list')}
                   type="button"
                   className="inline-flex items-center gap-1.5 text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-xl cursor-pointer"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>إنشاء أول فاتورة بيع</span>
+                  <Receipt className="w-4 h-4" />
+                  <span>فتح سجل فواتير البيع</span>
                 </button>
               </div>
             ) : (
@@ -347,25 +333,6 @@ export const SalesDeptPage: React.FC<SalesDeptPageProps> = ({
         </div>
       )}
 
-      {/* VIEW 2: SubTab = 'pos' */}
-      {subTab === 'pos' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between bg-emerald-50/80 border border-emerald-200 p-3 rounded-2xl">
-            <span className="text-xs sm:text-sm font-bold text-emerald-900 flex items-center gap-2">
-              <ShoppingCart className="w-4 h-4 text-emerald-700" />
-              أنت الآن داخل نقطة البيع السريعة (POS) التابعة لقسم المبيعات
-            </span>
-            <button
-              onClick={() => setSubTab('overview')}
-              type="button"
-              className="text-xs font-bold text-emerald-800 hover:text-emerald-950 underline cursor-pointer"
-            >
-              العودة للوحة قسم المبيعات
-            </button>
-          </div>
-          <PosScreen />
-        </div>
-      )}
 
       {/* VIEW 3: SubTab = 'sales_list' */}
       {subTab === 'sales_list' && (

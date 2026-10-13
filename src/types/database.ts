@@ -50,6 +50,8 @@ export interface Product {
   manufacturer?: string; // الشركة المصنعة
   category_id?: string;
   description?: string;
+  weight_or_size?: string; // وزن الدواء أو حجمه (مثال: 250 جم، 1 لتر، 500 مل)
+  category_name?: string; // تصنيف الدواء (مبيد حشري، مبيد فطري، سماد ورقي...)
   base_unit_name: string; // e.g. "جرام", "مل", "حبة", "كجم"
   default_purchase_price: number;
   default_sale_price: number;

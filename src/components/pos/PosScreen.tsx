@@ -16,12 +16,15 @@ import {
   Check,
   X,
   User,
+  Phone,
+  MapPin,
 } from 'lucide-react';
 import { Product, Customer, SalesInvoice, ProductUnit } from '../../types/database';
 import { storage } from '../../lib/storage';
 import { formatCurrency, formatQuantity, formatCustomerDisplayName } from '../../lib/formatters';
 import { QuickAddCustomerModal } from './QuickAddCustomerModal';
 import { InvoiceReceiptModal } from './InvoiceReceiptModal';
+import { CustomerSearchSelectModal } from './CustomerSearchSelectModal';
 
 interface CartItem {
   product: Product;
@@ -55,6 +58,7 @@ export const PosScreen: React.FC = () => {
 
   // Modals
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [showCustomerSearchModal, setShowCustomerSearchModal] = useState(false);
   const [completedInvoice, setCompletedInvoice] = useState<SalesInvoice | null>(null);
   const [mobilePosTab, setMobilePosTab] = useState<'products' | 'cart'>('products');
 
@@ -512,7 +516,7 @@ export const PosScreen: React.FC = () => {
         <div className={`lg:col-span-5 flex flex-col h-full bg-white rounded-2xl shadow-xs border-2 border-slate-200 overflow-hidden ${
           mobilePosTab === 'products' ? 'hidden lg:flex' : 'flex'
         }`}>
-          {/* Customer Header */}
+          {/* Customer Header & Searchable Section */}
           <div className="p-3.5 sm:p-4 bg-slate-900 text-white border-b border-slate-800 space-y-2.5 sm:space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -525,238 +529,293 @@ export const PosScreen: React.FC = () => {
                 </button>
                 <span className="text-xs sm:text-sm font-bold text-slate-300">العميل / المشتري:</span>
               </div>
-              <button
-                onClick={() => setShowAddCustomerModal(true)}
-                type="button"
-                className="flex items-center gap-1.5 text-xs sm:text-sm text-emerald-400 hover:text-emerald-300 font-bold cursor-pointer"
-              >
-                <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>+ عميل جديد</span>
-              </button>
-            </div>
-
-          {/* Searchable Customer Combobox */}
-          <div className="relative" ref={customerDropdownRef}>
-            {/* Trigger Button */}
-            <div
-              onClick={() => setIsCustomerDropdownOpen((prev) => !prev)}
-              className="w-full flex items-center justify-between gap-2 py-2 px-3 bg-slate-800 hover:bg-slate-750 text-white border border-slate-700 hover:border-slate-600 rounded-xl cursor-pointer transition-colors focus:ring-2 focus:ring-emerald-400 select-none shadow-xs"
-            >
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                <div
-                  className={`p-1.5 rounded-lg shrink-0 ${
-                    selectedCustomer ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-300'
-                  }`}
+              
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCustomerSearchModal(true)}
+                  className="flex items-center gap-1 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 hover:border-emerald-500/50 rounded-lg text-xs font-bold cursor-pointer transition-colors"
+                  title="فتح نافذة بحث واختيار العملاء"
                 >
-                  <User className="w-4 h-4" />
-                </div>
-                <div className="min-w-0 flex-1 text-right">
-                  <div className="flex items-center gap-1.5 truncate">
-                    <span className="font-bold text-xs sm:text-sm text-white truncate">
-                      {selectedCustomer ? selectedCustomer.name : 'عميل نقدي مباشر (بدون حساب)'}
-                    </span>
-                    {selectedCustomer?.partner_name && (
-                      <span className="text-[10px] text-amber-300 font-medium truncate">
-                        (شريك: {selectedCustomer.partner_name})
-                      </span>
-                    )}
-                    {selectedCustomer?.code && (
-                      <span className="text-[10px] bg-slate-700 text-slate-300 px-1 rounded font-mono">
-                        {selectedCustomer.code}
-                      </span>
-                    )}
-                  </div>
-                  {selectedCustomer?.village_or_address && (
-                    <div className="text-[10px] text-slate-400 truncate">
-                      {selectedCustomer.village_or_address}
-                    </div>
-                  )}
-                </div>
-              </div>
+                  <Search className="w-3.5 h-3.5" />
+                  <span>بحث في العملاء</span>
+                </button>
 
-              <div className="flex items-center gap-1.5 shrink-0">
-                {selectedCustomer && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelectCustomer(null);
-                    }}
-                    title="الرجوع لعميل نقدي سريع"
-                    className="p-1 hover:bg-slate-750 rounded text-slate-400 hover:text-rose-400 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-                <ChevronDown
-                  className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                    isCustomerDropdownOpen ? 'rotate-180 text-emerald-400' : ''
-                  }`}
-                />
+                <button
+                  onClick={() => setShowAddCustomerModal(true)}
+                  type="button"
+                  className="flex items-center gap-1 px-2.5 py-1 bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/40 rounded-lg text-xs font-bold cursor-pointer transition-colors"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>+ عميل جديد</span>
+                </button>
               </div>
             </div>
 
-            {/* Dropdown Menu with Live Search */}
-            {isCustomerDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1.5 z-40 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
-                {/* Search Header Input */}
-                <div className="p-2.5 bg-slate-950/90 border-b border-slate-800">
-                  <div className="relative">
-                    <Search className="absolute right-3 top-2.5 w-4 h-4 text-slate-400" />
+            {/* When a Customer is Selected */}
+            {selectedCustomer ? (
+              <div className="bg-slate-800/90 border-2 border-emerald-500/60 rounded-xl p-3 space-y-2.5 shadow-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                    <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg shrink-0">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-black text-sm sm:text-base text-white truncate">
+                          {selectedCustomer.name}
+                        </span>
+                        {selectedCustomer.partner_name && (
+                          <span className="text-[11px] text-amber-300 bg-amber-950/60 px-1.5 py-0.5 rounded font-medium border border-amber-700/50">
+                            شريك: {selectedCustomer.partner_name}
+                          </span>
+                        )}
+                        {selectedCustomer.code && (
+                          <span className="text-[11px] bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded font-mono">
+                            {selectedCustomer.code}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-slate-400">
+                        {selectedCustomer.phone && (
+                          <span className="flex items-center gap-1 font-mono text-slate-300">
+                            <Phone className="w-3 h-3 text-slate-400" />
+                            {selectedCustomer.phone}
+                          </span>
+                        )}
+                        {selectedCustomer.village_or_address && (
+                          <span className="flex items-center gap-1 text-slate-400 truncate">
+                            <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span className="truncate">{selectedCustomer.village_or_address}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomerSearchModal(true)}
+                      className="flex items-center gap-1 px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                      title="تغيير العميل"
+                    >
+                      <Search className="w-3 h-3 text-emerald-400" />
+                      <span>تغيير</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSelectCustomer(null)}
+                      className="flex items-center gap-1 px-2 py-1 bg-slate-700/60 hover:bg-rose-900/40 text-slate-400 hover:text-rose-300 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                      title="الرجوع لعميل نقدي سريع"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>نقدي</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Financial Debt Status Banner */}
+                <div className="flex items-center justify-between text-xs sm:text-sm px-3 py-1.5 bg-slate-900/80 rounded-lg border border-slate-700/80">
+                  <span className="text-slate-300 font-medium">المديونية السابقة المسجلة:</span>
+                  <span
+                    className={`font-black tabular-nums text-sm sm:text-base ${
+                      selectedCustomer.current_balance > 0
+                        ? 'text-amber-400'
+                        : selectedCustomer.current_balance < 0
+                        ? 'text-sky-400'
+                        : 'text-emerald-400'
+                    }`}
+                  >
+                    {selectedCustomer.current_balance > 0
+                      ? `مديونية ${formatCurrency(selectedCustomer.current_balance)}`
+                      : selectedCustomer.current_balance < 0
+                      ? `له رصيد ${formatCurrency(Math.abs(selectedCustomer.current_balance))}`
+                      : 'خالص (0.00 ج.م)'}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              /* When NO Customer is Selected (Direct Searchable Combobox) */
+              <div className="space-y-2" ref={customerDropdownRef}>
+                <div className="relative">
+                  <div className="relative flex items-center">
+                    <Search className="absolute right-3.5 top-3 w-4 h-4 text-emerald-400 pointer-events-none" />
                     <input
                       ref={customerSearchInputRef}
                       type="text"
                       value={customerSearchText}
-                      onChange={(e) => setCustomerSearchText(e.target.value)}
-                      onFocus={(e) => e.target.select()}
-                      placeholder="ابحث بالاسم، الشريك، الهاتف، الكود، القرية..."
-                      className="w-full pr-9 pl-8 py-2 text-xs sm:text-sm bg-slate-800 text-white placeholder-slate-400 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 font-medium"
+                      onChange={(e) => {
+                        setCustomerSearchText(e.target.value);
+                        if (!isCustomerDropdownOpen) setIsCustomerDropdownOpen(true);
+                      }}
+                      onFocus={() => setIsCustomerDropdownOpen(true)}
+                      placeholder="🔍 ابحث عن العميل بالاسم، الهاتف، الشريك، أو الكود..."
+                      className="w-full pr-10 pl-24 py-2.5 text-xs sm:text-sm bg-slate-800 hover:bg-slate-750 focus:bg-slate-800 text-white placeholder-slate-400 border border-slate-700 focus:border-emerald-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400/40 font-medium transition-colors"
                     />
-                    {customerSearchText && (
-                      <button
-                        type="button"
-                        onClick={() => setCustomerSearchText('')}
-                        className="absolute left-2.5 top-2.5 text-slate-400 hover:text-white"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Quick Option: Cash Direct Customer */}
-                <div className="p-1 border-b border-slate-800 bg-slate-900/60">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectCustomer(null)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors cursor-pointer ${
-                      !selectedCustomerId
-                        ? 'bg-emerald-600 text-white'
-                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Store className="w-4 h-4 text-emerald-300" />
-                      <span>عميل نقدي مباشر (بدون حساب دائن / مدين)</span>
-                    </div>
-                    {!selectedCustomerId && <Check className="w-4 h-4" />}
-                  </button>
-                </div>
-
-                {/* Filtered Customers List */}
-                <div className="max-h-60 overflow-y-auto p-1 divide-y divide-slate-800/60">
-                  {filteredCustomers.length === 0 ? (
-                    <div className="p-4 text-center text-xs text-slate-400 space-y-2.5">
-                      <p>لا يوجد عملاء يطابقون: "{customerSearchText}"</p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsCustomerDropdownOpen(false);
-                          setShowAddCustomerModal(true);
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg cursor-pointer"
-                      >
-                        <UserPlus className="w-3.5 h-3.5" />
-                        <span>تسجيل عميل جديد</span>
-                      </button>
-                    </div>
-                  ) : (
-                    filteredCustomers.map((cust) => {
-                      const isSelected = cust.id === selectedCustomerId;
-                      const hasDebt = cust.current_balance > 0;
-
-                      return (
-                        <div
-                          key={cust.id}
-                          onClick={() => handleSelectCustomer(cust)}
-                          className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-colors ${
-                            isSelected
-                              ? 'bg-emerald-950/80 border border-emerald-500/50 text-white'
-                              : 'hover:bg-slate-800 text-slate-200'
-                          }`}
+                    <div className="absolute left-2 top-2 flex items-center gap-1">
+                      {customerSearchText && (
+                        <button
+                          type="button"
+                          onClick={() => setCustomerSearchText('')}
+                          className="p-1 text-slate-400 hover:text-white rounded-md"
                         >
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-xs sm:text-sm text-white truncate">
-                                {cust.name}
-                              </span>
-                              {cust.partner_name && (
-                                <span className="text-[10px] text-amber-300 bg-amber-950/40 px-1.5 py-0.5 rounded font-medium border border-amber-700/40 shrink-0">
-                                  شريك: {cust.partner_name}
-                                </span>
-                              )}
-                              <span className="text-[10px] bg-slate-800 text-slate-400 px-1 py-0.5 rounded font-mono shrink-0">
-                                {cust.code}
-                              </span>
-                            </div>
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomerSearchModal(true)}
+                        className="px-2 py-1 bg-slate-700 hover:bg-emerald-600 text-slate-300 hover:text-white rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
+                        title="بحث متقدم في العملاء"
+                      >
+                        دليل
+                      </button>
+                    </div>
+                  </div>
 
-                            <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-400">
-                              {cust.phone && (
-                                <span className="font-mono text-slate-300">
-                                  📞 {cust.phone}
-                                </span>
-                              )}
-                              {cust.village_or_address && (
-                                <span className="truncate">
-                                  📍 {cust.village_or_address}
-                                </span>
-                              )}
-                            </div>
+                  {/* Autocomplete Dropdown List */}
+                  {isCustomerDropdownOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1.5 z-40 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                      {/* Cash Direct Quick Option */}
+                      <div className="p-1.5 border-b border-slate-800 bg-slate-950/80">
+                        <button
+                          type="button"
+                          onClick={() => handleSelectCustomer(null)}
+                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-emerald-600 text-white transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Store className="w-4 h-4 text-emerald-200" />
+                            <span>عميل نقدي مباشر (بدون حساب دائن / مدين)</span>
                           </div>
+                          <Check className="w-4 h-4" />
+                        </button>
+                      </div>
 
-                          <div className="flex items-center gap-2 shrink-0 text-left mr-2">
-                            <div className="text-right">
-                              <span className="text-[10px] text-slate-400 block">الرصيد:</span>
-                              <span
-                                className={`text-xs font-mono font-bold ${
-                                  hasDebt ? 'text-amber-400' : 'text-emerald-400'
+                      {/* Filtered Customers List */}
+                      <div className="max-h-60 overflow-y-auto p-1 divide-y divide-slate-800/60">
+                        {filteredCustomers.length === 0 ? (
+                          <div className="p-4 text-center text-xs text-slate-400 space-y-2">
+                            <p>لا يوجد عملاء يطابقون: "{customerSearchText}"</p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsCustomerDropdownOpen(false);
+                                setShowAddCustomerModal(true);
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg cursor-pointer"
+                            >
+                              <UserPlus className="w-3.5 h-3.5" />
+                              <span>تسجيل عميل جديد بهذا الاسم</span>
+                            </button>
+                          </div>
+                        ) : (
+                          filteredCustomers.map((cust) => {
+                            const isSelected = cust.id === selectedCustomerId;
+                            const hasDebt = (cust.current_balance || 0) > 0;
+
+                            return (
+                              <div
+                                key={cust.id}
+                                onClick={() => handleSelectCustomer(cust)}
+                                className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-colors ${
+                                  isSelected
+                                    ? 'bg-emerald-950/80 border border-emerald-500/50 text-white'
+                                    : 'hover:bg-slate-800 text-slate-200'
                                 }`}
                               >
-                                {cust.current_balance.toFixed(2)} ج.م
-                              </span>
-                            </div>
-                            {isSelected && (
-                              <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-xs sm:text-sm text-white truncate">
+                                      {cust.name}
+                                    </span>
+                                    {cust.partner_name && (
+                                      <span className="text-[10px] text-amber-300 bg-amber-950/40 px-1.5 py-0.5 rounded font-medium border border-amber-700/40 shrink-0">
+                                        شريك: {cust.partner_name}
+                                      </span>
+                                    )}
+                                    {cust.code && (
+                                      <span className="text-[10px] bg-slate-800 text-slate-400 px-1 py-0.5 rounded font-mono shrink-0">
+                                        {cust.code}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-400">
+                                    {cust.phone && (
+                                      <span className="font-mono text-slate-300">
+                                        📞 {cust.phone}
+                                      </span>
+                                    )}
+                                    {cust.village_or_address && (
+                                      <span className="truncate">
+                                        📍 {cust.village_or_address}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 shrink-0 text-left mr-2">
+                                  <div className="text-right">
+                                    <span className="text-[10px] text-slate-400 block">الرصيد:</span>
+                                    <span
+                                      className={`text-xs font-mono font-bold ${
+                                        hasDebt ? 'text-amber-400' : 'text-emerald-400'
+                                      }`}
+                                    >
+                                      {cust.current_balance ? cust.current_balance.toFixed(2) : '0.00'} ج.م
+                                    </span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="px-2 py-1 bg-slate-700 hover:bg-emerald-600 text-slate-200 hover:text-white rounded-lg text-[11px] font-bold"
+                                  >
+                                    اختيار
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+
+                      {/* Dropdown Footer */}
+                      <div className="p-2 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                        <span>المطابق: {filteredCustomers.length} عميل</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCustomerDropdownOpen(false);
+                            setShowCustomerSearchModal(true);
+                          }}
+                          className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 cursor-pointer"
+                        >
+                          <Search className="w-3 h-3" />
+                          <span>فتح البحث المتقدم الشامل</span>
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
 
-                {/* Footer with summary and add customer action */}
-                <div className="p-2 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-                  <span>عدد المطابق: {filteredCustomers.length} عميل</span>
+                {/* Quick Info bar below search input */}
+                <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
+                  <span className="flex items-center gap-1 text-emerald-400">
+                    <Store className="w-3 h-3" />
+                    <span>محدد حالياً: عميل نقدي سريع</span>
+                  </span>
                   <button
                     type="button"
-                    onClick={() => {
-                      setIsCustomerDropdownOpen(false);
-                      setShowAddCustomerModal(true);
-                    }}
-                    className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 cursor-pointer"
+                    onClick={() => setShowCustomerSearchModal(true)}
+                    className="text-slate-300 hover:text-white underline cursor-pointer"
                   >
-                    <UserPlus className="w-3 h-3" />
-                    <span>+ عميل جديد</span>
+                    استعراض دليل العملاء بالكامل
                   </button>
                 </div>
               </div>
             )}
           </div>
-
-          {selectedCustomer && (
-            <div className="flex items-center justify-between text-sm px-3.5 py-2 bg-slate-800/90 rounded-xl border border-slate-700">
-              <span className="text-slate-300 font-medium">المديونية الحالية على العميل:</span>
-              <span
-                className={`font-black tabular-nums text-base ${
-                  selectedCustomer.current_balance > 0 ? 'text-amber-400' : 'text-emerald-400'
-                }`}
-              >
-                {formatCurrency(selectedCustomer.current_balance)}
-              </span>
-            </div>
-          )}
-        </div>
 
         {/* Cart Items List */}
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -1038,6 +1097,15 @@ export const PosScreen: React.FC = () => {
           setCustomCustomerName(c.name);
           setIsCustomerDropdownOpen(false);
         }}
+      />
+
+      <CustomerSearchSelectModal
+        isOpen={showCustomerSearchModal}
+        onClose={() => setShowCustomerSearchModal(false)}
+        customers={customers}
+        selectedCustomerId={selectedCustomerId}
+        onSelectCustomer={handleSelectCustomer}
+        onOpenAddNewCustomer={() => setShowAddCustomerModal(true)}
       />
 
       <InvoiceReceiptModal

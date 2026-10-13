@@ -23,6 +23,8 @@ import {
   Sparkles,
   AlertTriangle,
   ArrowLeft,
+  Pill,
+  ShoppingBag,
 } from 'lucide-react';
 import { formatCurrency } from '../../lib/formatters';
 import { storage } from '../../lib/storage';
@@ -32,7 +34,6 @@ import { UserAccount, authService } from '../../lib/auth';
 interface NavigationCardProps {
   activeTab: string;
   onSelectTab: (tab: string) => void;
-  onOpenPos: () => void;
   currentUser: UserAccount;
   onLogout: () => void;
 }
@@ -99,129 +100,12 @@ const allDepartments: Department[] = [
     ],
   },
   {
-    id: 'sales_dept',
-    title: 'المبيعات و POS',
-    subtitle: 'الكاشير والفواتير',
-    tagline: 'البيع السريع وطباعة الفواتير',
-    icon: ShoppingCart,
-    defaultTab: 'sales_dept',
-    theme: {
-      colorName: 'emerald',
-      iconBg: 'bg-emerald-50',
-      iconText: 'text-emerald-600',
-      iconBorder: 'border-emerald-200',
-      activeBg: 'bg-gradient-to-b from-emerald-50/70 via-white to-white',
-      activeBorder: 'border-emerald-500',
-      activeRing: 'ring-emerald-500/20',
-      activeBar: 'bg-emerald-500',
-      activeText: 'text-emerald-950',
-      activeBadgeBg: 'bg-emerald-100',
-      activeBadgeText: 'text-emerald-800',
-      subTabActiveBg: 'bg-emerald-600 hover:bg-emerald-700',
-      subTabActiveText: 'text-white',
-      subTabActiveRing: 'ring-emerald-700',
-    },
-    tabs: [
-      { id: 'sales_dept', label: 'صفحة قسم المبيعات', icon: LayoutDashboard },
-      { id: 'pos', label: 'نقطة البيع السريعة (POS)', icon: ShoppingCart },
-      { id: 'sales', label: 'سجل فواتير المبيعات', icon: Receipt },
-    ],
-  },
-  {
-    id: 'customers_dept',
-    title: 'العملاء والحسابات',
-    subtitle: 'المزارعين والديون',
-    tagline: 'كشوف الحساب وسقف الائتمان',
+    id: 'customers',
+    title: 'قسم العملاء',
+    subtitle: 'سجل المزارعين والعملاء',
+    tagline: 'دليل العملاء وأرقام الهواتف',
     icon: Users,
-    defaultTab: 'customers_dept',
-    theme: {
-      colorName: 'amber',
-      iconBg: 'bg-amber-50',
-      iconText: 'text-amber-700',
-      iconBorder: 'border-amber-200',
-      activeBg: 'bg-gradient-to-b from-amber-50/70 via-white to-white',
-      activeBorder: 'border-amber-500',
-      activeRing: 'ring-amber-500/20',
-      activeBar: 'bg-amber-500',
-      activeText: 'text-amber-950',
-      activeBadgeBg: 'bg-amber-100',
-      activeBadgeText: 'text-amber-800',
-      subTabActiveBg: 'bg-amber-600 hover:bg-amber-700',
-      subTabActiveText: 'text-white',
-      subTabActiveRing: 'ring-amber-700',
-    },
-    tabs: [
-      { id: 'customers_dept', label: 'صفحة قسم العملاء', icon: LayoutDashboard },
-      { id: 'customers', label: 'دليل العملاء والمزارعين', icon: Users },
-      { id: 'customer_ledgers', label: 'كشوف الحسابات والمديونيات', icon: FileSpreadsheet },
-    ],
-  },
-  {
-    id: 'purchases_dept',
-    title: 'المشتريات والموردون',
-    subtitle: 'فواتير التوريد',
-    tagline: 'الموردين والشركات والمستحقات',
-    icon: Truck,
-    defaultTab: 'purchases_dept',
-    theme: {
-      colorName: 'blue',
-      iconBg: 'bg-blue-50',
-      iconText: 'text-blue-600',
-      iconBorder: 'border-blue-200',
-      activeBg: 'bg-gradient-to-b from-blue-50/70 via-white to-white',
-      activeBorder: 'border-blue-500',
-      activeRing: 'ring-blue-500/20',
-      activeBar: 'bg-blue-500',
-      activeText: 'text-blue-950',
-      activeBadgeBg: 'bg-blue-100',
-      activeBadgeText: 'text-blue-800',
-      subTabActiveBg: 'bg-blue-600 hover:bg-blue-700',
-      subTabActiveText: 'text-white',
-      subTabActiveRing: 'ring-blue-700',
-    },
-    tabs: [
-      { id: 'purchases_dept', label: 'صفحة قسم المشتريات', icon: LayoutDashboard },
-      { id: 'purchases', label: 'فواتير المشتريات والتوريد', icon: Truck },
-      { id: 'suppliers', label: 'دليل وحسابات الموردين', icon: Building2 },
-    ],
-  },
-  {
-    id: 'shop_dept',
-    title: 'محل البيع المباشر',
-    subtitle: 'المبيعات والأصناف',
-    tagline: 'مخزون وبضاعة المحل ونقاط البيع',
-    icon: Store,
-    defaultTab: 'warehouse_shop',
-    theme: {
-      colorName: 'emerald',
-      iconBg: 'bg-emerald-50',
-      iconText: 'text-emerald-700',
-      iconBorder: 'border-emerald-200',
-      activeBg: 'bg-gradient-to-b from-emerald-50/70 via-white to-white',
-      activeBorder: 'border-emerald-500',
-      activeRing: 'ring-emerald-500/20',
-      activeBar: 'bg-emerald-500',
-      activeText: 'text-emerald-950',
-      activeBadgeBg: 'bg-emerald-100',
-      activeBadgeText: 'text-emerald-800',
-      subTabActiveBg: 'bg-emerald-600 hover:bg-emerald-700',
-      subTabActiveText: 'text-white',
-      subTabActiveRing: 'ring-emerald-700',
-    },
-    tabs: [
-      { id: 'warehouse_shop', label: 'مخزون المحل', icon: Store },
-      { id: 'pos', label: 'نقطة البيع (POS)', icon: ShoppingCart },
-      { id: 'sales', label: 'فواتير بيع المحل', icon: Receipt },
-      { id: 'products', label: 'دليل المنتجات والأسعار', icon: PackageCheck },
-    ],
-  },
-  {
-    id: 'warehouse_dept',
-    title: 'المستودع الرئيسي',
-    subtitle: 'المخزن المنفصل',
-    tagline: 'بضاعة المستودع وحركات المخزن',
-    icon: Warehouse,
-    defaultTab: 'warehouse_main',
+    defaultTab: 'customers',
     theme: {
       colorName: 'blue',
       iconBg: 'bg-blue-50',
@@ -239,48 +123,99 @@ const allDepartments: Department[] = [
       subTabActiveRing: 'ring-blue-700',
     },
     tabs: [
-      { id: 'warehouse_main', label: 'بضاعة ومخزون المخزن', icon: Warehouse },
-      { id: 'purchases', label: 'وارد وتوريد المخزن', icon: Truck },
-      { id: 'stock_movements', label: 'سجل حركات المخزن', icon: History },
+      { id: 'customers', label: 'دليل وسجل العملاء', icon: Users },
     ],
   },
   {
-    id: 'treasury_dept',
-    title: 'المالية والخزينة',
-    subtitle: 'حركة النقدية',
-    tagline: 'سندات القبض والصرف واليومية',
-    icon: Landmark,
-    defaultTab: 'treasury_dept',
+    id: 'debts',
+    title: 'قسم مديونات العملاء',
+    subtitle: 'إضافة ومتابعة المديونيات',
+    tagline: 'تسجيل المديونية: المبلغ واسم الشيء المشترى وتاريخ الشراء',
+    icon: ShoppingBag,
+    defaultTab: 'debts',
     theme: {
-      colorName: 'purple',
-      iconBg: 'bg-purple-50',
-      iconText: 'text-purple-700',
-      iconBorder: 'border-purple-200',
-      activeBg: 'bg-gradient-to-b from-purple-50/70 via-white to-white',
-      activeBorder: 'border-purple-500',
-      activeRing: 'ring-purple-500/20',
-      activeBar: 'bg-purple-500',
-      activeText: 'text-purple-950',
-      activeBadgeBg: 'bg-purple-100',
-      activeBadgeText: 'text-purple-800',
-      subTabActiveBg: 'bg-purple-600 hover:bg-purple-700',
+      colorName: 'amber',
+      iconBg: 'bg-amber-50',
+      iconText: 'text-amber-700',
+      iconBorder: 'border-amber-200',
+      activeBg: 'bg-gradient-to-b from-amber-50/70 via-white to-white',
+      activeBorder: 'border-amber-500',
+      activeRing: 'ring-amber-500/20',
+      activeBar: 'bg-amber-500',
+      activeText: 'text-amber-950',
+      activeBadgeBg: 'bg-amber-100',
+      activeBadgeText: 'text-amber-800',
+      subTabActiveBg: 'bg-amber-600 hover:bg-amber-700',
       subTabActiveText: 'text-white',
-      subTabActiveRing: 'ring-purple-700',
+      subTabActiveRing: 'ring-amber-700',
     },
     tabs: [
-      { id: 'treasury_dept', label: 'صفحة قسم المالية', icon: LayoutDashboard },
+      { id: 'debts', label: 'سجل المشتريات والمديونيات', icon: ShoppingBag },
+      { id: 'customer_ledgers', label: 'كشوف الحسابات', icon: FileSpreadsheet },
+    ],
+  },
+  {
+    id: 'products',
+    title: 'قسم الأصناف',
+    subtitle: 'أسماء الأدوية المضافة',
+    tagline: 'قائمة بأسماء الأدوية المضافة فقط',
+    icon: Pill,
+    defaultTab: 'products',
+    theme: {
+      colorName: 'teal',
+      iconBg: 'bg-teal-50',
+      iconText: 'text-teal-700',
+      iconBorder: 'border-teal-200',
+      activeBg: 'bg-gradient-to-b from-teal-50/70 via-white to-white',
+      activeBorder: 'border-teal-500',
+      activeRing: 'ring-teal-500/20',
+      activeBar: 'bg-teal-500',
+      activeText: 'text-teal-950',
+      activeBadgeBg: 'bg-teal-100',
+      activeBadgeText: 'text-teal-800',
+      subTabActiveBg: 'bg-teal-600 hover:bg-teal-700',
+      subTabActiveText: 'text-white',
+      subTabActiveRing: 'ring-teal-700',
+    },
+    tabs: [
+      { id: 'products', label: 'أسماء الأدوية المضافة', icon: Pill },
+    ],
+  },
+  {
+    id: 'treasury',
+    title: 'قسم الخزينة',
+    subtitle: 'السيولة والمصروفات',
+    tagline: 'رصيد الخزينة وسندات القبض والمصروفات',
+    icon: Landmark,
+    defaultTab: 'treasury',
+    theme: {
+      colorName: 'emerald',
+      iconBg: 'bg-emerald-50',
+      iconText: 'text-emerald-700',
+      iconBorder: 'border-emerald-200',
+      activeBg: 'bg-gradient-to-b from-emerald-50/70 via-white to-white',
+      activeBorder: 'border-emerald-500',
+      activeRing: 'ring-emerald-500/20',
+      activeBar: 'bg-emerald-500',
+      activeText: 'text-emerald-950',
+      activeBadgeBg: 'bg-emerald-100',
+      activeBadgeText: 'text-emerald-800',
+      subTabActiveBg: 'bg-emerald-600 hover:bg-emerald-700',
+      subTabActiveText: 'text-white',
+      subTabActiveRing: 'ring-emerald-700',
+    },
+    tabs: [
       { id: 'treasury', label: 'الخزينة والمصروفات', icon: Landmark },
-      { id: 'payments', label: 'سندات القبض والصرف', icon: BadgeDollarSign },
       { id: 'old_ledgers', label: 'ترحيل الدفاتر القديمة', icon: BookOpenCheck },
     ],
   },
   {
-    id: 'management_dept',
-    title: 'التقارير والإدارة',
-    subtitle: 'الرقابة والصلاحيات',
-    tagline: 'الأرباح والتقارير والمستخدمين',
+    id: 'reports',
+    title: 'قسم التقارير',
+    subtitle: 'التقارير المالية والديون',
+    tagline: 'تقارير المديونيات وحركة الخزينة',
     icon: BarChart3,
-    defaultTab: 'management_dept',
+    defaultTab: 'reports',
     theme: {
       colorName: 'rose',
       iconBg: 'bg-rose-50',
@@ -298,9 +233,7 @@ const allDepartments: Department[] = [
       subTabActiveRing: 'ring-rose-700',
     },
     tabs: [
-      { id: 'management_dept', label: 'صفحة قسم الإدارة', icon: LayoutDashboard },
-      { id: 'reports', label: 'التقارير المالية والمخزنية', icon: BarChart3 },
-      { id: 'users', label: 'المستخدمون والصلاحيات', icon: ShieldCheck },
+      { id: 'reports', label: 'التقارير المالية والديون', icon: BarChart3 },
     ],
   },
 ];
@@ -308,7 +241,6 @@ const allDepartments: Department[] = [
 export const NavigationCard: React.FC<NavigationCardProps> = ({
   activeTab,
   onSelectTab,
-  onOpenPos,
   currentUser,
 }) => {
   const [totalCashBalance, setTotalCashBalance] = useState(() => {
@@ -331,7 +263,6 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
   const products = storage.getProducts();
   const salesInvoices = storage.getSalesInvoices();
   const customers = storage.getCustomers();
-  const suppliers = storage.getSuppliers();
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const todaySales = salesInvoices
@@ -339,55 +270,39 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
     .reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
 
   const totalCustomerDebt = customers.reduce((sum, c) => sum + Math.max(0, c.current_balance), 0);
-  const totalSupplierDues = suppliers.reduce((sum, s) => sum + Math.max(0, s.current_balance), 0);
-  const lowStockCount = products.filter(
-    (p) => (p.stock_shop || 0) + (p.stock_warehouse || 0) <= p.min_stock_alert
-  ).length;
 
   const getDeptMetric = (deptId: string) => {
     switch (deptId) {
       case 'dashboard':
         return { label: 'مركز التحكم', value: 'مؤشرات حية', isAlert: false };
-      case 'sales_dept':
+      case 'customers':
         return {
-          label: todaySales > 0 ? 'مبيعات اليوم' : 'إجمالي الفواتير',
-          value: todaySales > 0 ? formatCurrency(todaySales) : `${salesInvoices.length} فاتورة`,
+          label: 'سجل العملاء',
+          value: `${customers.length} عميل ومزارع`,
           isAlert: false,
         };
-      case 'customers_dept':
+      case 'debts':
         return {
           label: 'إجمالي الديون',
           value: formatCurrency(totalCustomerDebt),
           isAlert: false,
         };
-      case 'purchases_dept':
+      case 'products':
         return {
-          label: 'مستحقات الشركات',
-          value: formatCurrency(totalSupplierDues),
+          label: 'الأدوية المضافة',
+          value: `${products.length} دواء مسجل`,
           isAlert: false,
         };
-      case 'shop_dept':
-        return {
-          label: 'مخزون المحل',
-          value: `${products.reduce((sum, p) => sum + (p.stock_shop || 0), 0)} وحدة`,
-          isAlert: false,
-        };
-      case 'warehouse_dept':
-        return {
-          label: 'مخزون المستودع',
-          value: `${products.reduce((sum, p) => sum + (p.stock_warehouse || 0), 0)} وحدة`,
-          isAlert: false,
-        };
-      case 'treasury_dept':
+      case 'treasury':
         return {
           label: 'السيولة الحالية',
           value: formatCurrency(totalCashBalance),
           isAlert: false,
         };
-      case 'management_dept':
+      case 'reports':
         return {
-          label: 'الرقابة والصلاحيات',
-          value: 'التقارير والأرباح',
+          label: 'التقارير والمؤشرات',
+          value: 'كشوف الحسابات',
           isAlert: false,
         };
       default:
@@ -453,15 +368,15 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
               </div>
             )}
 
-            {/* Quick POS CTA */}
-            {authService.canAccessTab('pos', currentUser.role) && (
+            {/* Quick Debts CTA */}
+            {authService.canAccessTab('debts', currentUser.role) && (
               <button
-                onClick={onOpenPos}
+                onClick={() => onSelectTab('debts')}
                 type="button"
-                className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-sm font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-sm font-extrabold text-white bg-amber-600 hover:bg-amber-700 active:bg-amber-800 rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer active:scale-95"
               >
-                <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                <span>نقطة البيع (POS)</span>
+                <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span>مديونيات العملاء</span>
               </button>
             )}
           </div>

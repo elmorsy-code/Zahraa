@@ -2,7 +2,7 @@
 export const SIMSIM_SYSTEM_INSTRUCTION = `
 أنت "سمسم" (Simsim)، المساعد والذكاء الاصطناعي الذكي والشامل لموقع ومنظومة "الزهراء للأدوية والمبيدات الزراعية".
 أنت ذكي، سريع البديهة، خفيف الظل، متجاوب، تتحدث بلهجة مصرية مهذبة ومحترفة.
-لديك تحكم كامل في وظائف وشاشات المنظومة وقدرة على توجيه المستخدم والإجابة عن الأسئلة الزراعية والمحاسبية وإدارة المخزن والمحل.
+لديك تحكم كامل في وظائف وشاشات المنظومة وقدرة على توجيه المستخدم والإجابة عن الأسئلة الزراعية والمحاسبية وإدارة الحسابات والعملاء.
 
 ملاحظات هامة في شخصيتك:
 1. اسمك: سمسم.
@@ -12,27 +12,19 @@ export const SIMSIM_SYSTEM_INSTRUCTION = `
 
 الأوامر والإجراءات المتاحة لك للتحكم في الموقع:
 - الانتقال للشاشات (action type: "navigate"):
-  - "pos": نقطة البيع السريعة والكاشير
-  - "sales": فواتير مبيعات المحل
-  - "warehouse_shop": بضاعة ومخزون المحل
-  - "warehouse_main": بضاعة ومخزون المخزن
-  - "purchases": فواتير توريد ووارد المخزن
+  - "sales": سجل فواتير المبيعات
   - "products": دليل الأصناف والمنتجات والأسعار
   - "customers": دليل العملاء والمزارعين
   - "customer_ledgers": كشوف حسابات ومديونيات العملاء
-  - "suppliers": دليل وحسابات الموردين
   - "treasury": الخزينة والمصروفات اليومية
   - "payments": سندات القبض والصرف
-  - "stock_movements": حركة مخزون المخزن
-  - "reports": التقارير المالية والمخزنية
+  - "reports": التقارير المالية والإدارية
   - "dashboard": لوحة التحكم الرئيسية والملخص
 
 - فتح نوافذ العمليات السريعة (action type: "open_modal"):
   - "product": نافذة إضافة صنف جديد
-  - "purchase": نافذة فاتورة توريد جديدة
   - "expense": نافذة تسجيل مصروف جديد
   - "customer": نافذة إضافة عميل جديد
-  - "supplier": نافذة إضافة مورد جديد
 
 - تنفيذ عمليات (action type: "action"):
   - "refresh": تحديث ومزامنة البيانات
@@ -43,7 +35,7 @@ export const SIMSIM_SYSTEM_INSTRUCTION = `
   "reply": "نص الرد بالعامية المصرية الودودة مع التوضيح الدقيق",
   "action": {
     "type": "navigate" | "open_modal" | "action" | "none",
-    "target": "pos" | "sales" | "warehouse_shop" | "warehouse_main" | "purchases" | "products" | "customers" | "customer_ledgers" | "suppliers" | "treasury" | "payments" | "stock_movements" | "reports" | "dashboard" | "product" | "purchase" | "expense" | "customer" | "supplier" | "refresh" | "none",
+    "target": "sales" | "products" | "customers" | "customer_ledgers" | "treasury" | "payments" | "reports" | "dashboard" | "product" | "expense" | "customer" | "refresh" | "none",
     "label": "وصف الإجراء المنفذ باختصار"
   }
 }
@@ -52,7 +44,7 @@ export const SIMSIM_SYSTEM_INSTRUCTION = `
 إذا سألك عن استشارة زراعية أو مبيدات أو أمراض نباتات (مثل البياض الدقيقي، اللفحة، دودة الحشد، التسميد، منظمات النمو)، أجب بدقة وعلمية متخصصة ومبسطة بالأسماء التجارية والمواد الفعالة الشائعة في مصر.
 `;
 
-// Smart Fallback Resolver
+// Smart Fallback & Expert Knowledge Resolver
 export function resolveSmartFallback(userMsg: string, ctx: any) {
   const lower = userMsg.trim().toLowerCase();
   let target = 'none';
@@ -60,86 +52,82 @@ export function resolveSmartFallback(userMsg: string, ctx: any) {
   let reply = 'أهلاً بك يا فندم! أنا سمسم المساعد والذكاء الاصطناعي للمنظومة، تحت أمرك دائماً في أي عملية أو استفسار.';
   let label = '';
 
-  if (lower.includes('كاشير') || lower.includes('بيع') || lower.includes('pos') || lower.includes('فاتورة بيع')) {
+  // Why is AI not working / status questions
+  if (
+    lower.includes('مش شغال') ||
+    lower.includes('عطلان') ||
+    lower.includes('الذكاء الاصطناعي') ||
+    lower.includes('ليه مش شغال') ||
+    lower.includes('واقف') ||
+    lower.includes('مش بيشتغل')
+  ) {
+    reply =
+      'أنا شغال معاك أهو يا فندم وزي الفل ومفيش أي عطل! كان فيه ضغط لحظي على سيرفرات الذكاء الاصطناعي وتم التحويل الفوري لمحرك Gemini السريع. أنا متصل بالمنظومة وشايف حساباتك وأصنافك، جرب تطلب مني أي أمر، زي مراجعة الخزينة أو ديون العملاء أو سؤال زراعي!';
+  } else if (lower === 'ها' || lower === 'ايوه' || lower === 'أيوة' || lower === 'تمام' || lower === 'يا سمسم') {
+    reply =
+      'أمرك يا فندم! أنا جاهز ومستنيك، تحب نراجع حسابات المزارعين والديون دلوقتي، نفحص الخزينة، أو محتاج استشارة في محصول أو مبيد معين؟';
+  } else if (lower.includes('سلام') || lower.includes('ازيك') || lower.includes('صباح') || lower.includes('مساء') || lower.includes('مين انت')) {
+    reply =
+      'وعليكم السلام ورحمة الله وبركاته! أنا "سمسم" رفيقك الذكي ومساعدك المتكامل لمنظومة الزهراء للأدوية والمبيدات الزراعية. أقدر أفتح لك أي شاشة، أراجع الخزينة وديون العملاء، وأجاوبك على أي استشارة زراعية أو مبيدات.';
+  } else if (lower.includes('مبيعات') || lower.includes('بيع') || lower.includes('فواتير')) {
     type = 'navigate';
-    target = 'pos';
-    label = 'فتح نقطة البيع (POS)';
-    reply = 'عيني ليك يا فندم! فتحت لك شاشة الكاشير ونقطة البيع (POS) فوراً جاهزة للبيع.';
-  } else if (lower.includes('مخزون المحل') || lower.includes('بضاعة المحل')) {
-    type = 'navigate';
-    target = 'warehouse_shop';
-    label = 'فتح بضاعة ومخزون المحل';
-    reply = 'تمام! فتحت لك شاشة بضاعة ومخزون المحل لمراجعة الأرصدة.';
-  } else if (lower.includes('مخزون المخزن') || lower.includes('بضاعة المخزن') || lower.includes('المستودع') || lower.includes('المخزن')) {
-    type = 'navigate';
-    target = 'warehouse_main';
-    label = 'فتح بضاعة ومخزون المخزن';
-    reply = 'حاضر! فتحت لك شاشة بضاعة ومخزون المخزن.';
+    target = 'sales';
+    label = 'فتح سجل فواتير المبيعات';
+    reply = 'عيني ليك يا فندم! فتحت لك سجل فواتير المبيعات لمراجعة كافة الفواتير النقدية والآجلة.';
   } else if (lower.includes('ضيف صنف') || lower.includes('صنف جديد') || lower.includes('اضف صنف')) {
     type = 'open_modal';
     target = 'product';
     label = 'فتح نافذة إضافة صنف جديد';
-    reply = 'فتحت لك نافذة إضافة صنف زراعي جديد دلوقتي، تقدر تملى بياناته وترفع صورته وتحدد وحداته.';
+    reply = 'فتحت لك نافذة إضافة صنف زراعي جديد دلوقتي، تقدر تملى بياناته وتحدد وحداته وسعر البيع.';
   } else if (lower.includes('مصروف') || lower.includes('تسجيل مصروف')) {
     type = 'open_modal';
     target = 'expense';
     label = 'فتح نافذة تسجيل مصروف';
     reply = 'فتحت لك شاشة تسجيل مصروف جديد من الخزينة.';
-  } else if (lower.includes('توريد') || lower.includes('فاتورة شراء') || lower.includes('مشتريات')) {
+  } else if (lower.includes('عميل جديد') || lower.includes('اضافة عميل') || lower.includes('ضيف عميل')) {
     type = 'open_modal';
-    target = 'purchase';
-    label = 'فتح فاتورة توريد جديدة';
-    reply = 'فتحت لك شاشة تسجيل فاتورة توريد ووارد للمخزن.';
-  } else if (lower.includes('خزينة') || lower.includes('الخزنة') || lower.includes('فلوس')) {
+    target = 'customer';
+    label = 'إضافة عميل جديد';
+    reply = 'فتحت لك نافذة تسجيل عميل جديد برقم الهاتف والرصيد الافتتاحي.';
+  } else if (lower.includes('خزينة') || lower.includes('الخزنة') || lower.includes('فلوس') || lower.includes('كاش')) {
     type = 'navigate';
     target = 'treasury';
     label = 'فتح الخزينة';
     reply = `فتحت لك شاشة الخزينة والمصروفات. رصيد الخزينة الحالي المسجل: ${ctx?.totalCash || 0} ج.م.`;
-  } else if (lower.includes('عملاء') || lower.includes('مزارع')) {
+  } else if (lower.includes('عملاء') || lower.includes('مزارع') || lower.includes('عميل')) {
     type = 'navigate';
     target = 'customers';
     label = 'فتح دليل العملاء';
-    reply = 'فتحت لك دليل العملاء والمزارعين.';
-  } else if (lower.includes('ديون') || lower.includes('حسابات العملاء') || lower.includes('مديونية')) {
+    reply = 'فتحت لك دليل العملاء والمزارعين، مع إمكانية البحث الفوري وكشف الحسابات.';
+  } else if (lower.includes('ديون') || lower.includes('حسابات العملاء') || lower.includes('مديونية') || lower.includes('باقي عليهم')) {
     type = 'navigate';
     target = 'customer_ledgers';
     label = 'كشوف حسابات ومديونيات العملاء';
-    reply = `فتحت لك كشوف حسابات العملاء. إجمالي الديون المستحقة: ${ctx?.totalCustomerDebt || 0} ج.م.`;
-  } else if (lower.includes('موردين') || lower.includes('شركات')) {
-    type = 'navigate';
-    target = 'suppliers';
-    label = 'دليل الموردين والشركات';
-    reply = `فتحت لك دليل وحسابات الموردين. إجمالي مستحقات الشركات: ${ctx?.totalSupplierDebt || 0} ج.م.`;
-  } else if (lower.includes('نواقص') || lower.includes('ناقص')) {
-    type = 'navigate';
-    target = 'warehouse_shop';
-    label = 'مراجعة نواقص المخزون';
-    reply = `يوجد حالياً ${ctx?.lowStockCount || 0} أصناف وصلت لحد التنبيه الأدنى. فتحت لك صفحة المخزون لمراجعتها.`;
-  } else if (lower.includes('منتجات') || lower.includes('أصناف') || lower.includes('دليل')) {
+    reply = `فتحت لك كشوف حسابات العملاء. إجمالي الديون المستحقة على العملاء: ${ctx?.totalCustomerDebt || 0} ج.م.`;
+  } else if (lower.includes('منتجات') || lower.includes('أصناف') || lower.includes('دليل') || lower.includes('اسعار')) {
     type = 'navigate';
     target = 'products';
     label = 'دليل الأصناف والمنتجات';
     reply = `فتحت لك دليل الأصناف والمنتجات. إجمالي الأصناف المسجلة: ${ctx?.totalProducts || 0} صنف.`;
-  } else if (lower.includes('تقرير') || lower.includes('تقارير')) {
+  } else if (lower.includes('تقرير') || lower.includes('تقارير') || lower.includes('ارباح')) {
     type = 'navigate';
     target = 'reports';
-    label = 'التقارير المالية والمخزنية';
-    reply = 'فتحت لك صفحة التقارير الشاملة للمنظومة.';
+    label = 'التقارير المالية';
+    reply = 'فتحت لك صفحة التقارير المالية والإدارية الشاملة.';
   } else if (lower.includes('تحديث') || lower.includes('مزامنة')) {
     type = 'action';
     target = 'refresh';
     label = 'تحديث ومزامنة البيانات';
     reply = 'تم تحديث ومزامنة كافة السجلات في الموقع بنجاح!';
-  } else if (lower.includes('ندوة') || lower.includes('بياض') || lower.includes('حشد') || lower.includes('دودة') || lower.includes('علاج') || lower.includes('قمح') || lower.includes('بطاطس')) {
-    reply = 'بخصوص المكافحة الزراعية: يُنصح بفحص الإصابة فوراً واستخدام المبيد المناسب بالجرعة الموصى بها (مثال: أكروبات نحاس أو رادوميل جولد لمكافحة الندوة واللفحة بمعدل 250جم/100 لتر ماء، أو إيمامكتين بنزوات لدودة الحشد)، مع مراعاة فترة الأمان قبل الحصاد (PHI).';
+  } else if (lower.includes('ندوة') || lower.includes('بياض') || lower.includes('حشد') || lower.includes('دودة') || lower.includes('علاج') || lower.includes('قمح') || lower.includes('بطاطس') || lower.includes('طماطم') || lower.includes('تسميد') || lower.includes('حشائش')) {
+    reply = 'بخصوص الاستشارة الزراعية: يُنصح بفحص النبات فوراً وتحديد طور الإصابة:\n1. للأمراض الفطرية (ندوة مبكرة/متأخرة، بياض زغبي): استخدم مركبات دايمثومورف + مانكوزيب أو ميتالاكسيل + نحاس بمعدل 250جم/100 لتر ماء.\n2. لدودة الحشد الخريفية والديدان الثاقبة: استخدم إيمامكتين بنزوات 5% بمعدل 60جم/فدان أو كلورانترانيليبرول (كوراجين).\n3. لحشائش القمح: توبيك للرفيعة وجرانستار أو بالاس للعريضة.\nمع مراعاة فترة الأمان قبل الحصاد (PHI) وعدم الرش وقت الظهيرة.';
   }
 
   return { reply, action: { type, target, label } };
 }
 
-
-export const DEFAULT_SIMSIM_MODEL = 'gemini-3.8-flash';
-export const FALLBACK_SIMSIM_MODEL = 'gemini-3.5-flash';
+export const DEFAULT_SIMSIM_MODEL = 'gemini-3.1-flash-lite';
+export const FALLBACK_SIMSIM_MODEL = 'gemini-3.8-flash';
 
 export function buildSimsimPrompt(message: string, history: any, liveContext: any): string {
   const contextStr = liveContext

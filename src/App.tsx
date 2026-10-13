@@ -7,26 +7,14 @@ import { authService, UserAccount } from './lib/auth';
 import { isSupabaseConfigured } from './lib/supabase';
 import { storage } from './lib/storage';
 import { DashboardOverview } from './components/dashboard/DashboardOverview';
-import { PosScreen } from './components/pos/PosScreen';
-import { SalesInvoicesList } from './components/sales/SalesInvoicesList';
 import { CustomersList } from './components/customers/CustomersList';
-import { CustomerAccountsReport } from './components/customers/CustomerAccountsReport';
-import { PurchaseInvoicesList } from './components/purchases/PurchaseInvoicesList';
-import { SuppliersList } from './components/suppliers/SuppliersList';
-import { WarehousesStock } from './components/inventory/WarehousesStock';
-import { StockMovementsList } from './components/inventory/StockMovementsList';
+import { CustomerDebtsScreen } from './components/debts/CustomerDebtsScreen';
 import { ProductsList } from './components/products/ProductsList';
 import { TreasuryScreen } from './components/treasury/TreasuryScreen';
 import { OldLedgersScreen } from './components/old_ledgers/OldLedgersScreen';
 import { ReportsScreen } from './components/reports/ReportsScreen';
 import { UsersPermissionsScreen } from './components/users/UsersPermissionsScreen';
 import { SettingsScreen } from './components/settings/SettingsScreen';
-import { SalesDeptPage } from './components/departments/SalesDeptPage';
-import { CustomersDeptPage } from './components/departments/CustomersDeptPage';
-import { PurchasesDeptPage } from './components/departments/PurchasesDeptPage';
-import { InventoryDeptPage } from './components/departments/InventoryDeptPage';
-import { TreasuryDeptPage } from './components/departments/TreasuryDeptPage';
-import { ManagementDeptPage } from './components/departments/ManagementDeptPage';
 import { ShieldAlert, ArrowLeft, Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -162,105 +150,32 @@ export default function App() {
                 setActiveTab(tab);
               }
             }}
-            onOpenPos={() => {
-              if (authService.canAccessTab('pos', currentUser.role)) {
-                setActiveTab('pos');
-              }
-            }}
           />
         );
-
-      case 'sales_dept':
-        return (
-          <SalesDeptPage
-            initialSubTab="overview"
-            onNavigateHome={() => setActiveTab('dashboard')}
-            onOpenPosFull={() => setActiveTab('pos')}
-          />
-        );
-
-      case 'customers_dept':
-        return (
-          <CustomersDeptPage
-            initialSubTab="overview"
-            onNavigateHome={() => setActiveTab('dashboard')}
-          />
-        );
-
-      case 'purchases_dept':
-        return (
-          <PurchasesDeptPage
-            initialSubTab="overview"
-            onNavigateHome={() => setActiveTab('dashboard')}
-          />
-        );
-
-      case 'inventory_dept':
-        return (
-          <InventoryDeptPage
-            initialSubTab="overview"
-            onNavigateHome={() => setActiveTab('dashboard')}
-          />
-        );
-
-      case 'treasury_dept':
-        return (
-          <TreasuryDeptPage
-            initialSubTab="overview"
-            onNavigateHome={() => setActiveTab('dashboard')}
-          />
-        );
-
-      case 'management_dept':
-        return (
-          <ManagementDeptPage
-            initialSubTab="overview"
-            onNavigateHome={() => setActiveTab('dashboard')}
-          />
-        );
-
-      case 'pos':
-        return <PosScreen />;
-
-      case 'sales':
-        return <SalesInvoicesList />;
 
       case 'customers':
+      case 'customers_dept':
         return <CustomersList initialOpenLedger={false} />;
 
+      case 'debts':
       case 'customer_ledgers':
-        return <CustomerAccountsReport />;
-
-      case 'purchases':
-        return <PurchaseInvoicesList />;
-
-      case 'suppliers':
-        return <SuppliersList />;
-
-      case 'warehouse_main':
-        return <WarehousesStock initialLocationType="warehouse" />;
-
-      case 'warehouse_shop':
-        return <WarehousesStock initialLocationType="shop" />;
-
-      case 'transfers':
-        return <WarehousesStock initialLocationType="warehouse" />;
+        return <CustomerDebtsScreen />;
 
       case 'products':
+      case 'products_dept':
         return <ProductsList />;
 
-      case 'stock_movements':
-        return <StockMovementsList />;
-
       case 'treasury':
+      case 'treasury_dept':
       case 'payments':
         return <TreasuryScreen />;
 
+      case 'reports':
+      case 'management_dept':
+        return <ReportsScreen />;
+
       case 'old_ledgers':
         return <OldLedgersScreen />;
-
-      case 'reports':
-        return <ReportsScreen />;
 
       case 'users':
         return <UsersPermissionsScreen />;
@@ -272,7 +187,6 @@ export default function App() {
         return (
           <DashboardOverview
             onNavigate={(tab) => setActiveTab(tab)}
-            onOpenPos={() => setActiveTab('pos')}
           />
         );
     }
@@ -282,11 +196,6 @@ export default function App() {
     <Layout
       activeTab={activeTab}
       onSelectTab={(tab) => setActiveTab(tab)}
-      onOpenPos={() => {
-        if (authService.canAccessTab('pos', currentUser.role)) {
-          setActiveTab('pos');
-        }
-      }}
       currentUser={currentUser}
       onLogout={handleLogout}
       onUserUpdated={(updated) => setCurrentUser(updated)}
