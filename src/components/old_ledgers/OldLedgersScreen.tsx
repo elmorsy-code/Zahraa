@@ -138,14 +138,20 @@ export const OldLedgersScreen: React.FC = () => {
           </select>
         </div>
 
-        <button
-          onClick={() => setModalOpen(true)}
-          type="button"
-          className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-amber-700 hover:bg-amber-800 rounded-lg shadow-xs transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span>+ تسجيل قيد دفتري قديم</span>
-        </button>
+        {isAdmin ? (
+          <button
+            onClick={() => setModalOpen(true)}
+            type="button"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-amber-700 hover:bg-amber-800 rounded-lg shadow-xs transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ تسجيل قيد دفتري قديم</span>
+          </button>
+        ) : (
+          <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+            مشرف (قراءة ومتابعة فقط)
+          </span>
+        )}
       </div>
 
       {/* Old Ledgers Table */}
@@ -227,15 +233,19 @@ export const OldLedgersScreen: React.FC = () => {
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             <span>مرحل للنظام</span>
                           </span>
-                        ) : (
+                        ) : isAdmin ? (
                           <button
                             onClick={() => handleMigrate(entry)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-md shadow-xs transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-md shadow-xs transition-colors cursor-pointer"
                             title="ترحيل المديونية مباشرة لفتح حساب عميل بالنظام"
                           >
                             <ArrowRightCircle className="w-3.5 h-3.5" />
                             <span>ترحيل للنظام</span>
                           </button>
+                        ) : (
+                          <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                            غير مرحل
+                          </span>
                         )}
                       </td>
                       <td className="py-2.5 px-3 text-center">

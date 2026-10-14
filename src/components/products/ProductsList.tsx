@@ -19,8 +19,10 @@ import { Product } from '../../types/database';
 import { storage } from '../../lib/storage';
 import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { formatCurrency, formatDate } from '../../lib/formatters';
+import { authService } from '../../lib/auth';
 
 export const ProductsList: React.FC = () => {
+  const isAdmin = authService.canModify(authService.getCurrentUser()?.role);
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
@@ -234,14 +236,20 @@ export const ProductsList: React.FC = () => {
           </div>
         </div>
 
-        <button
-          onClick={handleOpenAdd}
-          type="button"
-          className="flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-black text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-md cursor-pointer transition-all active:scale-95 self-start sm:self-auto"
-        >
-          <Plus className="w-5 h-5 text-white" />
-          <span>إضافة دواء جديد</span>
-        </button>
+        {isAdmin ? (
+          <button
+            onClick={handleOpenAdd}
+            type="button"
+            className="flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-black text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-md cursor-pointer transition-all active:scale-95 self-start sm:self-auto"
+          >
+            <Plus className="w-5 h-5 text-white" />
+            <span>إضافة دواء جديد</span>
+          </button>
+        ) : (
+          <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-2 rounded-xl border border-slate-200 self-start sm:self-auto">
+            حساب مشرف (قراءة ومتابعة فقط)
+          </span>
+        )}
       </div>
 
       {/* 2. Search & Category Filters (Categories dynamically from user data only) */}
@@ -413,23 +421,27 @@ export const ProductsList: React.FC = () => {
                   </span>
 
                   <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => handleOpenEdit(prod)}
-                      type="button"
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-teal-800 bg-teal-100/70 hover:bg-teal-200 rounded-lg transition-colors cursor-pointer"
-                    >
-                      <Edit className="w-3.5 h-3.5" />
-                      <span>تعديل</span>
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleOpenEdit(prod)}
+                        type="button"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-teal-800 bg-teal-100/70 hover:bg-teal-200 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        <span>تعديل</span>
+                      </button>
+                    )}
 
-                    <button
-                      onClick={() => setDeleteTarget(prod)}
-                      type="button"
-                      className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                      title="حذف الدواء"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => setDeleteTarget(prod)}
+                        type="button"
+                        className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                        title="حذف الدواء"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

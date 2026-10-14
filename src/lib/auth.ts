@@ -17,13 +17,11 @@ export interface UserAccount {
 
 export const ROLE_NAMES_AR: Record<RoleType, string> = {
   admin: 'المدير العام',
-  cashier: 'كاشير / بائع نقطة البيع',
-  storekeeper: 'مسؤول المستودع والمخازن',
-  accountant: 'المحاسب المالي',
-  viewer: 'مراقب عام (قراءة فقط)',
+  supervisor: 'مشرف (قراءة ومتابعة فقط)',
+  viewer: 'مشرف (قراءة ومتابعة فقط)',
 };
 
-// Definition of permissions per role
+// Definition of permissions per role - only General Manager (full) and Supervisor (read-only site access)
 export const ROLE_ALLOWED_TABS: Record<RoleType, string[]> = {
   admin: [
     'dashboard',
@@ -31,41 +29,39 @@ export const ROLE_ALLOWED_TABS: Record<RoleType, string[]> = {
     'debts',
     'customer_ledgers',
     'products',
+    'invoices',
+    'suppliers',
     'treasury',
     'old_ledgers',
     'reports',
     'users',
     'settings',
   ],
-  cashier: [
+  supervisor: [
     'dashboard',
     'customers',
     'debts',
     'customer_ledgers',
     'products',
-    'treasury',
-  ],
-  storekeeper: [
-    'dashboard',
-    'products',
-  ],
-  accountant: [
-    'dashboard',
-    'customers',
-    'debts',
-    'customer_ledgers',
-    'products',
+    'invoices',
+    'suppliers',
     'treasury',
     'old_ledgers',
     'reports',
+    'settings',
   ],
   viewer: [
     'dashboard',
     'customers',
     'debts',
+    'customer_ledgers',
     'products',
+    'invoices',
+    'suppliers',
     'treasury',
+    'old_ledgers',
     'reports',
+    'settings',
   ],
 };
 
@@ -77,17 +73,21 @@ function notifyAuthListeners() {
 }
 
 function mapProfileToUserAccount(profile: any, email: string, userMetadata?: any): UserAccount {
-  const role = (profile.role_id || 'cashier') as RoleType;
+  const rawRole = profile.role_id || userMetadata?.role_id;
+  const role: RoleType = rawRole === 'admin' ? 'admin' : 'supervisor';
   return {
     id: profile.user_id || profile.id,
     email,
     username: email.split('@')[0],
     fullName: profile.full_name || userMetadata?.full_name || email,
     role,
-    roleNameAr: ROLE_NAMES_AR[role] || 'مستخدم',
+    roleNameAr: ROLE_NAMES_AR[role] || 'مشرف',
     phone: profile.phone || userMetadata?.phone || '',
     description: userMetadata?.description || profile.description || '',
-    avatarColor: userMetadata?.avatar_color || profile.avatar_color || (role === 'admin' ? 'bg-emerald-700' : role === 'cashier' ? 'bg-blue-700' : 'bg-slate-700'),
+    avatarColor:
+      userMetadata?.avatar_color ||
+      profile.avatar_color ||
+      (role === 'admin' ? 'bg-emerald-700' : 'bg-blue-700'),
     isActive: profile.is_active ?? true,
     createdAt: profile.created_at,
   };
@@ -368,16 +368,16 @@ export const authService = {
       if (error || !data) return [];
 
       return data.map((p) => {
-        const role = (p.role_id || 'cashier') as RoleType;
+        const role: RoleType = p.role_id === 'admin' ? 'admin' : 'supervisor';
         return {
           id: p.id,
           email: p.user_id ? `${p.full_name?.replace(/\s+/g, '_') || 'user'}@alzahraa.internal` : '',
           fullName: p.full_name,
           role,
-          roleNameAr: ROLE_NAMES_AR[role] || 'مستخدم',
+          roleNameAr: ROLE_NAMES_AR[role] || 'مشرف',
           phone: p.phone || '',
           description: p.description || '',
-          avatarColor: p.avatar_color || 'bg-slate-700',
+          avatarColor: p.avatar_color || (role === 'admin' ? 'bg-emerald-700' : 'bg-blue-700'),
           isActive: p.is_active ?? true,
           createdAt: p.created_at,
         };
@@ -562,7 +562,7 @@ export const authService = {
     email: string;
     password: string;
     fullName: string;
-    role: RoleType;
+    role?: RoleType;
     phone?: string;
     description?: string;
   }): Promise<{ success: boolean; error?: string }> {
@@ -571,24 +571,62 @@ export const authService = {
       return { success: false, error: 'الاتصال بقاعدة البيانات غير متوفر' };
     }
 
+    const assignedRole: RoleType = 'supervisor';
+
     try {
       const trimmedEmail = data.email.trim().toLowerCase();
-      const { data: rpcRes, error: rpcErr } = await supabase.rpc('admin_create_system_user', {
-        p_email: trimmedEmail,
-        p_password: data.password,
-        p_full_name: data.fullName.trim(),
-        p_phone: data.phone?.trim() || '',
-        p_role_id: data.role,
-        p_description: data.description?.trim() || `مستخدم بصلاحيات ${ROLE_NAMES_AR[data.role]}`,
+
+      // 1. Try RPC admin_create_system_user
+      try {
+        const { data: rpcRes, error: rpcErr } = await supabase.rpc('admin_create_system_user', {
+          p_email: trimmedEmail,
+          p_password: data.password,
+          p_full_name: data.fullName.trim(),
+          p_phone: data.phone?.trim() || '',
+          p_role_id: assignedRole,
+          p_description: data.description?.trim() || 'مشرف (قراءة ومتابعة فقط)',
+        });
+
+        if (!rpcErr && (rpcRes?.success !== false)) {
+          return { success: true };
+        }
+      } catch (e) {
+        console.warn('RPC admin_create_system_user note:', e);
+      }
+
+      // 2. Direct Supabase signUp fallback
+      const { data: signData, error: signErr } = await supabase.auth.signUp({
+        email: trimmedEmail,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.fullName.trim(),
+            phone: data.phone?.trim() || '',
+            role_id: assignedRole,
+            description: data.description?.trim() || 'مشرف (قراءة ومتابعة فقط)',
+          },
+        },
       });
 
-      if (rpcErr) {
-        return { success: false, error: rpcErr.message };
+      if (signErr) {
+        return { success: false, error: signErr.message };
+      }
+
+      if (signData?.user?.id) {
+        await supabase.from('profiles').upsert({
+          id: signData.user.id,
+          user_id: signData.user.id,
+          full_name: data.fullName.trim(),
+          phone: data.phone?.trim() || null,
+          role_id: assignedRole,
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        });
       }
 
       return { success: true };
     } catch (err: any) {
-      return { success: false, error: err?.message || 'حدث خطأ أثناء إنشاء المستخدم' };
+      return { success: false, error: err?.message || 'حدث خطأ أثناء إنشاء المستخدم المشرف' };
     }
   },
 
@@ -649,5 +687,18 @@ export const authService = {
 
   getAllowedTabs(role: RoleType): string[] {
     return ROLE_ALLOWED_TABS[role] || [];
+  },
+
+  // Supervisor Read-Only Helpers: Only General Manager (admin) can add, edit, or delete!
+  canModify(role?: RoleType): boolean {
+    return role === 'admin';
+  },
+
+  isSupervisor(role?: RoleType): boolean {
+    return role === 'supervisor' || role === 'viewer';
+  },
+
+  isReadOnly(role?: RoleType): boolean {
+    return role !== 'admin';
   },
 };

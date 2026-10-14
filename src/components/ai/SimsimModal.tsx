@@ -16,7 +16,13 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import { storage } from '../../lib/storage';
-import { resolveSmartFallback } from '../../../shared/simsim';
+import {
+  resolveSmartFallback,
+  SIMSIM_SYSTEM_INSTRUCTION,
+  buildSimsimPrompt,
+  parseSimsimResponse,
+} from '../../../shared/simsim';
+import { authService } from '../../lib/auth';
 
 export interface SimsimAction {
   type: 'navigate' | 'open_modal' | 'action' | 'none';
@@ -72,8 +78,33 @@ export const SimsimModal: React.FC<SimsimModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [speechEnabled, setSpeechEnabled] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [aiStatus, setAiStatus] = useState<{ configured: boolean; source?: string; model?: string }>({ configured: false });
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [manualApiKey, setManualApiKey] = useState(() => {
+    return (
+      (typeof window !== 'undefined' && localStorage.getItem('alzahraa_gemini_api_key')) ||
+      (import.meta as any).env?.VITE_GEMINI_API_KEY ||
+      ''
+    );
+  });
+  const [tempKeyInput, setTempKeyInput] = useState('');
+  const [keySavedToast, setKeySavedToast] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check AI status when opened
+  useEffect(() => {
+    if (isOpen) {
+      fetch('/api/ai/status')
+        .then((r) => r.json())
+        .then((data) => {
+          if (data && typeof data.configured === 'boolean') {
+            setAiStatus(data);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen]);
 
   // Scroll to bottom on new message
   useEffect(() => {
@@ -142,6 +173,11 @@ export const SimsimModal: React.FC<SimsimModalProps> = ({
     if (action.type === 'navigate') {
       onNavigate(action.target);
     } else if (action.type === 'open_modal') {
+      const currentUser = authService.getCurrentUser();
+      if (currentUser && currentUser.role !== 'admin') {
+        alert('عفواً، حساب المشرف مخصص للمتابعة والقراءة فقط ولا يمتلك صلاحية الإضافة أو التعديل.');
+        return;
+      }
       if (action.target === 'product' && onOpenProductModal) onOpenProductModal();
       else if (action.target === 'expense' && onOpenExpenseModal) onOpenExpenseModal();
       else if (action.target === 'customer' && onOpenCustomerModal) onOpenCustomerModal();
@@ -186,6 +222,9 @@ export const SimsimModal: React.FC<SimsimModalProps> = ({
       lowStockCount,
     };
 
+    let replyData: { reply: string; action?: SimsimAction } | null = null;
+
+    // 1. Try server endpoint (/api/ai/simsim - Cloudflare Worker / Pages Function / Express)
     try {
       const res = await fetch('/api/ai/simsim', {
         method: 'POST',
@@ -197,62 +236,100 @@ export const SimsimModal: React.FC<SimsimModalProps> = ({
         }),
       });
 
-      if (!res.ok) {
-        throw new Error('فشل الاتصال بسمسم');
-      }
-
-      const data = await res.json();
-      const replyText = data.reply || 'أهلاً بك يا فندم! أنا سمسم تحت أمرك.';
-      const action = data.action as SimsimAction;
-
-      const simsimMsg: ChatMessage = {
-        id: `sim-${Date.now()}`,
-        sender: 'simsim',
-        text: replyText,
-        timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
-        actionExecuted: action && action.type !== 'none' ? action : undefined,
-      };
-
-      setMessages((prev) => [...prev, simsimMsg]);
-      speakText(replyText);
-
-      // Execute live action
-      if (action && action.type !== 'none') {
-        executeSimsimAction(action);
-      }
-    } catch {
-      // Seamless intelligent fallback for Cloudflare Pages, static hosting, or network drops
-      try {
-        const fallback = resolveSmartFallback(text, liveContext);
-        const replyText = fallback.reply || 'أهلاً بك يا فندم! أنا سمسم المساعد الذكي تحت أمرك.';
-        const action = fallback.action as SimsimAction;
-
-        const simsimMsg: ChatMessage = {
-          id: `sim-${Date.now()}`,
-          sender: 'simsim',
-          text: replyText,
-          timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
-          actionExecuted: action && action.type !== 'none' ? action : undefined,
-        };
-
-        setMessages((prev) => [...prev, simsimMsg]);
-        speakText(replyText);
-
-        if (action && action.type !== 'none') {
-          executeSimsimAction(action);
+      if (res.ok) {
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await res.json();
+          if (data && data.reply) {
+            replyData = data;
+          }
         }
-      } catch {
-        const errorMsg: ChatMessage = {
-          id: `err-${Date.now()}`,
-          sender: 'simsim',
-          text: 'عفواً يا فندم، حصل ضغط لحظي في الاتصال. لكن أنا شغال وتحت أمرك، جرب تسألني تاني!',
-          timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
-        };
-        setMessages((prev) => [...prev, errorMsg]);
       }
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      console.warn('Cloudflare /api/ai/simsim fetch attempt:', err);
     }
+
+    // 2. Client-side direct Gemini call if server wasn't configured or returned fallback
+    if (!replyData) {
+      const activeKey =
+        manualApiKey ||
+        (typeof window !== 'undefined' ? localStorage.getItem('alzahraa_gemini_api_key') : '') ||
+        (import.meta as any).env?.VITE_GEMINI_API_KEY ||
+        '';
+
+      if (activeKey) {
+        try {
+          const promptText = buildSimsimPrompt(
+            text,
+            messages.slice(-5).map((m) => ({ role: m.sender, text: m.text })),
+            liveContext
+          );
+
+          const candidateModels = [
+            'gemini-2.5-flash',
+            'gemini-3.8-flash',
+            'gemini-2.0-flash',
+            'gemini-1.5-flash',
+          ];
+
+          for (const model of candidateModels) {
+            try {
+              const directRes = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${activeKey}`,
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    systemInstruction: { parts: [{ text: SIMSIM_SYSTEM_INSTRUCTION }] },
+                    contents: [{ role: 'user', parts: [{ text: promptText }] }],
+                    generationConfig: { responseMimeType: 'application/json' },
+                  }),
+                }
+              );
+
+              if (directRes.ok) {
+                const data: any = await directRes.json();
+                const parts = data?.candidates?.[0]?.content?.parts || [];
+                const resText = parts.map((p: any) => p?.text || '').join('');
+                if (resText) {
+                  replyData = parseSimsimResponse(resText);
+                  break;
+                }
+              }
+            } catch (modelErr) {
+              console.warn(`Direct Gemini attempt [${model}] failed:`, modelErr);
+            }
+          }
+        } catch (clientErr) {
+          console.warn('Direct Gemini call failed:', clientErr);
+        }
+      }
+    }
+
+    // 3. Fallback to smart local Egyptian expert resolver
+    if (!replyData) {
+      replyData = resolveSmartFallback(text, liveContext);
+    }
+
+    const replyText = replyData.reply || 'أهلاً بك يا فندم! أنا سمسم تحت أمرك.';
+    const action = replyData.action as SimsimAction;
+
+    const simsimMsg: ChatMessage = {
+      id: `sim-${Date.now()}`,
+      sender: 'simsim',
+      text: replyText,
+      timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+      actionExecuted: action && action.type !== 'none' ? action : undefined,
+    };
+
+    setMessages((prev) => [...prev, simsimMsg]);
+    speakText(replyText);
+
+    if (action && action.type !== 'none') {
+      executeSimsimAction(action);
+    }
+
+    setIsLoading(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -294,9 +371,20 @@ export const SimsimModal: React.FC<SimsimModalProps> = ({
                 <h3 className="text-base sm:text-lg font-black tracking-tight">
                   سمسم (الذكاء الاصطناعي للمنظومة)
                 </h3>
-                <span className="text-[10px] bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded-full font-bold border border-emerald-400/30">
-                  متجاوب نشط
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowConfigModal(true)}
+                  className="flex items-center gap-1.5 text-[10px] px-2.5 py-0.5 rounded-full font-bold transition-all cursor-pointer border shadow-2xs hover:scale-105 active:scale-95"
+                  style={{
+                    backgroundColor: aiStatus.configured || manualApiKey ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)',
+                    borderColor: aiStatus.configured || manualApiKey ? 'rgba(52, 211, 153, 0.5)' : 'rgba(251, 191, 36, 0.5)',
+                    color: aiStatus.configured || manualApiKey ? '#6ee7b7' : '#fef08a',
+                  }}
+                  title="فحص حالة اتصال Gemini في Cloudflare"
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${aiStatus.configured || manualApiKey ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'}`} />
+                  <span>{aiStatus.configured || manualApiKey ? 'Gemini AI متصل' : 'فحص إعدادات Cloudflare'}</span>
+                </button>
               </div>
               <p className="text-xs text-slate-300 font-medium">
                 تحكم كامل في الموقع واستشارات زراعية فورية
@@ -472,6 +560,133 @@ export const SimsimModal: React.FC<SimsimModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Cloudflare & Gemini API Diagnostics & Help Modal */}
+      {showConfigModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border-2 border-slate-200 overflow-hidden text-right flex flex-col max-h-[90vh]">
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 to-emerald-950 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl">
+                  <Bot className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-black text-sm sm:text-base">تشخيص وربط ذكاء سمسم (Cloudflare & Gemini)</h4>
+                  <p className="text-[11px] text-slate-300 font-medium">دليل وحالة الاتصال بمحرك الذكاء الاصطناعي</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowConfigModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-5 overflow-y-auto space-y-4 text-xs font-medium text-slate-700">
+              {/* Current Status Pill */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <div>
+                  <span className="block text-[11px] text-slate-500 font-bold mb-0.5">الحالة الحالية:</span>
+                  <span className="font-black text-sm flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${aiStatus.configured || manualApiKey ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
+                    <span className={aiStatus.configured || manualApiKey ? 'text-emerald-800' : 'text-amber-800'}>
+                      {aiStatus.configured || manualApiKey
+                        ? 'مفتاح الذكاء الاصطناعي متصل وجاهز للاستخدام!'
+                        : 'لم يتم تفعيل المفتاح بعد في Cloudflare'}
+                    </span>
+                  </span>
+                </div>
+                <span className="text-[10px] px-2.5 py-1 rounded-lg bg-slate-200 font-mono font-bold text-slate-700">
+                  {aiStatus.configured ? 'سحابي (Cloudflare)' : manualApiKey ? 'مفتاح محلي مباشر' : 'وضع ذكي محلي'}
+                </span>
+              </div>
+
+              {/* Crucial Explanation for Cloudflare Pages / Workers */}
+              <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 space-y-2 text-blue-950">
+                <div className="flex items-center gap-2 font-black text-xs text-blue-900">
+                  <AlertCircle className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span>لماذا لم يعمل سمسم بالرغم من إضافة الـ API إلى Cloudflare؟</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-1.5 text-[11px] leading-relaxed text-blue-900 font-bold pr-1">
+                  <li>
+                    <strong>يجب عمل إعادة نشر (Retry deployment):</strong> في Cloudflare Pages، المتغيرات الجديدة التي تضيفها لا تسري تلقائياً على الإصدار القديم المنشور، بل يلزم الذهاب إلى صفحة <code>Deployments</code> والضغط على <code>Retry deployment</code> أو نشر كود جديد.
+                  </li>
+                  <li>
+                    <strong>تأكد من اسم المتغير تماماً:</strong> يجب أن يكون الاسم بأحد هذه الصيغ: <code>GEMINI_API_KEY</code> أو <code>GOOGLE_API_KEY</code>.
+                  </li>
+                  <li>
+                    <strong>نوع المتغير:</strong> تأكد من إضافته تحت <code>Environment variables</code> لكل من بيئة (Production) و (Preview).
+                  </li>
+                </ol>
+              </div>
+
+              {/* Instant Test / Local Fallback Key Input */}
+              <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-2.5">
+                <span className="block font-black text-emerald-950 text-xs">
+                  ⚡ للتجربة الفورية والتشغيل المباشر الآن:
+                </span>
+                <p className="text-[11px] text-emerald-900">
+                  يمكنك لصق مفتاح Gemini API هنا مباشرة، وسيعمل سمسم معك فوراً في هذا المتصفح دون انتظار إعادة النشر على Cloudflare:
+                </p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="password"
+                    value={tempKeyInput}
+                    onChange={(e) => setTempKeyInput(e.target.value)}
+                    placeholder={manualApiKey ? 'المفتاح مسجل مسبقاً (••••••••)' : 'الصق AIzaSy... هنا للتجربة'}
+                    dir="ltr"
+                    className="flex-1 px-3 py-2 text-xs font-mono bg-white border border-emerald-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!tempKeyInput.trim()) return;
+                      localStorage.setItem('alzahraa_gemini_api_key', tempKeyInput.trim());
+                      setManualApiKey(tempKeyInput.trim());
+                      setKeySavedToast('تم تفعيل المفتاح بنجاح! سمسم متصل الآن.');
+                      setTimeout(() => setKeySavedToast(''), 4000);
+                      setTempKeyInput('');
+                    }}
+                    className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-xs cursor-pointer shadow-xs whitespace-nowrap"
+                  >
+                    حفظ وتفعيل
+                  </button>
+                </div>
+                {keySavedToast && (
+                  <p className="text-[11px] font-bold text-emerald-800 flex items-center gap-1.5 pt-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>{keySavedToast}</span>
+                  </p>
+                )}
+                {manualApiKey && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.removeItem('alzahraa_gemini_api_key');
+                      setManualApiKey('');
+                    }}
+                    className="text-[10px] text-rose-700 hover:underline font-bold cursor-pointer block"
+                  >
+                    إزالة المفتاح المسجل محلياً
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowConfigModal(false)}
+                className="px-5 py-2 text-xs font-black text-white bg-slate-900 hover:bg-slate-800 rounded-xl cursor-pointer"
+              >
+                إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -182,6 +182,34 @@ const allDepartments: Department[] = [
     ],
   },
   {
+    id: 'invoices',
+    title: 'قسم الفواتير',
+    subtitle: 'فواتير ومشتريات الأدوية',
+    tagline: 'تسجيل فواتير الموردين، حساب الأسعار، ونوع السداد',
+    icon: Receipt,
+    defaultTab: 'invoices',
+    theme: {
+      colorName: 'violet',
+      iconBg: 'bg-violet-50',
+      iconText: 'text-violet-700',
+      iconBorder: 'border-violet-200',
+      activeBg: 'bg-gradient-to-b from-violet-50/70 via-white to-white',
+      activeBorder: 'border-violet-500',
+      activeRing: 'ring-violet-500/20',
+      activeBar: 'bg-violet-500',
+      activeText: 'text-violet-950',
+      activeBadgeBg: 'bg-violet-100',
+      activeBadgeText: 'text-violet-800',
+      subTabActiveBg: 'bg-violet-600 hover:bg-violet-700',
+      subTabActiveText: 'text-white',
+      subTabActiveRing: 'ring-violet-700',
+    },
+    tabs: [
+      { id: 'invoices', label: 'سجل فواتير المشتريات', icon: Receipt },
+      { id: 'suppliers', label: 'دليل وحسابات الموردين', icon: Truck },
+    ],
+  },
+  {
     id: 'treasury',
     title: 'قسم الخزينة',
     subtitle: 'السيولة والمصروفات',
@@ -291,6 +319,12 @@ export const NavigationCard: React.FC<NavigationCardProps> = ({
         return {
           label: 'الأدوية المضافة',
           value: `${products.length} دواء مسجل`,
+          isAlert: false,
+        };
+      case 'invoices':
+        return {
+          label: 'فواتير المشتريات',
+          value: `${storage.getPurchaseInvoices().length} فاتورة مسجلة`,
           isAlert: false,
         };
       case 'treasury':

@@ -6,7 +6,6 @@ import { InitialAdminSetupScreen } from './components/auth/InitialAdminSetupScre
 import { authService, UserAccount } from './lib/auth';
 import { isSupabaseConfigured } from './lib/supabase';
 import { storage } from './lib/storage';
-import { DashboardOverview } from './components/dashboard/DashboardOverview';
 import { CustomersList } from './components/customers/CustomersList';
 import { CustomerDebtsScreen } from './components/debts/CustomerDebtsScreen';
 import { ProductsList } from './components/products/ProductsList';
@@ -15,6 +14,7 @@ import { OldLedgersScreen } from './components/old_ledgers/OldLedgersScreen';
 import { ReportsScreen } from './components/reports/ReportsScreen';
 import { UsersPermissionsScreen } from './components/users/UsersPermissionsScreen';
 import { SettingsScreen } from './components/settings/SettingsScreen';
+import { InvoicesScreen } from './components/invoices/InvoicesScreen';
 import { ShieldAlert, ArrowLeft, Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -141,17 +141,7 @@ export default function App() {
 
     switch (activeTab) {
       case 'dashboard':
-        return (
-          <DashboardOverview
-            onNavigate={(tab) => {
-              if (authService.canAccessTab(tab, currentUser.role)) {
-                setActiveTab(tab);
-              } else {
-                setActiveTab(tab);
-              }
-            }}
-          />
-        );
+        return null;
 
       case 'customers':
       case 'customers_dept':
@@ -164,6 +154,13 @@ export default function App() {
       case 'products':
       case 'products_dept':
         return <ProductsList />;
+
+      case 'invoices':
+      case 'invoices_dept':
+        return <InvoicesScreen initialTab="invoices" />;
+
+      case 'suppliers':
+        return <InvoicesScreen initialTab="suppliers" />;
 
       case 'treasury':
       case 'treasury_dept':
@@ -184,11 +181,7 @@ export default function App() {
         return <SettingsScreen />;
 
       default:
-        return (
-          <DashboardOverview
-            onNavigate={(tab) => setActiveTab(tab)}
-          />
-        );
+        return null;
     }
   };
 

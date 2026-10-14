@@ -30,7 +30,7 @@ export const UsersPermissionsScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
-  const [role, setRole] = useState<RoleType>('cashier');
+  const [role, setRole] = useState<RoleType>('supervisor');
   const [description, setDescription] = useState('');
   const [modalLoading, setModalLoading] = useState(false);
   const [formError, setFormError] = useState('');
@@ -61,30 +61,16 @@ export const UsersPermissionsScreen: React.FC = () => {
     {
       id: 'admin' as RoleType,
       name_ar: 'المدير العام',
-      desc: 'صلاحيات كاملة على كافة أجزاء النظام والتقارير والبيانات المالية وإعدادات قاعدة البيانات',
-      perms: ['كافة الصلاحيات', 'تعديل الأسعار', 'إلغاء الفواتير', 'الترحيل المالي'],
+      desc: 'صلاحيات كاملة على كافة أجزاء النظام، وإضافة وتعديل وحذف البيانات، وإدارة المستخدمين والتقارير المالية',
+      perms: ['كافة الصلاحيات', 'إضافة وتعديل وحذف', 'إدارة المستخدمين', 'التحكم بالمنظومة'],
       color: 'bg-emerald-50 text-emerald-800 border-emerald-300',
     },
     {
-      id: 'cashier' as RoleType,
-      name_ar: 'كاشير / بائع نقطة البيع',
-      desc: 'إصدار فواتير البيع، تحصيل النقدية، استعلام أسعار وبحث عملاء وإصدار إيصالات',
-      perms: ['نقطة البيع (POS)', 'بحث المنتجات والأسعار', 'إضافة عميل', 'تحصيل نقدي'],
+      id: 'supervisor' as RoleType,
+      name_ar: 'مشرف (قراءة ومتابعة فقط)',
+      desc: 'الدخول لكافة أقسام وشاشات المنظومة وتصفح البيانات والمؤشرات الحية دون إمكانية الإضافة أو التعديل أو الحذف',
+      perms: ['الدخول لكافة الأقسام', 'عرض الكشوفات والتقارير', 'متابعة الأرصدة والمؤشرات', 'ممنوع الإضافة/التعديل/الحذف'],
       color: 'bg-blue-50 text-blue-800 border-blue-300',
-    },
-    {
-      id: 'storekeeper' as RoleType,
-      name_ar: 'مسؤول المخزن والمستودع',
-      desc: 'إدارة المخزون، التحويلات بين المخزن والمحل، استلام المشتريات والجرد الفعلي',
-      perms: ['استلام البضاعة', 'التحويل المخزني', 'الجرد الفعلي', 'تنبيهات النواقص'],
-      color: 'bg-amber-50 text-amber-800 border-amber-300',
-    },
-    {
-      id: 'accountant' as RoleType,
-      name_ar: 'المحاسب المالي',
-      desc: 'متابعة كشوف حسابات العملاء والموردين، الخزينة والمصروفات، والتقارير المالية',
-      perms: ['كشوف الحسابات', 'الخزينة والمصروفات', 'سندات القبض والصرف', 'التقارير'],
-      color: 'bg-purple-50 text-purple-800 border-purple-300',
     },
   ];
 
@@ -93,8 +79,8 @@ export const UsersPermissionsScreen: React.FC = () => {
     setEmail('');
     setPassword('');
     setPhone('');
-    setRole('cashier');
-    setDescription('');
+    setRole('supervisor');
+    setDescription('مشرف (قراءة ومتابعة فقط)');
     setFormError('');
     setShowAddModal(true);
   };
@@ -123,8 +109,8 @@ export const UsersPermissionsScreen: React.FC = () => {
         password,
         fullName: fullName.trim(),
         phone: phone.trim(),
-        role,
-        description: description.trim(),
+        role: 'supervisor',
+        description: description.trim() || 'مشرف (قراءة ومتابعة فقط)',
       });
 
       if (!res.success) {
@@ -133,7 +119,7 @@ export const UsersPermissionsScreen: React.FC = () => {
         return;
       }
 
-      setSuccessToast(`تم إنشاء حساب ${fullName} بنجاح`);
+      setSuccessToast(`تم إنشاء حساب المشرف ${fullName} بنجاح`);
       setTimeout(() => setSuccessToast(''), 4000);
       setShowAddModal(false);
       await loadUsers();
@@ -220,33 +206,37 @@ export const UsersPermissionsScreen: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 font-bold text-slate-700">
-              إنشاء المستخدمين: عبر لوحة Supabase
-            </span>
+            <button
+              onClick={handleOpenAdd}
+              type="button"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-sm shadow-md cursor-pointer transition-all active:scale-95"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>+ إضافة مستخدم جديد (مشرف)</span>
+            </button>
           </div>
         </div>
 
         {/* Informative banner per instruction */}
-        <div className="mt-4 p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-amber-900 text-xs font-bold leading-relaxed flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+        <div className="mt-4 p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-900 text-xs font-bold leading-relaxed flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
           <div>
-            <p className="font-black text-amber-950 mb-0.5">تعليمات إنشاء مستخدم جديد:</p>
+            <p className="font-black text-blue-950 mb-0.5">صلاحية المدير العام لإنشاء المشرفين:</p>
             <p>
-              يتم إنشاء حساب المستخدم أولاً من لوحة تحكم <strong>Supabase</strong> (عبر قسم <strong>Authentication ➔ Users ➔ Add user</strong>).
-              بمجرد إنشاء الحساب وتسجيل دخوله، يظهر تلقائياً في هذه القائمة ليتسنى للمدير العام تفعيل حسابه وتحديد دوره وصلاحياته في المنظومة.
+              يحق للمدير العام فقط إضافة مستخدمين جدد للنظام، وتكون صلاحيتهم حصرياً <strong>مشرف (قراءة ومتابعة فقط)</strong>؛ مما يمكنهم من تسجيل الدخول وتصفح كافة أقسام المنظومة والمؤشرات الحية دون إمكانية الإضافة أو التعديل أو الحذف.
             </p>
           </div>
         </div>
       </div>
 
-      {/* 2. Roles Overview Grid */}
+      {/* 2. Roles Overview Grid (Only General Manager & Supervisor) */}
       <div>
         <h3 className="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
           <Shield className="w-5 h-5 text-emerald-600" />
           <span>هيكل الأدوار والصلاحيات المعتمدة في النظام</span>
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {roles.map((r) => (
             <div
               key={r.id}
@@ -491,18 +481,14 @@ export const UsersPermissionsScreen: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block font-black text-sm text-slate-800 mb-1.5">الدور والصلاحية *</label>
-                  <select
-                    value={role}
-                    onChange={(e) => setRole(e.target.value as RoleType)}
-                    className="w-full py-2.5 px-3 border-2 border-slate-200 rounded-xl text-sm font-bold bg-white focus:outline-none focus:border-emerald-500"
-                  >
-                    {roles.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name_ar}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="block font-black text-sm text-slate-800 mb-1.5">الدور والصلاحية المعتمدة</label>
+                  <div className="p-3 bg-blue-50 border-2 border-blue-200 rounded-xl flex items-center justify-between">
+                    <div>
+                      <span className="font-black text-sm text-blue-950 block">مشرف (قراءة ومتابعة فقط)</span>
+                      <span className="text-xs text-blue-700 font-bold">دخول وتصفح الموقع دون صلاحية الإضافة أو التعديل أو الحذف</span>
+                    </div>
+                    <span className="text-xs px-2.5 py-1 bg-blue-600 text-white rounded-lg font-black shrink-0">دور ثابت</span>
+                  </div>
                 </div>
               </div>
 
@@ -512,7 +498,7 @@ export const UsersPermissionsScreen: React.FC = () => {
                   type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="مثال: كاشير الوردية الصباحية بمحل البيع"
+                  placeholder="مثال: مشرف متابعة فواتير ومشتريات الفرع"
                   className="w-full py-2.5 px-3 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-emerald-500"
                 />
               </div>

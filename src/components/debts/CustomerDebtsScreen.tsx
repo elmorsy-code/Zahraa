@@ -34,6 +34,7 @@ import { exportToCsv } from '../../lib/exportUtils';
 import { printVisibleArea } from '../../lib/printUtils';
 
 export const CustomerDebtsScreen: React.FC = () => {
+  const isAdmin = authService.canModify(authService.getCurrentUser()?.role);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [activeView, setActiveView] = useState<'log' | 'summary'>('log');
   const [search, setSearch] = useState('');
@@ -189,33 +190,39 @@ export const CustomerDebtsScreen: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Main Action: Add Debt */}
-          <button
-            onClick={() => {
-              setPreselectedCustId(undefined);
-              setAddDebtModalOpen(true);
-            }}
-            type="button"
-            className="flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-black text-white bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 hover:from-amber-700 hover:to-amber-900 rounded-xl shadow-md cursor-pointer transition-all active:scale-95"
-          >
-            <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-            <span>تسجيل مديونية جديدة</span>
-          </button>
+        {isAdmin ? (
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Main Action: Add Debt */}
+            <button
+              onClick={() => {
+                setPreselectedCustId(undefined);
+                setAddDebtModalOpen(true);
+              }}
+              type="button"
+              className="flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-black text-white bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 hover:from-amber-700 hover:to-amber-900 rounded-xl shadow-md cursor-pointer transition-all active:scale-95"
+            >
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              <span>تسجيل مديونية جديدة</span>
+            </button>
 
-          {/* Collect Debt / Receive Payment */}
-          <button
-            onClick={() => {
-              const firstDebtor = customers.find((c) => c.current_balance > 0) || customers[0] || null;
-              setPaymentModalCustomer(firstDebtor);
-            }}
-            type="button"
-            className="flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold text-emerald-950 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-xl cursor-pointer transition-all active:scale-95"
-          >
-            <BadgeDollarSign className="w-4 h-4 text-emerald-700" />
-            <span>سند قبض / تحصيل نقدية</span>
-          </button>
-        </div>
+            {/* Collect Debt / Receive Payment */}
+            <button
+              onClick={() => {
+                const firstDebtor = customers.find((c) => c.current_balance > 0) || customers[0] || null;
+                setPaymentModalCustomer(firstDebtor);
+              }}
+              type="button"
+              className="flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold text-emerald-950 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-xl cursor-pointer transition-all active:scale-95"
+            >
+              <BadgeDollarSign className="w-4 h-4 text-emerald-700" />
+              <span>سند قبض / تحصيل نقدية</span>
+            </button>
+          </div>
+        ) : (
+          <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-2 rounded-xl border border-slate-200">
+            حساب مشرف (قراءة ومتابعة فقط)
+          </span>
+        )}
       </div>
 
       {/* 2. Master KPI Summary Strip */}
@@ -368,15 +375,16 @@ export const CustomerDebtsScreen: React.FC = () => {
                   <tr>
                     <td colSpan={7} className="py-14 text-center text-slate-400">
                       <ShoppingBag className="w-10 h-10 mx-auto mb-3 stroke-1 text-slate-300" />
-                      <p className="text-sm font-medium">لا توجد حركات مديونية مسجلة</p>
-                      <button
-                        onClick={() => setAddDebtModalOpen(true)}
-                        type="button"
-                        className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl cursor-pointer"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span>تسجيل أول مديونية</span>
-                      </button>
+                      {isAdmin && (
+                        <button
+                          onClick={() => setAddDebtModalOpen(true)}
+                          type="button"
+                          className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>تسجيل أول مديونية</span>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ) : (
@@ -481,30 +489,34 @@ export const CustomerDebtsScreen: React.FC = () => {
                           </button>
 
                           {/* Quick Receive Payment */}
-                          <button
-                            onClick={() => setPaymentModalCustomer(customer)}
-                            type="button"
-                            className="p-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg cursor-pointer transition-colors"
-                            title="سند قبض / تحصيل نقدية"
-                          >
-                            <BadgeDollarSign className="w-4 h-4" />
-                          </button>
+                          {isAdmin && (
+                            <button
+                              onClick={() => setPaymentModalCustomer(customer)}
+                              type="button"
+                              className="p-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg cursor-pointer transition-colors"
+                              title="سند قبض / تحصيل نقدية"
+                            >
+                              <BadgeDollarSign className="w-4 h-4" />
+                            </button>
+                          )}
 
                           {/* Delete Entry */}
-                          <button
-                            onClick={() =>
-                              setDeleteTargetEntry({
-                                id: entry.id,
-                                desc: entry.description,
-                                amount: entry.debit,
-                              })
-                            }
-                            type="button"
-                            className="p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg cursor-pointer transition-colors"
-                            title="حذف قيد المديونية وتصحيح الرصيد"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {isAdmin && (
+                            <button
+                              onClick={() =>
+                                setDeleteTargetEntry({
+                                  id: entry.id,
+                                  desc: entry.description,
+                                  amount: entry.debit,
+                                })
+                              }
+                              type="button"
+                              className="p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg cursor-pointer transition-colors"
+                              title="حذف قيد المديونية وتصحيح الرصيد"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -605,27 +617,31 @@ export const CustomerDebtsScreen: React.FC = () => {
                       <td className="py-3.5 px-4 text-center">
                         <div className="flex items-center justify-center gap-1.5 flex-wrap">
                           {/* Add Debt specifically for this customer */}
-                          <button
-                            onClick={() => {
-                              setPreselectedCustId(cust.id);
-                              setAddDebtModalOpen(true);
-                            }}
-                            type="button"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-amber-950 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg cursor-pointer"
-                          >
-                            <Plus className="w-3.5 h-3.5 text-amber-700" />
-                            <span>تسجيل شراء</span>
-                          </button>
+                          {isAdmin && (
+                            <button
+                              onClick={() => {
+                                setPreselectedCustId(cust.id);
+                                setAddDebtModalOpen(true);
+                              }}
+                              type="button"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-amber-950 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg cursor-pointer"
+                            >
+                              <Plus className="w-3.5 h-3.5 text-amber-700" />
+                              <span>تسجيل شراء</span>
+                            </button>
+                          )}
 
                           {/* Collect Payment */}
-                          <button
-                            onClick={() => setPaymentModalCustomer(cust)}
-                            type="button"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-emerald-950 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-lg cursor-pointer"
-                          >
-                            <BadgeDollarSign className="w-3.5 h-3.5 text-emerald-700" />
-                            <span>قبض</span>
-                          </button>
+                          {isAdmin && (
+                            <button
+                              onClick={() => setPaymentModalCustomer(cust)}
+                              type="button"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-emerald-950 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-lg cursor-pointer"
+                            >
+                              <BadgeDollarSign className="w-3.5 h-3.5 text-emerald-700" />
+                              <span>قبض</span>
+                            </button>
+                          )}
 
                           {/* View Ledger */}
                           <button

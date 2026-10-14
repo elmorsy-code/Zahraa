@@ -242,10 +242,14 @@ class DataStorage {
       // Hydrate Purchase Invoices with items
       if (purchaseInvoicesRes.data) {
         const purItems = purchaseInvoiceItemsRes.data || [];
-        this.purchaseInvoices = purchaseInvoicesRes.data.map((pur) => ({
-          ...pur,
-          items: purItems.filter((it) => it.purchase_id === pur.id),
-        }));
+        this.purchaseInvoices = purchaseInvoicesRes.data.map((pur) => {
+          const supp = this.suppliers.find((s) => s.id === pur.supplier_id);
+          return {
+            ...pur,
+            supplier_name: supp?.name || pur.supplier_name || 'مورد غير محدد',
+            items: purItems.filter((it) => it.purchase_id === pur.id),
+          };
+        });
       }
 
       // Hydrate Sales Returns with items
@@ -1239,18 +1243,136 @@ class DataStorage {
         })),
       };
 
-      const { data: res, error } = await supabase.rpc('process_purchase_atomic', {
-        p_payload: payload,
-      });
+      let res: any = null;
+      let rpcError: any = null;
 
-      if (error) return { success: false, error: error.message };
-      if (!res?.success) return { success: false, error: res?.error || 'فشلت عملية حفظ المشتريات' };
+      try {
+        const rpcCall = await supabase.rpc('process_purchase_atomic', {
+          p_payload: payload,
+        });
+        res = rpcCall.data;
+        rpcError = rpcCall.error;
+      } catch (err: any) {
+        rpcError = err;
+      }
+
+      let savedInvoiceId: string = '';
+      let finalInvoiceNum: string = data.supplier_invoice_number || '';
+
+      if (!rpcError && res?.success && res?.purchase_id) {
+        savedInvoiceId = res.purchase_id;
+        finalInvoiceNum = res.invoice_number || finalInvoiceNum;
+      } else {
+        // Fallback: Direct table insert if RPC function is missing or failed
+        const invNum = finalInvoiceNum.trim() || (await this.getNextDocNumber('PUR'));
+        finalInvoiceNum = invNum;
+        const remaining = Math.max(0, data.total_amount - (data.paid_amount || 0));
+        const entryDate = data.invoice_date ? new Date(data.invoice_date).toISOString() : new Date().toISOString();
+
+        const { data: invRow, error: invErr } = await supabase
+          .from('purchase_invoices')
+          .insert({
+            invoice_number: invNum,
+            supplier_invoice_number: data.supplier_invoice_number || null,
+            supplier_id: data.supplier_id,
+            warehouse_id: data.warehouse_id,
+            cash_account_id: data.cash_account_id || null,
+            invoice_date: entryDate,
+            payment_type: data.payment_type,
+            subtotal: data.subtotal,
+            discount_amount: data.discount_amount || 0,
+            tax_amount: data.tax_amount || 0,
+            total_amount: data.total_amount,
+            paid_amount: data.paid_amount || 0,
+            remaining_amount: remaining,
+            status: 'completed',
+            notes: data.notes || null,
+          })
+          .select()
+          .single();
+
+        if (invErr) {
+          console.warn('Direct purchase invoice insert error:', invErr);
+          return { success: false, error: invErr.message || 'فشلت عملية حفظ الفاتورة' };
+        }
+
+        savedInvoiceId = invRow.id;
+
+        // Insert purchase invoice items
+        if (data.items && data.items.length > 0) {
+          const itemsPayload = data.items.map((it) => ({
+            purchase_id: savedInvoiceId,
+            product_id: it.product_id,
+            product_name_snapshot: it.product_name_snapshot,
+            unit_id: it.unit_id || null,
+            unit_name_snapshot: it.unit_name_snapshot || 'وحدة',
+            conversion_factor_snapshot: it.conversion_factor_snapshot || 1,
+            qty: it.qty,
+            qty_in_base_unit: it.qty_in_base_unit || it.qty,
+            cost_price: it.cost_price,
+            total_cost: it.total_cost || (it.qty * it.cost_price),
+            batch_number: it.batch_number || null,
+            expiry_date: it.expiry_date || null,
+          }));
+
+          const { error: itemsErr } = await supabase.from('purchase_invoice_items').insert(itemsPayload);
+          if (itemsErr) console.warn('Purchase items insert warning:', itemsErr);
+        }
+
+        // Supplier balance & ledger entry
+        if (data.supplier_id && remaining > 0) {
+          const supp = this.suppliers.find((s) => s.id === data.supplier_id);
+          const currentBal = Number(supp?.current_balance || 0);
+          const newBal = currentBal + remaining;
+
+          await supabase.from('suppliers').update({ current_balance: newBal, updated_at: new Date().toISOString() }).eq('id', data.supplier_id);
+
+          await supabase.from('supplier_ledger_entries').insert({
+            supplier_id: data.supplier_id,
+            entry_date: entryDate,
+            entry_type: 'purchase',
+            document_number: invNum,
+            reference_id: savedInvoiceId,
+            purchase_total: data.total_amount,
+            paid_amount: data.paid_amount || 0,
+            debit: 0,
+            credit: remaining,
+            running_balance: newBal,
+            description: `فاتورة مشتريات رقم ${invNum}`,
+          });
+        }
+
+        // Cash transaction if paid > 0
+        if (data.paid_amount > 0 && data.cash_account_id) {
+          const cashAcc = this.cashAccounts.find((c) => c.id === data.cash_account_id);
+          const currentCash = Number(cashAcc?.current_balance || 0);
+          const newCash = currentCash - data.paid_amount;
+
+          await supabase.from('cash_accounts').update({ current_balance: newCash }).eq('id', data.cash_account_id);
+
+          await supabase.from('cash_transactions').insert({
+            transaction_number: `CSH-${Date.now().toString(36)}`,
+            cash_account_id: data.cash_account_id,
+            transaction_date: entryDate,
+            transaction_type: 'purchase_outflow',
+            amount: data.paid_amount,
+            direction: 'out',
+            balance_after: newCash,
+            reference_type: 'purchase_invoice',
+            reference_id: savedInvoiceId,
+            party_type: 'supplier',
+            party_name: this.suppliers.find((s) => s.id === data.supplier_id)?.name || 'مورد',
+            description: `سداد مشتريات فاتورة رقم ${invNum}`,
+          });
+        }
+      }
 
       await this.hydrate();
-      const saved = this.purchaseInvoices.find((p) => p.id === res.purchase_id) || {
-        id: res.purchase_id,
-        invoice_number: res.invoice_number,
+      const saved = this.purchaseInvoices.find((p) => p.id === savedInvoiceId) || {
+        id: savedInvoiceId,
+        invoice_number: finalInvoiceNum,
         supplier_id: data.supplier_id,
+        supplier_name: this.suppliers.find((s) => s.id === data.supplier_id)?.name || '',
         warehouse_id: data.warehouse_id,
         invoice_date: data.invoice_date || new Date().toISOString(),
         payment_type: data.payment_type,
@@ -1267,7 +1389,209 @@ class DataStorage {
 
       return { success: true, invoice: saved };
     } catch (err: any) {
+      console.error('Error saving purchase invoice:', err);
       return { success: false, error: err?.message || 'خطأ أثناء تسجيل المشتريات' };
+    }
+  }
+
+  /**
+   * إضافة فاتورة مشتريات ميسرة وسريعة مع معالجة المورد والأدوية تلقائياً
+   */
+  public async addSupplierInvoice(data: {
+    supplier_name: string;
+    supplier_phone?: string;
+    invoice_date?: string;
+    invoice_number?: string;
+    payment_type: 'cash' | 'credit' | 'partial' | 'bank';
+    paid_amount?: number;
+    discount_amount?: number;
+    notes?: string;
+    items: Array<{
+      product_id?: string;
+      product_name: string;
+      qty: number;
+      unit?: string;
+      cost_price: number;
+      total_cost: number;
+    }>;
+  }): Promise<{ success: boolean; invoice?: PurchaseInvoice; error?: string }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, error: 'الاتصال بقاعدة البيانات غير متوفر' };
+
+    try {
+      const trimmedSupplierName = (data.supplier_name || '').trim();
+      if (!trimmedSupplierName) {
+        return { success: false, error: 'يرجى كتابة أو اختيار اسم المورد' };
+      }
+
+      if (!data.items || data.items.length === 0) {
+        return { success: false, error: 'يرجى إضافة دواء واحد على الأقل للفاتورة' };
+      }
+
+      // 1. Resolve Supplier
+      let supplier = this.suppliers.find(
+        (s) => s.name.trim().toLowerCase() === trimmedSupplierName.toLowerCase()
+      );
+      if (!supplier) {
+        supplier = await this.saveSupplier({
+          name: trimmedSupplierName,
+          phone: data.supplier_phone?.trim(),
+          opening_balance: 0,
+        });
+      }
+
+      // 2. Resolve Warehouse
+      let warehouse = this.warehouses.find((w) => w.is_primary) || this.warehouses[0];
+      if (!warehouse) {
+        // Create default warehouse if none exists
+        const { data: newW } = await supabase
+          .from('warehouses')
+          .insert({ code: 'WH-01', name: 'المخزن الرئيسي / المحل', location_type: 'shop', is_primary: true, is_active: true })
+          .select()
+          .single();
+        if (newW) warehouse = newW;
+      }
+      const warehouseId = warehouse?.id || '00000000-0000-0000-0000-000000000001';
+
+      // 3. Resolve Cash Account
+      let cashAcc = this.cashAccounts.find((c) => c.is_primary) || this.cashAccounts[0];
+      const cashAccountId = cashAcc?.id;
+
+      // 4. Resolve Products & Process Items
+      const processedItems: Array<{
+        product_id: string;
+        product_name_snapshot: string;
+        unit_id?: string;
+        unit_name_snapshot: string;
+        conversion_factor_snapshot: number;
+        qty: number;
+        qty_in_base_unit: number;
+        cost_price: number;
+        total_cost: number;
+      }> = [];
+
+      for (const item of data.items) {
+        const prodName = item.product_name.trim();
+        let prod = item.product_id ? this.products.find((p) => p.id === item.product_id) : undefined;
+        if (!prod) {
+          prod = this.products.find((p) => p.name.trim().toLowerCase() === prodName.toLowerCase());
+        }
+
+        // If product doesn't exist, create it in products catalog automatically
+        if (!prod) {
+          prod = await this.saveProduct({
+            name: prodName,
+            base_unit_name: item.unit?.trim() || 'عبوة',
+            default_purchase_price: item.cost_price,
+            default_sale_price: Math.round(item.cost_price * 1.25 * 100) / 100,
+            min_stock_alert: 5,
+          });
+        }
+
+        const qty = Number(item.qty) || 1;
+        const costPrice = Number(item.cost_price) || 0;
+        const totalCost = Number(item.total_cost) || qty * costPrice;
+
+        processedItems.push({
+          product_id: prod.id,
+          product_name_snapshot: prodName,
+          unit_name_snapshot: item.unit?.trim() || prod.base_unit_name || 'عبوة',
+          conversion_factor_snapshot: 1,
+          qty,
+          qty_in_base_unit: qty,
+          cost_price: costPrice,
+          total_cost: totalCost,
+        });
+      }
+
+      // 5. Calculations
+      const subtotal = processedItems.reduce((s, it) => s + it.total_cost, 0);
+      const discount = Number(data.discount_amount) || 0;
+      const totalAmount = Math.max(0, subtotal - discount);
+
+      let finalPaymentType: 'cash' | 'credit' | 'partial' = 'credit';
+      let paidAmount = 0;
+
+      if (data.payment_type === 'cash') {
+        finalPaymentType = 'cash';
+        paidAmount = totalAmount;
+      } else if (data.payment_type === 'credit') {
+        finalPaymentType = 'credit';
+        paidAmount = 0;
+      } else if (data.payment_type === 'partial') {
+        finalPaymentType = 'partial';
+        paidAmount = Math.min(totalAmount, Math.max(0, Number(data.paid_amount) || 0));
+      } else if (data.payment_type === 'bank') {
+        finalPaymentType = 'cash';
+        paidAmount = totalAmount;
+      }
+
+      return await this.processPurchaseAtomic({
+        supplier_id: supplier.id,
+        supplier_invoice_number: data.invoice_number?.trim() || undefined,
+        warehouse_id: warehouseId,
+        cash_account_id: cashAccountId,
+        invoice_date: data.invoice_date,
+        payment_type: finalPaymentType,
+        subtotal,
+        discount_amount: discount,
+        tax_amount: 0,
+        total_amount: totalAmount,
+        paid_amount: paidAmount,
+        notes: data.notes?.trim() || undefined,
+        items: processedItems,
+      });
+    } catch (err: any) {
+      console.error('addSupplierInvoice error:', err);
+      return { success: false, error: err?.message || 'حدث خطأ أثناء حفظ الفاتورة' };
+    }
+  }
+
+  /**
+   * حذف فاتورة مشتريات وتحديث أرصدة المورد والخزينة عكسياً
+   */
+  public async deletePurchaseInvoice(invoiceId: string): Promise<{ success: boolean; error?: string }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, error: 'الاتصال غير متوفر' };
+
+    try {
+      const inv = this.purchaseInvoices.find((p) => p.id === invoiceId);
+      if (!inv) return { success: false, error: 'الفاتورة غير موجودة' };
+
+      // 1. Revert supplier balance if remaining > 0
+      if (inv.supplier_id && (inv.remaining_amount || 0) > 0) {
+        const supp = this.suppliers.find((s) => s.id === inv.supplier_id);
+        if (supp) {
+          const newBal = Math.max(0, (Number(supp.current_balance) || 0) - Number(inv.remaining_amount));
+          await supabase
+            .from('suppliers')
+            .update({ current_balance: newBal, updated_at: new Date().toISOString() })
+            .eq('id', inv.supplier_id);
+        }
+        await supabase.from('supplier_ledger_entries').delete().eq('reference_id', invoiceId);
+      }
+
+      // 2. Revert cash account if paid_amount > 0
+      if ((inv.paid_amount || 0) > 0 && inv.cash_account_id) {
+        const cashAcc = this.cashAccounts.find((c) => c.id === inv.cash_account_id);
+        if (cashAcc) {
+          const newCash = (Number(cashAcc.current_balance) || 0) + Number(inv.paid_amount);
+          await supabase.from('cash_accounts').update({ current_balance: newCash }).eq('id', inv.cash_account_id);
+        }
+        await supabase.from('cash_transactions').delete().eq('reference_id', invoiceId);
+      }
+
+      // 3. Delete invoice items
+      await supabase.from('purchase_invoice_items').delete().eq('purchase_id', invoiceId);
+
+      // 4. Delete invoice record
+      const { error: delErr } = await supabase.from('purchase_invoices').delete().eq('id', invoiceId);
+      if (delErr) return { success: false, error: delErr.message };
+
+      await this.hydrate();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'فشل حذف الفاتورة' };
     }
   }
 

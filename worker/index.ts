@@ -89,15 +89,27 @@ async function handleSimsim(request: Request, env: Env): Promise<Response> {
       headers: { ...JSON_HEADERS, 'X-Simsim-Mode': mode },
     });
 
-  const apiKey = env.GEMINI_API_KEY;
+  const apiKey =
+    (env.GEMINI_API_KEY as string) ||
+    (env.GOOGLE_API_KEY as string) ||
+    (env.GEMINI_KEY as string) ||
+    (env.API_KEY as string) ||
+    (env.VITE_GEMINI_API_KEY as string);
+
   if (!apiKey) {
-    console.warn('GEMINI_API_KEY is not set: Simsim is using the keyword fallback');
+    console.warn('GEMINI_API_KEY is not set in Cloudflare Worker environment: Simsim is using the smart fallback');
     return fallbackResponse('fallback-no-key');
   }
 
   const promptText = buildSimsimPrompt(message, history, liveContext);
-  const primary = (env.GEMINI_MODEL as string) || DEFAULT_SIMSIM_MODEL;
-  const models = primary === FALLBACK_SIMSIM_MODEL ? [primary] : [primary, FALLBACK_SIMSIM_MODEL];
+  const models = [
+    (env.GEMINI_MODEL as string),
+    'gemini-2.5-flash',
+    'gemini-3.8-flash',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+    DEFAULT_SIMSIM_MODEL,
+  ].filter(Boolean) as string[];
 
   for (const model of models) {
     try {
@@ -107,8 +119,6 @@ async function handleSimsim(request: Request, env: Env): Promise<Response> {
       });
     } catch (err: any) {
       console.warn(`Simsim Gemini error (${model}):`, err?.message);
-      // نجرب الموديل البديل بس لو الموديل نفسه مش متاح (404/400)؛ غير كده نروح للرد الاحتياطي
-      if (err?.status !== 404 && err?.status !== 400) break;
     }
   }
   return fallbackResponse('fallback-error');
@@ -136,8 +146,18 @@ export default {
       return handleSimsim(request, env);
     }
     if (url.pathname === '/api/ai/status') {
+      const apiKey =
+        (env.GEMINI_API_KEY as string) ||
+        (env.GOOGLE_API_KEY as string) ||
+        (env.GEMINI_KEY as string) ||
+        (env.API_KEY as string) ||
+        (env.VITE_GEMINI_API_KEY as string);
       return new Response(
-        JSON.stringify({ configured: Boolean(env.GEMINI_API_KEY), model: (env.GEMINI_MODEL as string) || DEFAULT_SIMSIM_MODEL }),
+        JSON.stringify({
+          configured: Boolean(apiKey),
+          source: apiKey ? 'detected' : 'none',
+          model: (env.GEMINI_MODEL as string) || DEFAULT_SIMSIM_MODEL,
+        }),
         { headers: JSON_HEADERS }
       );
     }

@@ -57,10 +57,11 @@ app.post('/api/ai/simsim', async (req, res) => {
     const candidateModels = Array.from(
       new Set([
         process.env.GEMINI_MODEL,
-        DEFAULT_SIMSIM_MODEL,
-        'gemini-3.1-flash-lite',
+        'gemini-2.5-flash',
         'gemini-3.8-flash',
-        'gemini-3.1-pro-preview',
+        'gemini-2.0-flash',
+        DEFAULT_SIMSIM_MODEL,
+        'gemini-1.5-flash',
       ].filter(Boolean) as string[])
     );
 

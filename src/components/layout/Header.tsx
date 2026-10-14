@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Settings, User, LogOut, Palette, SlidersHorizontal, ChevronDown, Sparkles, Bot } from 'lucide-react';
+import { Settings, User, LogOut, Palette, SlidersHorizontal, ChevronDown, Sparkles, Bot, UserPlus, Shield } from 'lucide-react';
 import { APP_CONFIG } from '../../lib/branding';
 import { UserAccount } from '../../lib/auth';
 
@@ -48,9 +48,18 @@ export const Header: React.FC<HeaderProps> = ({
       }}
     >
       <div className="max-w-[1920px] mx-auto flex items-center justify-between min-h-[64px] sm:min-h-[84px] md:min-h-[92px] py-1.5 sm:py-2 px-3 sm:px-6 lg:px-8 relative">
-        {/* RIGHT SIDE (in RTL = First element): Placeholder for visual balance */}
-        <div className="w-8 sm:w-24 md:w-28 flex items-center">
-          {/* Empty spacer to keep logo centered */}
+        {/* RIGHT SIDE (in RTL = First element): Supervisor Badge or Spacer */}
+        <div className="flex items-center">
+          {currentUser && currentUser.role !== 'admin' ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-[11px] sm:text-xs font-black shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shrink-0"></span>
+              <span>مشرف (قراءة ومتابعة فقط)</span>
+            </span>
+          ) : (
+            <div className="w-8 sm:w-24 md:w-28 flex items-center">
+              {/* Empty spacer to keep logo centered */}
+            </div>
+          )}
         </div>
 
         {/* CENTER: BRAND LOGO ONLY */}
@@ -147,6 +156,24 @@ export const Header: React.FC<HeaderProps> = ({
                     <span className="block text-[11px] text-slate-500 font-medium">بيانات الصيدلية، النسخ الاحتياطي، والفواتير</span>
                   </div>
                 </button>
+
+                {/* 2.5. User Management (Only for General Manager) */}
+                {currentUser?.role === 'admin' && onNavigateToTab && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      onNavigateToTab('users');
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-800 hover:text-emerald-900 hover:bg-emerald-50 text-xs sm:text-sm font-bold transition-colors cursor-pointer text-right"
+                  >
+                    <UserPlus className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <div className="flex-1">
+                      <span className="block font-black">إدارة المستخدمين والمشرفين</span>
+                      <span className="block text-[11px] text-slate-500 font-medium">إضافة مستخدم بصلاحية مشرف</span>
+                    </div>
+                  </button>
+                )}
 
                 {/* 3. Theme & Font Customizer */}
                 {onOpenThemeModal && (

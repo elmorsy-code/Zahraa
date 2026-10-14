@@ -150,14 +150,20 @@ export const TreasuryScreen: React.FC<TreasuryScreenProps> = ({
 
         {/* Buttons */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setExpenseModalOpen(true)}
-            type="button"
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-rose-700 hover:bg-rose-800 rounded-lg shadow-xs transition-colors"
-          >
-            <Receipt className="w-4 h-4" />
-            <span>+ تسجيل مصروف تشغيلي</span>
-          </button>
+          {isAdmin ? (
+            <button
+              onClick={() => setExpenseModalOpen(true)}
+              type="button"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-rose-700 hover:bg-rose-800 rounded-lg shadow-xs transition-colors cursor-pointer"
+            >
+              <Receipt className="w-4 h-4" />
+              <span>+ تسجيل مصروف تشغيلي</span>
+            </button>
+          ) : (
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+              مشرف (قراءة ومتابعة فقط)
+            </span>
+          )}
         </div>
       </div>
 

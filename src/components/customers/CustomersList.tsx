@@ -144,17 +144,23 @@ export const CustomersList: React.FC<CustomersListProps> = ({ initialOpenLedger 
           </button>
         </div>
 
-        <button
-          onClick={() => {
-            setEditingCustomer(null);
-            setCustomerModalOpen(true);
-          }}
-          type="button"
-          className="flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span>إضافة عميل / مزارع جديد</span>
-        </button>
+        {isAdmin ? (
+          <button
+            onClick={() => {
+              setEditingCustomer(null);
+              setCustomerModalOpen(true);
+            }}
+            type="button"
+            className="flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-colors cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>إضافة عميل / مزارع جديد</span>
+          </button>
+        ) : (
+          <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-2 rounded-xl border border-slate-200">
+            حساب مشرف (قراءة ومتابعة فقط)
+          </span>
+        )}
       </div>
 
       {/* Data Table with Spacious Cells and Clear Column Widths */}
@@ -233,45 +239,51 @@ export const CustomersList: React.FC<CustomersListProps> = ({ initialOpenLedger 
 
                       <td className="py-3.5 px-4 sm:px-5 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          {/* Receive payment */}
-                          <button
-                            onClick={() => setSelectedPaymentCustomer(customer)}
-                            className="px-2.5 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors"
-                            title="تحصيل نقدية وإصدار سند قبض"
-                          >
-                            سند قبض
-                          </button>
+                          {/* Receive payment - Admin only */}
+                          {isAdmin && (
+                            <button
+                              onClick={() => setSelectedPaymentCustomer(customer)}
+                              className="px-2.5 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors cursor-pointer"
+                              title="تحصيل نقدية وإصدار سند قبض"
+                            >
+                              سند قبض
+                            </button>
+                          )}
 
-                          {/* View Ledger */}
+                          {/* View Ledger - Available for everyone */}
                           <button
                             onClick={() => setSelectedLedgerCustomer(customer)}
-                            className="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                            className="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
                             title="عرض كشف الحساب التفصيلي"
                           >
                             كشف حساب
                           </button>
 
-                          {/* Edit */}
-                          <button
-                            onClick={() => {
-                              setEditingCustomer(customer);
-                              setCustomerModalOpen(true);
-                            }}
-                            className="p-1.5 text-slate-500 hover:text-blue-700 hover:bg-slate-100 rounded-lg transition-colors"
-                            title="تعديل بيانات العميل"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-{isAdmin && (
-  <button
-    type="button"
-    onClick={() => setDeleteTarget(customer)}
-    className="p-1.5 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
-    title="حذف العميل"
-  >
-    <Trash2 className="w-4 h-4" />
-  </button>
-)}
+                          {/* Edit - Admin only */}
+                          {isAdmin && (
+                            <button
+                              onClick={() => {
+                                setEditingCustomer(customer);
+                                setCustomerModalOpen(true);
+                              }}
+                              className="p-1.5 text-slate-500 hover:text-blue-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                              title="تعديل بيانات العميل"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                          )}
+
+                          {/* Delete - Admin only */}
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => setDeleteTarget(customer)}
+                              className="p-1.5 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                              title="حذف العميل"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './Header';
-import { NavigationCard } from './NavigationCard';
+import { BottomNavigationBar } from './BottomNavigationBar';
 import { HeroCard } from './HeroCard';
 import { UserAccount } from '../../lib/auth';
 import { SettingsAndProfileModal } from './SettingsAndProfileModal';
@@ -66,10 +66,10 @@ export const Layout: React.FC<LayoutProps> = ({
         onOpenSimsim={() => setSimsimOpen(true)}
       />
 
-      {/* 2. Main Responsive Content Area */}
-      <main className="flex-1 p-2.5 sm:p-5 md:p-6 lg:p-8 focus:outline-none w-full">
+      {/* 2. Main Responsive Content Area with generous bottom spacing so navbar never obscures content */}
+      <main className="flex-1 p-2.5 sm:p-5 md:p-6 lg:p-8 focus:outline-none w-full pb-40 sm:pb-48 md:pb-56">
         <div className="max-w-[1920px] mx-auto w-full">
-          {/* Master Hero Card on dashboard view (above department cards) */}
+          {/* Master Hero Card on dashboard view */}
           {activeTab === 'dashboard' && (
             <HeroCard
               onNavigate={onSelectTab}
@@ -77,20 +77,23 @@ export const Layout: React.FC<LayoutProps> = ({
             />
           )}
 
-          {/* Distinctive Department Cards Navigation (Placed right under the hero) */}
-          <NavigationCard
-            activeTab={activeTab}
-            onSelectTab={onSelectTab}
-            currentUser={currentUser}
-            onLogout={onLogout}
-          />
-
           {/* Page Body Content */}
           <div className="w-full">
             {children}
           </div>
+
+          {/* Generous bottom spacing buffer ensuring complete visibility above the bottom navigation bar */}
+          <div className="h-20 sm:h-28 w-full pointer-events-none" aria-hidden="true" />
         </div>
       </main>
+
+      {/* 3. Bottom Navigation Bar for System Departments */}
+      <BottomNavigationBar
+        activeTab={activeTab}
+        onSelectTab={onSelectTab}
+        currentUser={currentUser}
+        onLogout={onLogout}
+      />
 
       {/* 3. Global Settings & Profile Modal (Triggered by the Header Gear Icon) */}
       <SettingsAndProfileModal
