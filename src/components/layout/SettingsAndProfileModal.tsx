@@ -18,12 +18,14 @@ import {
   Copy,
   ExternalLink,
   Sparkles,
+  LayoutTemplate,
 } from 'lucide-react';
 import { authService, UserAccount, ROLE_NAMES_AR } from '../../lib/auth';
 import { storage } from '../../lib/storage';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { AppSettings } from '../../types/database';
 import { APP_CONFIG } from '../../lib/branding';
+import { HomeContentEditor } from '../home/HomeContentEditor';
 
 interface SettingsAndProfileModalProps {
   isOpen: boolean;
@@ -55,7 +57,7 @@ export const SettingsAndProfileModal: React.FC<SettingsAndProfileModalProps> = (
 }) => {
   if (!isOpen) return null;
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'store_settings' | 'system_info'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'store_settings' | 'system_info' | 'home_content'>('profile');
 
   // Profile Form State
   const [fullName, setFullName] = useState(currentUser.fullName);
@@ -265,6 +267,21 @@ export const SettingsAndProfileModal: React.FC<SettingsAndProfileModalProps> = (
             </button>
           )}
 
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('home_content')}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-black border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'home_content'
+                  ? 'border-emerald-600 text-emerald-800 bg-white rounded-t-xl shadow-xs'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <LayoutTemplate className="w-4 h-4" />
+              <span>الصفحة الرئيسية</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setActiveTab('system_info')}
@@ -295,6 +312,9 @@ export const SettingsAndProfileModal: React.FC<SettingsAndProfileModalProps> = (
 
         {/* Modal Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
+          {/* TAB: HOME PAGE CONTENT (admin only) */}
+          {isAdmin && activeTab === 'home_content' && <HomeContentEditor />}
+
           {/* TAB 1: USER PROFILE & ACCOUNT SETTINGS */}
           {activeTab === 'profile' && (
             <div className="space-y-8">

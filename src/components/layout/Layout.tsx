@@ -77,8 +77,8 @@ export const Layout: React.FC<LayoutProps> = ({
                 onNavigate={onSelectTab}
                 currentUser={currentUser}
               />
-              {/* الرئيسية: سلايدر الصور ثم الفريق ثم رؤية الموقع (التعديل للمدير العام فقط) */}
-              <HomeSections isAdmin={currentUser.role === 'admin'} />
+              {/* الرئيسية: سلايدر الصور ثم الفريق ثم رؤية الموقع (التعديل من البروفايل للمدير العام فقط) */}
+              <HomeSections />
             </>
           )}
 
