@@ -148,3 +148,9 @@ export async function deleteHomeImages(urls: string[]): Promise<void> {
 export function collectImageUrls(c: HomeContent): string[] {
   return [...c.slides.map((s) => s.url), ...c.team.members.map((m) => m.photo)].filter(Boolean);
 }
+
+/** إشعار الصفحة الرئيسية بأن المحتوى اتعدّل (بعد الحفظ من صفحة البروفايل). */
+export const HOME_CONTENT_EVENT = 'home-content-updated';
+export const notifyHomeContentUpdated = () => {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(HOME_CONTENT_EVENT));
+};
