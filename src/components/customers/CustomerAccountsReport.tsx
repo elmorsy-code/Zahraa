@@ -292,14 +292,6 @@ export const CustomerAccountsReport: React.FC = () => {
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-1">
-          <span className="text-xs font-medium text-slate-500 block">الرصيد الافتتاحي</span>
-          <span className="text-xl font-bold font-mono text-slate-700 block tabular-nums">
-            {formatCurrency(totals.opening)}
-          </span>
-          <span className="text-xs text-slate-400 block pt-0.5">أول المدة والدفاتر</span>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-1">
           <span className="text-xs font-medium text-slate-500 block">العملاء المدينين</span>
           <span className="text-xl font-bold font-mono text-rose-700 block tabular-nums">
             {totals.debtorsCount}{' '}
@@ -645,7 +637,6 @@ export const CustomerAccountsReport: React.FC = () => {
                   <td colSpan={2} className="py-4 px-4 sm:px-5 text-slate-500 font-normal">
                     المدينين: {totals.debtorsCount} عميل
                   </td>
-                  <td className="py-4 px-4 sm:px-5 text-left font-mono tabular-nums">{formatCurrency(totals.opening)}</td>
                   <td className="py-4 px-4 sm:px-5 text-left font-mono tabular-nums">{formatCurrency(totals.sales)}</td>
                   <td className="py-4 px-4 sm:px-5 text-left font-mono tabular-nums text-emerald-800">
                     {formatCurrency(totals.payments)}

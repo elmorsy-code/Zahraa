@@ -16,6 +16,7 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import { storage } from '../../lib/storage';
+import { resolveSmartFallback } from '../../../shared/simsim';
 
 export interface SimsimAction {
   type: 'navigate' | 'open_modal' | 'action' | 'none';
@@ -219,14 +220,36 @@ export const SimsimModal: React.FC<SimsimModalProps> = ({
       if (action && action.type !== 'none') {
         executeSimsimAction(action);
       }
-    } catch (err: any) {
-      const errorMsg: ChatMessage = {
-        id: `err-${Date.now()}`,
-        sender: 'simsim',
-        text: 'عفواً يا فندم، حصل ضغط لحظي في الاتصال. لكن أنا شغال وتحت أمرك، جرب تسألني تاني!',
-        timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
-      };
-      setMessages((prev) => [...prev, errorMsg]);
+    } catch {
+      // Seamless intelligent fallback for Cloudflare Pages, static hosting, or network drops
+      try {
+        const fallback = resolveSmartFallback(text, liveContext);
+        const replyText = fallback.reply || 'أهلاً بك يا فندم! أنا سمسم المساعد الذكي تحت أمرك.';
+        const action = fallback.action as SimsimAction;
+
+        const simsimMsg: ChatMessage = {
+          id: `sim-${Date.now()}`,
+          sender: 'simsim',
+          text: replyText,
+          timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+          actionExecuted: action && action.type !== 'none' ? action : undefined,
+        };
+
+        setMessages((prev) => [...prev, simsimMsg]);
+        speakText(replyText);
+
+        if (action && action.type !== 'none') {
+          executeSimsimAction(action);
+        }
+      } catch {
+        const errorMsg: ChatMessage = {
+          id: `err-${Date.now()}`,
+          sender: 'simsim',
+          text: 'عفواً يا فندم، حصل ضغط لحظي في الاتصال. لكن أنا شغال وتحت أمرك، جرب تسألني تاني!',
+          timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prev) => [...prev, errorMsg]);
+      }
     } finally {
       setIsLoading(false);
     }

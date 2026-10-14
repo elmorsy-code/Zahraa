@@ -244,7 +244,7 @@ export const CustomerLedgerModal: React.FC<CustomerLedgerModalProps> = ({
         {/* Printable Statement Canvas */}
         <div className="invoice-print-area p-6 sm:p-8 text-sm text-slate-900 font-sans max-h-[72vh] overflow-y-auto space-y-6">
           {/* Customer Meta Summary Card */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-200/90 text-xs sm:text-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-200/90 text-xs sm:text-sm">
             <div className="space-y-1">
               <span className="text-slate-500 block">رقم الهاتف:</span>
               <span className="font-mono font-semibold text-slate-800">{customer.phone || 'غير مسجل'}</span>
@@ -252,12 +252,6 @@ export const CustomerLedgerModal: React.FC<CustomerLedgerModalProps> = ({
             <div className="space-y-1">
               <span className="text-slate-500 block">القرية / العنوان:</span>
               <span className="font-semibold text-slate-800">{customer.village_or_address || 'غير محدد'}</span>
-            </div>
-            <div className="space-y-1">
-              <span className="text-slate-500 block">رصيد أول المدة:</span>
-              <span className="font-mono font-bold text-slate-800 text-sm tabular-nums">
-                {formatCurrency(customer.opening_balance)}
-              </span>
             </div>
             <div className="space-y-1">
               <span className="text-slate-500 block">إجمالي المسحوبات (مدين):</span>
