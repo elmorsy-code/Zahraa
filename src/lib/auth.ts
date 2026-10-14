@@ -571,59 +571,28 @@ export const authService = {
       return { success: false, error: 'الاتصال بقاعدة البيانات غير متوفر' };
     }
 
-    const assignedRole: RoleType = 'supervisor';
+    // القيمة المخزنة في قاعدة البيانات لدور المشرف هي 'viewer' (الموجودة في جدول roles)
+    // بينما الواجهة تعرضه باسم "مشرف". لا يوجد دور اسمه 'supervisor' في الجدول.
+    const dbRole = 'viewer';
 
     try {
-      const trimmedEmail = data.email.trim().toLowerCase();
-
-      // 1. Try RPC admin_create_system_user
-      try {
-        const { data: rpcRes, error: rpcErr } = await supabase.rpc('admin_create_system_user', {
-          p_email: trimmedEmail,
-          p_password: data.password,
-          p_full_name: data.fullName.trim(),
-          p_phone: data.phone?.trim() || '',
-          p_role_id: assignedRole,
-          p_description: data.description?.trim() || 'مشرف (قراءة ومتابعة فقط)',
-        });
-
-        if (!rpcErr && (rpcRes?.success !== false)) {
-          return { success: true };
-        }
-      } catch (e) {
-        console.warn('RPC admin_create_system_user note:', e);
-      }
-
-      // 2. Direct Supabase signUp fallback
-      const { data: signData, error: signErr } = await supabase.auth.signUp({
-        email: trimmedEmail,
-        password: data.password,
-        options: {
-          data: {
-            full_name: data.fullName.trim(),
-            phone: data.phone?.trim() || '',
-            role_id: assignedRole,
-            description: data.description?.trim() || 'مشرف (قراءة ومتابعة فقط)',
-          },
-        },
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('admin_create_system_user', {
+        p_email: data.email.trim().toLowerCase(),
+        p_password: data.password,
+        p_full_name: data.fullName.trim(),
+        p_phone: data.phone?.trim() || '',
+        p_role_id: dbRole,
+        p_description: data.description?.trim() || 'مشرف (قراءة ومتابعة فقط)',
       });
 
-      if (signErr) {
-        return { success: false, error: signErr.message };
+      // ملاحظة: لا يوجد fallback إلى auth.signUp عن قصد، لأن signUp يبدّل جلسة
+      // المدير الحالية بجلسة المستخدم الجديد وينشئ حساباً معطلاً.
+      if (rpcErr) {
+        return { success: false, error: rpcErr.message || 'فشل إنشاء المستخدم' };
       }
-
-      if (signData?.user?.id) {
-        await supabase.from('profiles').upsert({
-          id: signData.user.id,
-          user_id: signData.user.id,
-          full_name: data.fullName.trim(),
-          phone: data.phone?.trim() || null,
-          role_id: assignedRole,
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        });
+      if (rpcRes && rpcRes.success === false) {
+        return { success: false, error: rpcRes.message || 'فشل إنشاء المستخدم' };
       }
-
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err?.message || 'حدث خطأ أثناء إنشاء المستخدم المشرف' };
@@ -670,7 +639,7 @@ export const authService = {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ role_id: newRole, updated_at: new Date().toISOString() })
+        .update({ role_id: newRole === 'admin' ? 'admin' : 'viewer', updated_at: new Date().toISOString() })
         .eq('id', profileId);
 
       if (error) return { success: false, error: error.message };
