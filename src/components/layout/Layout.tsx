@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './Header';
 import { BottomNavigationBar } from './BottomNavigationBar';
 import { HeroCard } from './HeroCard';
+import { HomeSections } from '../home/HomeSections';
 import { UserAccount } from '../../lib/auth';
 import { SettingsAndProfileModal } from './SettingsAndProfileModal';
 import { ThemeCustomizerModal } from './ThemeCustomizerModal';
@@ -71,10 +72,14 @@ export const Layout: React.FC<LayoutProps> = ({
         <div className="max-w-[1920px] mx-auto w-full">
           {/* Master Hero Card on dashboard view */}
           {activeTab === 'dashboard' && (
-            <HeroCard
-              onNavigate={onSelectTab}
-              currentUser={currentUser}
-            />
+            <>
+              <HeroCard
+                onNavigate={onSelectTab}
+                currentUser={currentUser}
+              />
+              {/* الرئيسية: سلايدر الصور ثم الفريق ثم رؤية الموقع (التعديل للمدير العام فقط) */}
+              <HomeSections isAdmin={currentUser.role === 'admin'} />
+            </>
           )}
 
           {/* Page Body Content */}
