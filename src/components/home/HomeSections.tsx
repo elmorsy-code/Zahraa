@@ -33,7 +33,6 @@ import {
   DEFAULT_HOME_CONTENT,
   HOME_CONTENT_EVENT,
 } from '../../lib/homeContent';
-import { HeroSection } from './HeroSection';
 
 export const cardClass =
   'rounded-3xl border border-slate-200/80 bg-white/95 text-slate-900 shadow-sm overflow-hidden backdrop-blur-sm transition-all duration-300';
@@ -648,230 +647,64 @@ const TeamSection: React.FC<TeamSectionProps> = ({ content }) => {
 };
 
 /* ==========================================================================
-   3. Comprehensive "About Al-Zahraa" Section (قسم عن صرح الزهراء للأدوية والأسمدة والبذور)
+   3. Website Key Points (نقاط ورؤية الموقع)
    ========================================================================== */
 
-interface AboutSectionProps {
-  about?: AboutContent;
+interface VisionSectionProps {
   vision?: HomeContent['vision'];
 }
 
-const AboutSection: React.FC<AboutSectionProps> = ({ about, vision }) => {
-  const [activeTab, setActiveTab] = useState<'story' | 'vision' | 'pillars' | 'guarantee'>('story');
-
-  const d = DEFAULT_HOME_CONTENT.about!;
-  const content: AboutContent = {
-    title: about?.title || d.title,
-    subtitle: about?.subtitle || d.subtitle,
-    story: about?.story || d.story,
-    stats: Array.isArray(about?.stats) && about.stats.length > 0 ? about.stats : d.stats,
-    pillars: Array.isArray(about?.pillars) && about.pillars.length > 0 ? about.pillars : d.pillars,
-    mission: about?.mission || d.mission,
-    vision: about?.vision || d.vision,
-    guaranteeText: about?.guaranteeText || d.guaranteeText,
-  };
+export const VisionSection: React.FC<VisionSectionProps> = ({ vision }) => {
+  const d = DEFAULT_HOME_CONTENT.vision;
+  const currentVision = vision || d;
+  const title = currentVision?.title || 'نقاط الموقع';
+  const points =
+    Array.isArray(currentVision?.points) && currentVision.points.length > 0
+      ? currentVision.points
+      : d.points;
 
   return (
-    <section className="space-y-6 sm:space-y-8" aria-label="عن صرح الزهراء للأدوية والأسمدة والبذور الزراعية">
-      {/* Hero Presentation Card */}
-      <div className="relative rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950 text-white p-6 sm:p-10 md:p-12 shadow-xl border border-emerald-900/40 overflow-hidden">
-        {/* Glow & botanical backdrop details */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-4xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs sm:text-sm font-black">
-            <Sprout className="w-4 h-4" />
-            <span>عن صرح الزهراء للأدوية والمستلزمات الزراعية</span>
+    <section className="space-y-4 sm:space-y-5" aria-label={title}>
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 pb-2 border-b border-slate-200/80">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-emerald-100 text-emerald-800 shadow-2xs">
+            <Compass className="w-5 h-5 text-emerald-700" />
           </div>
-
-          <h2 className="text-2xl sm:text-4xl md:text-5xl font-black leading-tight tracking-tight">
-            {content.title}
-          </h2>
-
-          <p className="text-base sm:text-lg md:text-xl font-bold text-emerald-100/90 leading-relaxed max-w-3xl">
-            {content.subtitle}
-          </p>
-
-          <p className="text-sm sm:text-base font-medium text-slate-300 leading-loose max-w-3xl whitespace-pre-line pt-2">
-            {content.story}
-          </p>
-        </div>
-
-        {/* Dynamic Key Stats Counters */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-8 pt-8 border-t border-white/10 relative z-10">
-          {content.stats.map((st, i) => (
-            <div
-              key={i}
-              className="p-4 sm:p-5 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 hover:border-emerald-400/40 transition-colors flex flex-col justify-between"
-            >
-              <div className="text-2xl sm:text-3xl md:text-4xl font-black text-emerald-400 font-mono tracking-tight">
-                {st.value}
-              </div>
-              <div className="text-xs sm:text-sm font-black text-white mt-1">{st.label}</div>
-              {st.detail && <div className="text-[11px] font-medium text-slate-400 mt-0.5">{st.detail}</div>}
-            </div>
-          ))}
+          <div>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900">
+              {title}
+            </h2>
+            <p className="text-xs sm:text-sm font-semibold text-slate-500">
+              أهم الركائز والخدمات التي يقدمها صرح الزهراء لعملائنا
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Interactive Tabs: Story / Pillars / Vision & Mission / Guarantees */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm">
-        {/* Tab Switcher */}
-        <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-4 mb-6">
-          <button
-            type="button"
-            onClick={() => setActiveTab('story')}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
-              activeTab === 'story'
-                ? 'bg-emerald-700 text-white shadow-md'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
+      {/* Points Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {points.map((pt, idx) => (
+          <div
+            key={idx}
+            className="group relative rounded-2xl p-5 border border-slate-200/90 bg-white hover:border-emerald-400 hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden"
           >
-            <Trees className="w-4 h-4" />
-            ركائزنا وقيمنا الأساسية
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('vision')}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
-              activeTab === 'vision'
-                ? 'bg-emerald-700 text-white shadow-md'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            <Compass className="w-4 h-4" />
-            الرؤية والرسالة
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('guarantee')}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
-              activeTab === 'guarantee'
-                ? 'bg-emerald-700 text-white shadow-md'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            الضمان والمطابقة
-          </button>
-        </div>
+            {/* Top indicator line */}
+            <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 opacity-80 group-hover:opacity-100 transition-opacity" />
 
-        {/* Tab 1: Pillars (ركائزنا) */}
-        {activeTab === 'story' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in duration-200">
-            {content.pillars.map((pl, idx) => {
-              const icons = [
-                <CheckCircle2 key="1" className="w-6 h-6 text-emerald-600" />,
-                <TrendingUp key="2" className="w-6 h-6 text-teal-600" />,
-                <Truck key="3" className="w-6 h-6 text-sky-600" />,
-                <Award key="4" className="w-6 h-6 text-amber-600" />,
-              ];
-              return (
-                <div
-                  key={idx}
-                  className="rounded-2xl p-5 border border-slate-200/90 bg-slate-50/50 hover:bg-white hover:border-emerald-300 hover:shadow-lg transition-all flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-2.5 rounded-xl bg-white shadow-sm border border-slate-100">
-                        {icons[idx % icons.length]}
-                      </div>
-                      {pl.badge && (
-                        <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
-                          {pl.badge}
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="text-base font-black text-slate-900 mb-1">{pl.title}</h3>
-                    <p className="text-xs sm:text-sm font-medium text-slate-600 leading-relaxed">
-                      {pl.description}
-                    </p>
-                  </div>
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 font-black text-xs flex items-center justify-center border border-emerald-200/60 shadow-2xs">
+                  {idx + 1}
                 </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Tab 2: Vision & Mission (الرؤية والرسالة) */}
-        {activeTab === 'vision' && (
-          <div className="grid md:grid-cols-2 gap-6 animate-in fade-in duration-200">
-            {/* Vision */}
-            <div className="rounded-2xl p-6 bg-gradient-to-br from-emerald-50 to-teal-50/50 border border-emerald-200/80">
-              <div className="inline-flex items-center gap-2 text-emerald-800 font-black text-sm mb-2">
-                <Compass className="w-4 h-4" />
-                <span>رؤيتنا المستقبلية</span>
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition-transform" />
               </div>
-              <h3 className="text-lg font-black text-slate-900 mb-2">الريادة المستدامة</h3>
-              <p className="text-sm font-semibold text-slate-700 leading-relaxed">
-                {content.vision}
+              <p className="text-sm font-bold text-slate-800 leading-relaxed">
+                {pt}
               </p>
             </div>
-
-            {/* Mission */}
-            <div className="rounded-2xl p-6 bg-gradient-to-br from-slate-50 to-slate-100/70 border border-slate-200">
-              <div className="inline-flex items-center gap-2 text-slate-800 font-black text-sm mb-2">
-                <Layers className="w-4 h-4" />
-                <span>رسالتنا الزراعية</span>
-              </div>
-              <h3 className="text-lg font-black text-slate-900 mb-2">التمكين والإنتاجية العالية</h3>
-              <p className="text-sm font-semibold text-slate-700 leading-relaxed">
-                {content.mission}
-              </p>
-            </div>
-
-            {/* Bullet points from vision if available */}
-            {vision && vision.points && vision.points.length > 0 && (
-              <div className="md:col-span-2 mt-2">
-                <h4 className="text-sm font-black text-slate-800 mb-3">أبرز الأهداف والالتزامات:</h4>
-                <div className="grid sm:grid-cols-2 gap-2.5">
-                  {vision.points.map((pt, i) => (
-                    <div
-                      key={i}
-                      className="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-bold text-slate-800"
-                    >
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>{pt}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
-        )}
-
-        {/* Tab 3: Guarantee & Quality (الضمان والمطابقة) */}
-        {activeTab === 'guarantee' && (
-          <div className="rounded-2xl p-6 bg-emerald-950 text-white border border-emerald-800/60 animate-in fade-in duration-200 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-2xl" />
-            <div className="relative z-10 max-w-2xl space-y-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-black">
-                <ShieldCheck className="w-4 h-4" />
-                <span>وثيقة الضمان الذهبية</span>
-              </div>
-              <h3 className="text-xl font-black">ضمان مطابقة بنسبة 100% مع متابعة مجانية</h3>
-              <p className="text-sm sm:text-base font-medium text-emerald-100/90 leading-relaxed">
-                {content.guaranteeText}
-              </p>
-
-              <div className="grid sm:grid-cols-3 gap-3 pt-3">
-                <div className="p-3 rounded-xl bg-white/10 backdrop-blur border border-white/10 text-center">
-                  <div className="text-lg font-black text-emerald-300">استبدال فوري</div>
-                  <div className="text-[11px] text-slate-300 mt-0.5">في حالة عدم مطابقة الصنف</div>
-                </div>
-                <div className="p-3 rounded-xl bg-white/10 backdrop-blur border border-white/10 text-center">
-                  <div className="text-lg font-black text-emerald-300">شهادة ترخيص واعتماد</div>
-                  <div className="text-[11px] text-slate-300 mt-0.5">لكل مركب وشحنة توريد زراعية</div>
-                </div>
-                <div className="p-3 rounded-xl bg-white/10 backdrop-blur border border-white/10 text-center">
-                  <div className="text-lg font-black text-emerald-300">إشراف وروشتات مجانية</div>
-                  <div className="text-[11px] text-slate-300 mt-0.5">برنامج مكافحة وتسميد مخصص</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        ))}
       </div>
     </section>
   );
@@ -913,7 +746,11 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({ onNavigate, onOpenSi
     return (
       <div className="space-y-6 mb-8" aria-hidden="true">
         <div className="h-[280px] sm:h-[380px] rounded-[2.5rem] bg-slate-200/70 animate-pulse" />
-        <div className="h-[360px] sm:h-[460px] rounded-[2.5rem] bg-slate-200/70 animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((n) => (
+            <div key={n} className="h-28 rounded-2xl bg-slate-200/60 animate-pulse" />
+          ))}
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {[1, 2, 3, 4].map((n) => (
             <div key={n} className="h-64 rounded-3xl bg-slate-200/60 animate-pulse" />
@@ -923,26 +760,25 @@ export const HomeSections: React.FC<HomeSectionsProps> = ({ onNavigate, onOpenSi
     );
   }
 
-  const slides = Array.isArray(content?.slides) && content.slides.length > 0 ? content.slides : DEFAULT_HOME_CONTENT.slides;
-  const team = content?.team && Array.isArray(content.team.members) && content.team.members.length > 0 ? content.team : DEFAULT_HOME_CONTENT.team;
-  const about = content?.about || DEFAULT_HOME_CONTENT.about;
+  const slides =
+    Array.isArray(content?.slides) && content.slides.length > 0
+      ? content.slides
+      : DEFAULT_HOME_CONTENT.slides;
+  const team =
+    content?.team && Array.isArray(content.team.members) && content.team.members.length > 0
+      ? content.team
+      : DEFAULT_HOME_CONTENT.team;
+  const vision = content?.vision || DEFAULT_HOME_CONTENT.vision;
 
   return (
     <div className="space-y-8 sm:space-y-12 mb-8 sm:mb-12" dir="rtl">
-      {/* 1. Grand Agricultural Hero Section */}
-      <HeroSection
-        hero={content.hero}
-        onNavigate={onNavigate}
-        onOpenSimsim={onOpenSimsim}
-      />
-
-      {/* 2. Ultra-Professional Image Slider */}
+      {/* 1. Ultra-Professional Image Slider */}
       <HomeSlider slides={slides} />
 
-      {/* 3. Comprehensive About Al-Zahraa Section */}
-      <AboutSection about={about} vision={content.vision} />
+      {/* 2. Key Website Points (نقاط ورؤية الموقع) */}
+      <VisionSection vision={vision} />
 
-      {/* 4. Executive Team Members Section */}
+      {/* 3. Executive Team Members Section */}
       <TeamSection content={team} />
     </div>
   );
