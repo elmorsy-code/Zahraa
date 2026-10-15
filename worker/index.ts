@@ -89,12 +89,19 @@ async function handleSimsim(request: Request, env: Env): Promise<Response> {
       headers: { ...JSON_HEADERS, 'X-Simsim-Mode': mode },
     });
 
-  const apiKey =
+  const rawApiKey =
+    (request.headers.get('x-gemini-api-key') as string) ||
     (env.GEMINI_API_KEY as string) ||
     (env.GOOGLE_API_KEY as string) ||
+    (env.GOOGLE_GENAI_API_KEY as string) ||
     (env.GEMINI_KEY as string) ||
+    (env.GEMINI_API as string) ||
+    (env.GEMINI as string) ||
     (env.API_KEY as string) ||
+    (env.APIKEY as string) ||
     (env.VITE_GEMINI_API_KEY as string);
+
+  const apiKey = rawApiKey ? rawApiKey.trim().replace(/^["']|["']$/g, '') : '';
 
   if (!apiKey) {
     console.warn('GEMINI_API_KEY is not set in Cloudflare Worker environment: Simsim is using the smart fallback');
@@ -146,12 +153,17 @@ export default {
       return handleSimsim(request, env);
     }
     if (url.pathname === '/api/ai/status') {
-      const apiKey =
+      const rawKey =
         (env.GEMINI_API_KEY as string) ||
         (env.GOOGLE_API_KEY as string) ||
+        (env.GOOGLE_GENAI_API_KEY as string) ||
         (env.GEMINI_KEY as string) ||
+        (env.GEMINI_API as string) ||
+        (env.GEMINI as string) ||
         (env.API_KEY as string) ||
+        (env.APIKEY as string) ||
         (env.VITE_GEMINI_API_KEY as string);
+      const apiKey = rawKey ? rawKey.trim().replace(/^["']|["']$/g, '') : '';
       return new Response(
         JSON.stringify({
           configured: Boolean(apiKey),

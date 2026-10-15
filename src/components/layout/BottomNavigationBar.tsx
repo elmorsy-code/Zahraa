@@ -261,7 +261,10 @@ export const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
       )}
 
       {/* Main Bottom Navigation Bar */}
-      <div className="bg-white/95 backdrop-blur-lg border-t-2 border-slate-200 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
+      <div
+        className="bg-white/95 backdrop-blur-lg border-t-2 border-slate-200 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
         <div className="max-w-5xl mx-auto px-1 sm:px-4">
           <div className="flex items-stretch justify-around sm:justify-center sm:gap-2 h-16 sm:h-18">
             {allowedDepartments.map((dept) => {

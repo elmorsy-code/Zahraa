@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './Header';
 import { BottomNavigationBar } from './BottomNavigationBar';
-import { HeroCard } from './HeroCard';
 import { HomeSections } from '../home/HomeSections';
 import { UserAccount } from '../../lib/auth';
 import { SettingsAndProfileModal } from './SettingsAndProfileModal';
@@ -68,18 +67,11 @@ export const Layout: React.FC<LayoutProps> = ({
       />
 
       {/* 2. Main Responsive Content Area with generous bottom spacing so navbar never obscures content */}
-      <main className="flex-1 p-2.5 sm:p-5 md:p-6 lg:p-8 focus:outline-none w-full pb-40 sm:pb-48 md:pb-56">
+      <main className="flex-1 p-2.5 sm:p-5 md:p-6 lg:p-8 focus:outline-none w-full pb-44 sm:pb-52 md:pb-60">
         <div className="max-w-[1920px] mx-auto w-full">
-          {/* Master Hero Card on dashboard view */}
+          {/* Dashboard view: Home Sections (slider, team, vision) only */}
           {activeTab === 'dashboard' && (
-            <>
-              <HeroCard
-                onNavigate={onSelectTab}
-                currentUser={currentUser}
-              />
-              {/* الرئيسية: سلايدر الصور ثم الفريق ثم رؤية الموقع (التعديل من البروفايل للمدير العام فقط) */}
-              <HomeSections />
-            </>
+            <HomeSections />
           )}
 
           {/* Page Body Content */}
@@ -88,7 +80,7 @@ export const Layout: React.FC<LayoutProps> = ({
           </div>
 
           {/* Generous bottom spacing buffer ensuring complete visibility above the bottom navigation bar */}
-          <div className="h-20 sm:h-28 w-full pointer-events-none" aria-hidden="true" />
+          <div className="h-28 sm:h-36 w-full pointer-events-none" aria-hidden="true" />
         </div>
       </main>
 

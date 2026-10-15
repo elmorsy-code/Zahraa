@@ -23,19 +23,32 @@ const isProd = process.env.NODE_ENV === 'production';
 
 app.use(express.json({ limit: '10mb' }));
 
-// Initialize Google GenAI
-const apiKey = process.env.GEMINI_API_KEY || '';
-let ai: GoogleGenAI | null = null;
-if (apiKey) {
-  ai = new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      },
-    },
-  });
+function getEffectiveApiKey(req?: express.Request): string {
+  const headerKey = req ? (req.headers['x-gemini-api-key'] as string) : '';
+  const rawKey =
+    headerKey ||
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.GOOGLE_GENAI_API_KEY ||
+    process.env.GEMINI_KEY ||
+    process.env.GEMINI_API ||
+    process.env.GEMINI ||
+    process.env.API_KEY ||
+    process.env.APIKEY ||
+    process.env.VITE_GEMINI_API_KEY ||
+    '';
+  return rawKey ? rawKey.trim().replace(/^["']|["']$/g, '') : '';
 }
+
+// Status endpoint for Simsim UI diagnostic check
+app.get('/api/ai/status', (req, res) => {
+  const currentKey = getEffectiveApiKey(req);
+  res.json({
+    configured: Boolean(currentKey),
+    source: currentKey ? 'server_env' : 'none',
+    model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+  });
+});
 
 // API Route for Simsim Assistant
 app.post('/api/ai/simsim', async (req, res) => {
@@ -46,10 +59,20 @@ app.post('/api/ai/simsim', async (req, res) => {
       return res.status(400).json({ error: 'الرجاء إرسال رسالة للمحادثة' });
     }
 
-    if (!ai) {
+    const currentKey = getEffectiveApiKey(req);
+    if (!currentKey) {
       const fallback = resolveSmartFallback(message, liveContext);
       return res.json(fallback);
     }
+
+    const ai = new GoogleGenAI({
+      apiKey: currentKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
 
     const promptText = buildSimsimPrompt(message, history, liveContext);
 

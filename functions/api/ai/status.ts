@@ -20,12 +20,18 @@ export async function onRequestOptions(): Promise<Response> {
 
 export async function onRequestGet(context: { env: Record<string, any> }): Promise<Response> {
   const { env } = context;
-  const apiKey =
+  const rawKey =
     (env.GEMINI_API_KEY as string) ||
     (env.GOOGLE_API_KEY as string) ||
+    (env.GOOGLE_GENAI_API_KEY as string) ||
     (env.GEMINI_KEY as string) ||
+    (env.GEMINI_API as string) ||
+    (env.GEMINI as string) ||
     (env.API_KEY as string) ||
+    (env.APIKEY as string) ||
     (env.VITE_GEMINI_API_KEY as string);
+
+  const apiKey = rawKey ? rawKey.trim().replace(/^["']|["']$/g, '') : '';
 
   return new Response(
     JSON.stringify({

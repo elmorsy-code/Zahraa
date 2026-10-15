@@ -224,11 +224,24 @@ export const SimsimModal: React.FC<SimsimModalProps> = ({
 
     let replyData: { reply: string; action?: SimsimAction } | null = null;
 
+    // Active manual or cached client-side key
+    const rawClientKey =
+      manualApiKey ||
+      (typeof window !== 'undefined' ? localStorage.getItem('alzahraa_gemini_api_key') : '') ||
+      (import.meta as any).env?.VITE_GEMINI_API_KEY ||
+      '';
+    const activeKey = rawClientKey ? rawClientKey.trim().replace(/^["']|["']$/g, '') : '';
+
     // 1. Try server endpoint (/api/ai/simsim - Cloudflare Worker / Pages Function / Express)
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (activeKey) {
+        headers['x-gemini-api-key'] = activeKey;
+      }
+
       const res = await fetch('/api/ai/simsim', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           message: text,
           history: messages.slice(-5).map((m) => ({ role: m.sender, text: m.text })),
@@ -251,12 +264,6 @@ export const SimsimModal: React.FC<SimsimModalProps> = ({
 
     // 2. Client-side direct Gemini call if server wasn't configured or returned fallback
     if (!replyData) {
-      const activeKey =
-        manualApiKey ||
-        (typeof window !== 'undefined' ? localStorage.getItem('alzahraa_gemini_api_key') : '') ||
-        (import.meta as any).env?.VITE_GEMINI_API_KEY ||
-        '';
-
       if (activeKey) {
         try {
           const promptText = buildSimsimPrompt(

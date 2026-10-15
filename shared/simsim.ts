@@ -52,8 +52,20 @@ export function resolveSmartFallback(userMsg: string, ctx: any) {
   let reply = 'أهلاً بك يا فندم! أنا سمسم المساعد والذكاء الاصطناعي للمنظومة، تحت أمرك دائماً في أي عملية أو استفسار.';
   let label = '';
 
-  // Why is AI not working / status questions
+  // Cloudflare & API Key specific diagnostics
   if (
+    lower.includes('cloudflare') ||
+    lower.includes('كلاود فلير') ||
+    lower.includes('كلاودفلير') ||
+    (lower.includes('api') && (lower.includes('ضفت') || lower.includes('مش شغال') || lower.includes('ليه')))
+  ) {
+    reply =
+      'يا فندم بخصوص عدم تفعيل الـ API في Cloudflare، فالسبب في 99% من الحالات هو واحد من الآتي:\n\n' +
+      '1️⃣ **لازم تعمل Retry Deployment:** في Cloudflare Pages، المتغيرات الجديدة التي تضيفها في Dashboard لا تعمل تلقائياً على النسخة القديمة، لازم تروح لصفحة **Deployments** وتضغط على الثلاث نقاط بجوار أحدث نشر وتختار **Retry deployment** ليتم تفعيل المفتاح الجديد في السيرفر.\n\n' +
+      '2️⃣ **اسم المتغير في Cloudflare:** تأكد أن اسم المتغير مكتوب بالضبط: `GEMINI_API_KEY` أو `GOOGLE_API_KEY` ومحدد لكل من (Production) و (Preview).\n\n' +
+      '3️⃣ **نوع المفتاح:** تأكد أنه مفتاح Gemini من Google AI Studio (يبدأ بـ `AIzaSy...`) وليس API Token خاص بشركة Cloudflare نفسها.\n\n' +
+      '⚡ **حل فوري وسريع للتجربة الآن:** اضغط فوق في أعلى هذه الشاشة على زر **(فحص إعدادات Cloudflare)** والصق المفتاح في خانة التجربة الفورية واضغط حفظ، وهيشتغل سمسم معاك فوراً في نفس اللحظة!';
+  } else if (
     lower.includes('مش شغال') ||
     lower.includes('عطلان') ||
     lower.includes('الذكاء الاصطناعي') ||
@@ -62,7 +74,10 @@ export function resolveSmartFallback(userMsg: string, ctx: any) {
     lower.includes('مش بيشتغل')
   ) {
     reply =
-      'أنا شغال معاك أهو يا فندم وزي الفل ومفيش أي عطل! كان فيه ضغط لحظي على سيرفرات الذكاء الاصطناعي وتم التحويل الفوري لمحرك Gemini السريع. أنا متصل بالمنظومة وشايف حساباتك وأصنافك، جرب تطلب مني أي أمر، زي مراجعة الخزينة أو ديون العملاء أو سؤال زراعي!';
+      'أهلاً بك يا فندم! إذا كان سمسم يعمل بالوضع المحلي الذكي وتريد ربطه بمحرك Gemini السحابي المباشر:\n\n' +
+      '• تأكد من إضافة `GEMINI_API_KEY` في إعدادات Cloudflare وعمل **Retry deployment** لإعادة البناء وتطبيق المفتاح.\n' +
+      '• أو يمكنك الضغط على زر **(فحص إعدادات Cloudflare)** في أعلى هذه النافذة ولصق المفتاح مباشرة للتجربة الفورية الآن.\n\n' +
+      'أنا جاهز ومستنيك لأي استفسار في الحسابات، ديون المزارعين، أو الاستشارات الزراعية!';
   } else if (lower === 'ها' || lower === 'ايوه' || lower === 'أيوة' || lower === 'تمام' || lower === 'يا سمسم') {
     reply =
       'أمرك يا فندم! أنا جاهز ومستنيك، تحب نراجع حسابات المزارعين والديون دلوقتي، نفحص الخزينة، أو محتاج استشارة في محصول أو مبيد معين؟';
