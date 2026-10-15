@@ -16,13 +16,11 @@ export const CustomerPaymentModal: React.FC<CustomerPaymentModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  if (!customer) return null;
-
   const cashAccounts = storage.getCashAccounts();
   const primaryCash = cashAccounts.find((c) => c.is_primary) || cashAccounts[0];
 
   const [amount, setAmount] = useState(
-    customer.current_balance > 0 ? customer.current_balance.toString() : ''
+    customer && customer.current_balance > 0 ? customer.current_balance.toString() : ''
   );
   const [cashAccountId, setCashAccountId] = useState(primaryCash?.id || '');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank' | 'wallet'>('cash');
@@ -32,6 +30,7 @@ export const CustomerPaymentModal: React.FC<CustomerPaymentModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!customer) return;
     const parsedAmount = parseFloat(amount);
     if (!parsedAmount || parsedAmount <= 0) {
       setError('يرجى إدخال مبلغ صحيح للتحصيل');
@@ -63,6 +62,8 @@ export const CustomerPaymentModal: React.FC<CustomerPaymentModalProps> = ({
       setLoading(false);
     }
   };
+
+  if (!customer) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">

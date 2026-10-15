@@ -41,8 +41,6 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  if (!isOpen) return null;
-
   const [activeTab, setActiveTab] = useState<'presets' | 'color_picker' | 'fonts' | 'custom_font' | 'layout'>('presets');
   const [config, setConfig] = useState<ThemeConfig>(getThemeConfig());
   const [themeAppliedMsg, setThemeAppliedMsg] = useState<string | null>(null);
@@ -224,6 +222,8 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
   };
 
   const currentColors: CustomColors = getResolvedColors();
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">

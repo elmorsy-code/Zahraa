@@ -35,13 +35,24 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
               {this.state.message.slice(0, 300)}
             </pre>
           )}
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            style={{ background: '#047857', color: '#fff', border: 0, borderRadius: 10, padding: '10px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
-          >
-            إعادة التحميل
-          </button>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => {
+                this.setState({ hasError: false, message: '' });
+              }}
+              style={{ background: '#047857', color: '#fff', border: 0, borderRadius: 10, padding: '10px 18px', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+            >
+              متابعة العمل
+            </button>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              style={{ background: '#334155', color: '#fff', border: 0, borderRadius: 10, padding: '10px 18px', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+            >
+              إعادة التحميل
+            </button>
+          </div>
         </div>
       </div>
     );

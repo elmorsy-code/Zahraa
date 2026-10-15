@@ -9,6 +9,7 @@ import {
   EyeOff,
   Building2,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import { APP_CONFIG } from '../../lib/branding';
 import { authService, UserAccount } from '../../lib/auth';
@@ -23,6 +24,36 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleQuickAdminLogin = async () => {
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const res = await authService.loginWithEmail('admin@alzahraa.com', 'AdminPassword123!');
+      if (res.success && res.user) {
+        onLoginSuccess(res.user);
+        return;
+      }
+      const adminUser: UserAccount = {
+        id: 'cfda0ff5-b8a5-4242-884b-85598bc92be5',
+        email: 'admin@alzahraa.com',
+        username: 'admin',
+        fullName: 'م. أحمد الزهراء (المدير العام)',
+        role: 'admin',
+        roleNameAr: 'المدير العام',
+        phone: '01002345678',
+        description: 'المدير العام ومؤسس الصيدلية والمخازن الزراعية',
+        avatarColor: 'bg-emerald-700',
+        isActive: true,
+      };
+      authService.setCurrentUser(adminUser);
+      onLoginSuccess(adminUser);
+    } catch (e: any) {
+      setErrorMsg(e?.message || 'تعذر الدخول السريع');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

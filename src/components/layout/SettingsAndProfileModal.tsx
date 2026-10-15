@@ -55,15 +55,13 @@ export const SettingsAndProfileModal: React.FC<SettingsAndProfileModalProps> = (
   onNavigateToTab,
   onUserUpdated,
 }) => {
-  if (!isOpen) return null;
-
   const [activeTab, setActiveTab] = useState<'profile' | 'store_settings' | 'system_info' | 'home_content'>('profile');
 
   // Profile Form State
-  const [fullName, setFullName] = useState(currentUser.fullName);
-  const [phone, setPhone] = useState(currentUser.phone || '');
-  const [description, setDescription] = useState(currentUser.description || '');
-  const [avatarColor, setAvatarColor] = useState(currentUser.avatarColor || 'bg-slate-800');
+  const [fullName, setFullName] = useState(currentUser?.fullName || '');
+  const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [description, setDescription] = useState(currentUser?.description || '');
+  const [avatarColor, setAvatarColor] = useState(currentUser?.avatarColor || 'bg-slate-800');
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -205,6 +203,8 @@ export const SettingsAndProfileModal: React.FC<SettingsAndProfileModalProps> = (
       setExporting(false);
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">

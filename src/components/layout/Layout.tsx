@@ -69,9 +69,12 @@ export const Layout: React.FC<LayoutProps> = ({
       {/* 2. Main Responsive Content Area with generous bottom spacing so navbar never obscures content */}
       <main className="flex-1 p-2.5 sm:p-5 md:p-6 lg:p-8 focus:outline-none w-full pb-44 sm:pb-52 md:pb-60">
         <div className="max-w-[1920px] mx-auto w-full">
-          {/* Dashboard view: Home Sections (slider, team, vision) only */}
+          {/* Dashboard view: Home Sections (Hero, slider, about, team) only */}
           {activeTab === 'dashboard' && (
-            <HomeSections />
+            <HomeSections
+              onNavigate={onSelectTab}
+              onOpenSimsim={() => setSimsimOpen(true)}
+            />
           )}
 
           {/* Page Body Content */}

@@ -90,6 +90,139 @@ const HomeEditorFields: React.FC<EditorProps> = ({ draft, setDraft, onError }) =
 
   return (
     <div className="space-y-5">
+      {/* قسم الهيرو والواجهة الرئيسية */}
+      <div className={`${cardClass} p-5`}>
+        <h3 className={sectionTitle}>الواجهة الترحيبية والهيرو الرئيسي</h3>
+        <p className="text-xs text-slate-500 font-bold mb-3">
+          تحكم في شريط الإعلان الموسمي، عنوان الهيرو والعبارة الترويجية وأرقام التواصل السريع.
+        </p>
+        <div className="grid gap-3">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-black text-slate-700 block mb-1">شارة الموسم الزراعي:</label>
+              <input
+                className={inputClass}
+                placeholder="شارة الموسم (مثل: الموسم الزراعي الحالي)"
+                value={draft.hero?.seasonBadge || ''}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    hero: { ...(d.hero || DEFAULT_HOME_CONTENT.hero!), seasonBadge: e.target.value },
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <label className="text-xs font-black text-slate-700 block mb-1">إشعار الموسم والتوريدات:</label>
+              <input
+                className={inputClass}
+                placeholder="نص الإشعار الموسمي أعلى الهيرو"
+                value={draft.hero?.seasonNotice || ''}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    hero: { ...(d.hero || DEFAULT_HOME_CONTENT.hero!), seasonNotice: e.target.value },
+                  }))
+                }
+              />
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs font-black text-slate-700 block mb-1">شارة الصرح / التاج لاين:</label>
+              <input
+                className={inputClass}
+                placeholder="صرح مشاتل الزهراء النموذجية"
+                value={draft.hero?.tagline || ''}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    hero: { ...(d.hero || DEFAULT_HOME_CONTENT.hero!), tagline: e.target.value },
+                  }))
+                }
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-xs font-black text-slate-700 block mb-1">العنوان الرئيسي للهيرو:</label>
+              <input
+                className={inputClass}
+                placeholder="العنوان الرئيسي"
+                value={draft.hero?.title || ''}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    hero: { ...(d.hero || DEFAULT_HOME_CONTENT.hero!), title: e.target.value },
+                  }))
+                }
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-black text-slate-700 block mb-1">النص المميز الملون:</label>
+            <input
+              className={inputClass}
+              placeholder="العبارة الملونة (مثل: بأعلى نسب نجاح ونقاء للأصناف 100%)"
+              value={draft.hero?.highlightText || ''}
+              onChange={(e) =>
+                setDraft((d) => ({
+                  ...d,
+                  hero: { ...(d.hero || DEFAULT_HOME_CONTENT.hero!), highlightText: e.target.value },
+                }))
+              }
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-black text-slate-700 block mb-1">الوصف التعريفي للهيرو:</label>
+            <textarea
+              className={inputClass}
+              rows={2}
+              placeholder="وصف مختصر ومؤثر عن خدمات وخبرات الأدوية والأسمدة والبذور"
+              value={draft.hero?.description || ''}
+              onChange={(e) =>
+                setDraft((d) => ({
+                  ...d,
+                  hero: { ...(d.hero || DEFAULT_HOME_CONTENT.hero!), description: e.target.value },
+                }))
+              }
+            />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-black text-slate-700 block mb-1">رقم الهاتف / الخط الساخن:</label>
+              <input
+                className={inputClass}
+                placeholder="+20 100 234 5678"
+                value={draft.hero?.contactPhone || ''}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    hero: { ...(d.hero || DEFAULT_HOME_CONTENT.hero!), contactPhone: e.target.value },
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <label className="text-xs font-black text-slate-700 block mb-1">رقم الواتساب السريع:</label>
+              <input
+                className={inputClass}
+                placeholder="201002345678"
+                value={draft.hero?.contactWhatsApp || ''}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    hero: { ...(d.hero || DEFAULT_HOME_CONTENT.hero!), contactWhatsApp: e.target.value },
+                  }))
+                }
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* السلايدر */}
       <div className={`${cardClass} p-5`}>
         <div className="flex items-center justify-between mb-3">
@@ -108,15 +241,31 @@ const HomeEditorFields: React.FC<EditorProps> = ({ draft, setDraft, onError }) =
         {draft.slides.length === 0 && <p className="text-sm font-bold text-slate-500">لا توجد صور بعد. اضغط "إضافة صور".</p>}
         <div className="space-y-3">
           {draft.slides.map((s, i) => (
-            <div key={s.id} className="flex items-center gap-3 rounded-2xl border border-slate-200 p-2">
-              <img src={s.url} alt="" className="w-24 h-16 sm:w-32 sm:h-20 rounded-xl object-cover shrink-0" />
-              <input
-                className={inputClass}
-                placeholder="تعليق على الصورة (اختياري)"
-                value={s.caption}
-                onChange={(e) => setDraft((d) => ({ ...d, slides: d.slides.map((x) => (x.id === s.id ? { ...x, caption: e.target.value } : x)) }))}
-              />
-              <div className="flex flex-col sm:flex-row shrink-0">
+            <div key={s.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-2xl border border-slate-200 p-3 bg-slate-50/50">
+              <img src={s.url} alt="" className="w-full sm:w-36 h-24 rounded-xl object-cover shrink-0 border border-slate-200" />
+              <div className="flex-1 w-full space-y-2">
+                <div className="grid sm:grid-cols-3 gap-2">
+                  <input
+                    className={`${inputClass} sm:col-span-2`}
+                    placeholder="عنوان الشريحة الرئيسي"
+                    value={s.caption}
+                    onChange={(e) => setDraft((d) => ({ ...d, slides: d.slides.map((x) => (x.id === s.id ? { ...x, caption: e.target.value } : x)) }))}
+                  />
+                  <input
+                    className={inputClass}
+                    placeholder="شارة مميزة (مثال: إنتاج محلي فاخر)"
+                    value={s.tag || ''}
+                    onChange={(e) => setDraft((d) => ({ ...d, slides: d.slides.map((x) => (x.id === s.id ? { ...x, tag: e.target.value } : x)) }))}
+                  />
+                </div>
+                <input
+                  className={inputClass}
+                  placeholder="وصف تفصيلي فرعي للشريحة"
+                  value={s.subtitle || ''}
+                  onChange={(e) => setDraft((d) => ({ ...d, slides: d.slides.map((x) => (x.id === s.id ? { ...x, subtitle: e.target.value } : x)) }))}
+                />
+              </div>
+              <div className="flex sm:flex-col shrink-0 gap-1 self-end sm:self-center">
                 <button type="button" className={iconBtn} disabled={i === 0} onClick={() => moveSlide(i, -1)} aria-label="للأعلى"><ArrowUp className="w-4 h-4" /></button>
                 <button type="button" className={iconBtn} disabled={i === draft.slides.length - 1} onClick={() => moveSlide(i, 1)} aria-label="للأسفل"><ArrowDown className="w-4 h-4" /></button>
                 <button type="button" className={iconBtn + ' !text-rose-600'} onClick={() => setDraft((d) => ({ ...d, slides: d.slides.filter((x) => x.id !== s.id) }))} aria-label="حذف"><Trash2 className="w-4 h-4" /></button>
@@ -128,52 +277,117 @@ const HomeEditorFields: React.FC<EditorProps> = ({ draft, setDraft, onError }) =
 
       {/* الفريق */}
       <div className={`${cardClass} p-5`}>
-        <h3 className={sectionTitle}>الفريق</h3>
+        <h3 className={sectionTitle}>فريق العمل والخبراء</h3>
         <div className="grid sm:grid-cols-2 gap-3 mb-4">
           <input className={inputClass} placeholder="عنوان القسم" value={draft.team.title} onChange={(e) => setDraft((d) => ({ ...d, team: { ...d.team, title: e.target.value } }))} />
           <input className={inputClass} placeholder="عنوان فرعي (اختياري)" value={draft.team.subtitle} onChange={(e) => setDraft((d) => ({ ...d, team: { ...d.team, subtitle: e.target.value } }))} />
         </div>
         <input ref={photoInput} type="file" accept="image/*" hidden onChange={(e) => { uploadMemberPhoto(photoTarget.current, e.target.files?.[0]); e.target.value = ''; }} />
-        <div className="space-y-3">
+        <div className="space-y-4">
           {draft.team.members.map((m) => (
-            <div key={m.id} className="flex gap-3 rounded-2xl border border-slate-200 p-3">
+            <div key={m.id} className="flex flex-col sm:flex-row gap-3 rounded-2xl border border-slate-200 p-4 bg-slate-50/40">
               <button
                 type="button"
-                className="relative shrink-0 cursor-pointer"
+                className="relative shrink-0 cursor-pointer self-center sm:self-start"
                 onClick={() => { photoTarget.current = m.id; photoInput.current?.click(); }}
                 aria-label="تغيير الصورة"
               >
                 <Avatar member={m} size="w-20 h-20" />
-                <span className="absolute inset-0 rounded-full bg-black/40 text-white flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                <span className="absolute inset-0 rounded-2xl bg-black/40 text-white flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                   {uploading === `photo-${m.id}` ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImagePlus className="w-5 h-5" />}
                 </span>
               </button>
-              <div className="flex-1 grid gap-2 min-w-0">
-                <div className="grid sm:grid-cols-2 gap-2">
-                  <input className={inputClass} placeholder="الاسم" value={m.name} onChange={(e) => updateMember(m.id, { name: e.target.value })} />
-                  <input className={inputClass} placeholder="الوظيفة" value={m.role} onChange={(e) => updateMember(m.id, { role: e.target.value })} />
+              <div className="flex-1 grid gap-2.5 min-w-0">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                  <input className={inputClass} placeholder="الاسم الكامل" value={m.name} onChange={(e) => updateMember(m.id, { name: e.target.value })} />
+                  <input className={inputClass} placeholder="المسمى الوظيفي" value={m.role} onChange={(e) => updateMember(m.id, { role: e.target.value })} />
+                  <input className={inputClass} placeholder="القسم / التخصص" value={m.department || ''} onChange={(e) => updateMember(m.id, { department: e.target.value })} />
+                  <input className={inputClass} placeholder="سنوات الخبرة (مثال: خبرة 15 عاماً)" value={m.experience || ''} onChange={(e) => updateMember(m.id, { experience: e.target.value })} />
                 </div>
-                <textarea className={inputClass} rows={2} placeholder="نبذة قصيرة (اختياري)" value={m.bio} onChange={(e) => updateMember(m.id, { bio: e.target.value })} />
+                <div className="grid sm:grid-cols-2 gap-2">
+                  <input className={inputClass} placeholder="رقم الهاتف / واتساب" value={m.phone || ''} onChange={(e) => updateMember(m.id, { phone: e.target.value })} />
+                  <input className={inputClass} placeholder="البريد الإلكتروني" value={m.email || ''} onChange={(e) => updateMember(m.id, { email: e.target.value })} />
+                </div>
+                <textarea className={inputClass} rows={2} placeholder="نبذة تفصيلية عن الخبرات والمسؤوليات" value={m.bio} onChange={(e) => updateMember(m.id, { bio: e.target.value })} />
               </div>
-              <button type="button" className={iconBtn + ' !text-rose-600 self-start'} onClick={() => setDraft((d) => ({ ...d, team: { ...d.team, members: d.team.members.filter((x) => x.id !== m.id) } }))} aria-label="حذف العضو"><Trash2 className="w-4 h-4" /></button>
+              <button type="button" className={iconBtn + ' !text-rose-600 self-end sm:self-start'} onClick={() => setDraft((d) => ({ ...d, team: { ...d.team, members: d.team.members.filter((x) => x.id !== m.id) } }))} aria-label="حذف العضو"><Trash2 className="w-4 h-4" /></button>
             </div>
           ))}
         </div>
         <button
           type="button"
-          onClick={() => setDraft((d) => ({ ...d, team: { ...d.team, members: [...d.team.members, { id: newId(), name: '', role: '', bio: '', photo: '' }] } }))}
-          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-emerald-700 text-emerald-800 hover:bg-emerald-50 text-sm font-black px-4 py-2 cursor-pointer"
+          onClick={() => setDraft((d) => ({ ...d, team: { ...d.team, members: [...d.team.members, { id: newId(), name: '', role: '', bio: '', photo: '', department: '', experience: '', phone: '', email: '', status: 'متواجد' }] } }))}
+          className="mt-4 inline-flex items-center gap-2 rounded-xl border border-emerald-700 text-emerald-800 hover:bg-emerald-50 text-sm font-black px-4 py-2 cursor-pointer"
         >
-          <Plus className="w-4 h-4" /> إضافة عضو
+          <Plus className="w-4 h-4" /> إضافة عضو فريق جديد
         </button>
       </div>
 
-      {/* الرؤية */}
+      {/* عن صرح الزهراء للأدوية والأسمدة والبذور */}
       <div className={`${cardClass} p-5`}>
-        <h3 className={sectionTitle}>رؤية الموقع</h3>
+        <h3 className={sectionTitle}>عن صرح الزهراء للأدوية والأسمدة والبذور</h3>
+        <div className="grid gap-3">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <input
+              className={inputClass}
+              placeholder="عنوان قسم عن الموقع"
+              value={draft.about?.title || ''}
+              onChange={(e) => setDraft((d) => ({ ...d, about: { ...(d.about || DEFAULT_HOME_CONTENT.about!), title: e.target.value } }))}
+            />
+            <input
+              className={inputClass}
+              placeholder="عنوان فرعي تعريفي"
+              value={draft.about?.subtitle || ''}
+              onChange={(e) => setDraft((d) => ({ ...d, about: { ...(d.about || DEFAULT_HOME_CONTENT.about!), subtitle: e.target.value } }))}
+            />
+          </div>
+          <textarea
+            className={inputClass}
+            rows={4}
+            placeholder="قصة ونبذة صرح الزهراء وتاريخه في توفير الأدوية والأسمدة والتقاوي"
+            value={draft.about?.story || ''}
+            onChange={(e) => setDraft((d) => ({ ...d, about: { ...(d.about || DEFAULT_HOME_CONTENT.about!), story: e.target.value } }))}
+          />
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-black text-slate-700 block mb-1">الرؤية المستقبلية:</label>
+              <textarea
+                className={inputClass}
+                rows={3}
+                placeholder="رؤية المنظومة والصيدلية الزراعية"
+                value={draft.about?.vision || ''}
+                onChange={(e) => setDraft((d) => ({ ...d, about: { ...(d.about || DEFAULT_HOME_CONTENT.about!), vision: e.target.value } }))}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-black text-slate-700 block mb-1">الرسالة الزراعية والدوائية:</label>
+              <textarea
+                className={inputClass}
+                rows={3}
+                placeholder="رسالة المنظومة والخدمة الزراعية"
+                value={draft.about?.mission || ''}
+                onChange={(e) => setDraft((d) => ({ ...d, about: { ...(d.about || DEFAULT_HOME_CONTENT.about!), mission: e.target.value } }))}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-black text-slate-700 block mb-1">نص وثيقة الضمان والجودة:</label>
+            <textarea
+              className={inputClass}
+              rows={2}
+              placeholder="تفاصيل وثيقة الضمان ومطابقة الأصناف"
+              value={draft.about?.guaranteeText || ''}
+              onChange={(e) => setDraft((d) => ({ ...d, about: { ...(d.about || DEFAULT_HOME_CONTENT.about!), guaranteeText: e.target.value } }))}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* الرؤية القديمة / نقاط التميز */}
+      <div className={`${cardClass} p-5`}>
+        <h3 className={sectionTitle}>نقاط التميز والأهداف</h3>
         <div className="grid gap-3">
           <input className={inputClass} placeholder="عنوان القسم" value={draft.vision.title} onChange={(e) => setDraft((d) => ({ ...d, vision: { ...d.vision, title: e.target.value } }))} />
-          <textarea className={inputClass} rows={5} placeholder="نص الرؤية" value={draft.vision.text} onChange={(e) => setDraft((d) => ({ ...d, vision: { ...d.vision, text: e.target.value } }))} />
           <div className="space-y-2">
             {draft.vision.points.map((p, i) => (
               <div key={i} className="flex gap-2">
@@ -244,12 +458,14 @@ export const HomeContentEditor: React.FC = () => {
     setDone(false);
     try {
       const cleaned: HomeContent = {
+        hero: draft.hero || DEFAULT_HOME_CONTENT.hero,
         slides: draft.slides,
         team: {
           ...draft.team,
           members: draft.team.members.filter((m) => m.name.trim() || m.role.trim() || m.bio.trim() || m.photo),
         },
         vision: { ...draft.vision, points: draft.vision.points.map((p) => p.trim()).filter(Boolean) },
+        about: draft.about || DEFAULT_HOME_CONTENT.about,
       };
       await saveHomeContent(cleaned);
       const stillUsed = collectImageUrls(cleaned);

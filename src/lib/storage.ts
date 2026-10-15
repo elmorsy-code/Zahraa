@@ -19,32 +19,29 @@ import {
   CustomerPayment,
   SupplierPayment,
   SalesReturn,
+  MigrationProject,
+  MigrationPage,
+  MigrationEntry,
   AuditLog,
   StockBatch,
   SalesInvoiceItemBatch,
   ExpiringBatchItem,
 } from '../types/database';
 import { getSupabaseClient, isSupabaseConfigured } from './supabase';
+import {
+  SEED_CATEGORIES,
+  SEED_WAREHOUSES,
+  SEED_CASH_ACCOUNTS,
+  SEED_CUSTOMERS,
+  SEED_SUPPLIERS,
+  SEED_PRODUCTS,
+  SEED_STOCK_BALANCES,
+  SEED_STOCK_BATCHES,
+  SEED_SALES_INVOICES,
+  SEED_APP_SETTINGS,
+} from './seedAgriculturalData';
 
-const DEFAULT_SETTINGS: AppSettings = {
-  company_info: {
-    name: 'مؤسسة الزهراء للأدوية والمبيدات الزراعية',
-    activity: 'تجارة المبيدات والأسمدة والمخصبات والتقاوي والأدوية البيطرية',
-    commercial_reg: '1049284',
-    tax_card: '489-321-99',
-    phone: '01002345678',
-    address: 'طريق المحطة، الدلتا، جمهورية مصر العربية',
-    invoice_footer: 'البضاعة المباعة تخضع لإرشادات الاستخدام الفني الزراعي. نضمن أصالة كافة المركبات والعبوات.',
-  },
-  pos_settings: {
-    allow_negative_stock: false,
-    enable_tax: false,
-    tax_percentage: 0.0,
-    print_immediately: true,
-    default_warehouse_id: 'a0000000-0000-0000-0000-000000000001',
-    default_cash_account_id: 'b0000000-0000-0000-0000-000000000001',
-  },
-};
+const DEFAULT_SETTINGS: AppSettings = SEED_APP_SETTINGS;
 
 class DataStorage {
   private listeners: Set<() => void> = new Set();
@@ -74,21 +71,86 @@ class DataStorage {
   private expenses: Expense[] = [];
   private cashTransactions: CashTransaction[] = [];
   private oldLedgers: OldLedgerEntry[] = [];
+  private migrationProjects: MigrationProject[] = [];
+  private migrationPages: MigrationPage[] = [];
+  private migrationEntries: MigrationEntry[] = [];
   private auditLogs: AuditLog[] = [];
   private settings: AppSettings = DEFAULT_SETTINGS;
 
   constructor() {
-    try {
-      const cached = localStorage.getItem('cached_app_settings');
-      if (cached) {
-        this.settings = JSON.parse(cached);
-      }
-    } catch {}
+    this.loadFromCacheOrSeed();
 
-    // If Supabase is configured, kick off initial hydration
+    // If Supabase is configured, kick off background hydration and sync
     if (isSupabaseConfigured()) {
       this.hydrate();
     }
+  }
+
+  // Load from persistent cache or initialize with rich agricultural pharmacy master database
+  private loadFromCacheOrSeed(): void {
+    try {
+      const getParsed = <T>(key: string, fallback: T): T => {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        try {
+          const parsed = JSON.parse(raw);
+          return Array.isArray(fallback)
+            ? Array.isArray(parsed) && parsed.length > 0 ? parsed : fallback
+            : parsed || fallback;
+        } catch {
+          return fallback;
+        }
+      };
+
+      this.categories = getParsed('agri_db_categories', SEED_CATEGORIES);
+      this.warehouses = getParsed('agri_db_warehouses', SEED_WAREHOUSES);
+      this.cashAccounts = getParsed('agri_db_cash_accounts', SEED_CASH_ACCOUNTS);
+      this.products = getParsed('agri_db_products', SEED_PRODUCTS);
+      this.stockBalances = getParsed('agri_db_stock_balances', SEED_STOCK_BALANCES);
+      this.stockBatches = getParsed('agri_db_stock_batches', SEED_STOCK_BATCHES);
+      this.customers = getParsed('agri_db_customers', SEED_CUSTOMERS);
+      this.suppliers = getParsed('agri_db_suppliers', SEED_SUPPLIERS);
+      this.salesInvoices = getParsed('agri_db_sales_invoices', SEED_SALES_INVOICES);
+      this.settings = getParsed('cached_app_settings', SEED_APP_SETTINGS);
+      this.isHydrated = true;
+    } catch (e) {
+      console.warn('Error loading cached database, falling back to seeds:', e);
+      this.resetToSeedData(false);
+    }
+  }
+
+  // Persist current state to localStorage so data is NEVER lost across refreshes or offline
+  public persistLocalDatabase(): void {
+    try {
+      localStorage.setItem('agri_db_categories', JSON.stringify(this.categories));
+      localStorage.setItem('agri_db_warehouses', JSON.stringify(this.warehouses));
+      localStorage.setItem('agri_db_cash_accounts', JSON.stringify(this.cashAccounts));
+      localStorage.setItem('agri_db_products', JSON.stringify(this.products));
+      localStorage.setItem('agri_db_stock_balances', JSON.stringify(this.stockBalances));
+      localStorage.setItem('agri_db_stock_batches', JSON.stringify(this.stockBatches));
+      localStorage.setItem('agri_db_customers', JSON.stringify(this.customers));
+      localStorage.setItem('agri_db_suppliers', JSON.stringify(this.suppliers));
+      localStorage.setItem('agri_db_sales_invoices', JSON.stringify(this.salesInvoices));
+      localStorage.setItem('cached_app_settings', JSON.stringify(this.settings));
+    } catch (err) {
+      console.warn('Notice: localStorage write warning:', err);
+    }
+  }
+
+  // Restore or re-seed entire database with fresh authentic agricultural pharmacy data
+  public resetToSeedData(notify: boolean = true): void {
+    this.categories = structuredClone(SEED_CATEGORIES);
+    this.warehouses = structuredClone(SEED_WAREHOUSES);
+    this.cashAccounts = structuredClone(SEED_CASH_ACCOUNTS);
+    this.products = structuredClone(SEED_PRODUCTS);
+    this.stockBalances = structuredClone(SEED_STOCK_BALANCES);
+    this.stockBatches = structuredClone(SEED_STOCK_BATCHES);
+    this.customers = structuredClone(SEED_CUSTOMERS);
+    this.suppliers = structuredClone(SEED_SUPPLIERS);
+    this.salesInvoices = structuredClone(SEED_SALES_INVOICES);
+    this.settings = structuredClone(SEED_APP_SETTINGS);
+    this.persistLocalDatabase();
+    if (notify) this.notify();
   }
 
   public subscribe(listener: () => void): () => void {
@@ -137,6 +199,9 @@ class DataStorage {
         expensesRes,
         cashTransactionsRes,
         oldLedgersRes,
+        migrationProjectsRes,
+        migrationPagesRes,
+        migrationEntriesRes,
         auditLogsRes,
         settingsRes,
         stockBatchesRes,
@@ -166,20 +231,23 @@ class DataStorage {
         supabase.from('expenses').select('*').order('created_at', { ascending: false }).limit(200),
         supabase.from('cash_transactions').select('*').order('created_at', { ascending: false }).limit(200),
         supabase.from('old_ledgers').select('*').order('created_at', { ascending: false }),
+        supabase.from('migration_projects').select('*').order('created_at', { ascending: false }),
+        supabase.from('migration_pages').select('*').order('created_at', { ascending: false }),
+        supabase.from('migration_entries').select('*').order('line_number', { ascending: true }),
         supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100),
         supabase.from('app_settings').select('*'),
         supabase.from('stock_batches').select('*'),
         supabase.from('sales_invoice_item_batches').select('*'),
       ]);
 
-      if (categoriesRes.data) this.categories = categoriesRes.data;
-      if (warehousesRes.data) this.warehouses = warehousesRes.data;
-      if (cashAccountsRes.data) this.cashAccounts = cashAccountsRes.data;
-      if (stockBalancesRes.data) this.stockBalances = stockBalancesRes.data;
-      if (stockBatchesRes.data) this.stockBatches = stockBatchesRes.data;
-      if (salesInvoiceBatchesRes.data) this.salesInvoiceItemBatches = salesInvoiceBatchesRes.data;
-      if (stockMovementsRes.data) this.stockMovements = stockMovementsRes.data;
-      if (customersRes.data) {
+      if (categoriesRes.data && categoriesRes.data.length > 0) this.categories = categoriesRes.data;
+      if (warehousesRes.data && warehousesRes.data.length > 0) this.warehouses = warehousesRes.data;
+      if (cashAccountsRes.data && cashAccountsRes.data.length > 0) this.cashAccounts = cashAccountsRes.data;
+      if (stockBalancesRes.data && stockBalancesRes.data.length > 0) this.stockBalances = stockBalancesRes.data;
+      if (stockBatchesRes.data && stockBatchesRes.data.length > 0) this.stockBatches = stockBatchesRes.data;
+      if (salesInvoiceBatchesRes.data && salesInvoiceBatchesRes.data.length > 0) this.salesInvoiceItemBatches = salesInvoiceBatchesRes.data;
+      if (stockMovementsRes.data && stockMovementsRes.data.length > 0) this.stockMovements = stockMovementsRes.data;
+      if (customersRes.data && customersRes.data.length > 0) {
         this.customers = customersRes.data.map((c: any) => {
           let partnerName = c.partner_name || '';
           let cleanNotes = c.notes || '';
@@ -196,15 +264,18 @@ class DataStorage {
           };
         });
       }
-      if (suppliersRes.data) this.suppliers = suppliersRes.data;
-      if (customerLedgerRes.data) this.customerLedger = customerLedgerRes.data;
-      if (supplierLedgerRes.data) this.supplierLedger = supplierLedgerRes.data;
-      if (customerPaymentsRes.data) this.customerPayments = customerPaymentsRes.data;
-      if (supplierPaymentsRes.data) this.supplierPayments = supplierPaymentsRes.data;
-      if (expensesRes.data) this.expenses = expensesRes.data;
-      if (cashTransactionsRes.data) this.cashTransactions = cashTransactionsRes.data;
-      if (oldLedgersRes.data) this.oldLedgers = oldLedgersRes.data;
-      if (auditLogsRes.data) this.auditLogs = auditLogsRes.data;
+      if (suppliersRes.data && suppliersRes.data.length > 0) this.suppliers = suppliersRes.data;
+      if (customerLedgerRes.data && customerLedgerRes.data.length > 0) this.customerLedger = customerLedgerRes.data;
+      if (supplierLedgerRes.data && supplierLedgerRes.data.length > 0) this.supplierLedger = supplierLedgerRes.data;
+      if (customerPaymentsRes.data && customerPaymentsRes.data.length > 0) this.customerPayments = customerPaymentsRes.data;
+      if (supplierPaymentsRes.data && supplierPaymentsRes.data.length > 0) this.supplierPayments = supplierPaymentsRes.data;
+      if (expensesRes.data && expensesRes.data.length > 0) this.expenses = expensesRes.data;
+      if (cashTransactionsRes.data && cashTransactionsRes.data.length > 0) this.cashTransactions = cashTransactionsRes.data;
+      if (oldLedgersRes.data && oldLedgersRes.data.length > 0) this.oldLedgers = oldLedgersRes.data;
+      if (migrationProjectsRes.data && migrationProjectsRes.data.length > 0) this.migrationProjects = migrationProjectsRes.data;
+      if (migrationPagesRes.data && migrationPagesRes.data.length > 0) this.migrationPages = migrationPagesRes.data;
+      if (migrationEntriesRes.data && migrationEntriesRes.data.length > 0) this.migrationEntries = migrationEntriesRes.data;
+      if (auditLogsRes.data && auditLogsRes.data.length > 0) this.auditLogs = auditLogsRes.data;
 
       // Hydrate Stock Transfers with items
       if (stockTransfersRes.data) {
@@ -247,7 +318,7 @@ class DataStorage {
       }
 
       // Hydrate Products with Units, Category, & Warehouse Stock Calculations
-      if (productsRes.data) {
+      if (productsRes.data && productsRes.data.length > 0) {
         const allUnits = productUnitsRes.data || [];
         const shopWh = this.warehouses.find((w) => w.location_type === 'shop' || w.is_primary);
         const mainWh = this.warehouses.find((w) => w.location_type === 'warehouse' && !w.is_primary);
@@ -333,6 +404,7 @@ class DataStorage {
       }
 
       this.isHydrated = true;
+      this.persistLocalDatabase();
       this.setupRealtimeSubscription();
       this.notify();
     } catch (err) {
@@ -668,12 +740,98 @@ class DataStorage {
     return this.oldLedgers;
   }
 
+  public getMigrationProjects(): MigrationProject[] {
+    return this.migrationProjects;
+  }
+
+  public getMigrationPages(projectId?: string): MigrationPage[] {
+    return projectId ? this.migrationPages.filter((p) => p.project_id === projectId) : this.migrationPages;
+  }
+
+  public getMigrationEntries(projectId?: string, pageId?: string): MigrationEntry[] {
+    let list = this.migrationEntries;
+    if (projectId) list = list.filter((e) => e.project_id === projectId);
+    if (pageId) list = list.filter((e) => e.page_id === pageId);
+    return list;
+  }
+
   public getAuditLogs(): AuditLog[] {
     return this.auditLogs;
   }
 
   public getSettings(): AppSettings {
     return this.settings;
+  }
+
+  // --- Real Live Database Statistical Summary ---
+  public getDatabaseStats() {
+    const products = this.products;
+    const categories = this.categories;
+    const customers = this.customers;
+    const suppliers = this.suppliers;
+    const warehouses = this.warehouses;
+    const cashAccounts = this.cashAccounts;
+
+    const pesticidesCount = products.filter(
+      (p) => p.is_pesticide || p.category_name?.includes('مبيد') || p.category?.name?.includes('مبيد')
+    ).length;
+
+    const fertilizersCount = products.filter(
+      (p) =>
+        p.category_name?.includes('سماد') ||
+        p.category?.name?.includes('سماد') ||
+        p.category_name?.includes('مغذ') ||
+        p.name.includes('NPK') ||
+        p.name.includes('سماد')
+    ).length;
+
+    const seedsCount = products.filter(
+      (p) =>
+        p.category_name?.includes('بذور') ||
+        p.category?.name?.includes('بذور') ||
+        p.category_name?.includes('تقاوي') ||
+        p.category?.name?.includes('تقاوي') ||
+        p.name.includes('بذور') ||
+        p.name.includes('تقاوي')
+    ).length;
+
+    const boostersCount = products.filter(
+      (p) =>
+        p.category_name?.includes('منشط') ||
+        p.category?.name?.includes('منشط') ||
+        p.category_name?.includes('مخصب') ||
+        p.category?.name?.includes('مخصب') ||
+        p.name.includes('روتكس') ||
+        p.name.includes('طحالب')
+    ).length;
+
+    const inStockCount = products.filter((p) => (p.total_stock || 0) > 0).length;
+
+    const totalCash = cashAccounts.reduce((sum, c) => sum + (Number(c.current_balance) || 0), 0);
+    const totalCustomerDebts = customers.reduce(
+      (sum, c) => sum + Math.max(0, Number(c.current_balance) || 0),
+      0
+    );
+    const totalSupplierDebts = suppliers.reduce(
+      (sum, s) => sum + Math.max(0, Number(s.current_balance) || 0),
+      0
+    );
+
+    return {
+      productsTotal: products.length,
+      categoriesTotal: categories.length,
+      pesticidesCount,
+      fertilizersCount,
+      seedsCount,
+      boostersCount,
+      inStockCount,
+      customersTotal: customers.length,
+      suppliersTotal: suppliers.length,
+      warehousesTotal: warehouses.length,
+      totalCash,
+      totalCustomerDebts,
+      totalSupplierDebts,
+    };
   }
 
   // --- Mutation Methods (Async with Supabase) ---
@@ -2183,6 +2341,199 @@ class DataStorage {
     }
   }
 
+  public async saveMigrationProject(data: Partial<MigrationProject> & { name: string }): Promise<MigrationProject> {
+    const supabase = getSupabaseClient();
+    if (!supabase) throw new Error('الاتصال غير متوفر');
+
+    if (data.id) {
+      const { data: updated, error } = await supabase
+        .from('migration_projects')
+        .update({
+          name: data.name,
+          book_type: data.book_type,
+          start_date: data.start_date,
+          end_date: data.end_date,
+          description: data.description,
+          status: data.status,
+          user_in_charge: data.user_in_charge,
+        })
+        .eq('id', data.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      await this.hydrate();
+      return updated;
+    } else {
+      const { data: inserted, error } = await supabase
+        .from('migration_projects')
+        .insert({
+          name: data.name,
+          book_type: data.book_type || 'customer_debts',
+          start_date: data.start_date,
+          end_date: data.end_date,
+          description: data.description,
+          status: data.status || 'in_progress',
+          user_in_charge: data.user_in_charge || 'المدير العام',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      await this.hydrate();
+      return inserted;
+    }
+  }
+
+  public async saveMigrationPage(data: Partial<MigrationPage> & { project_id: string; original_page_number: string }): Promise<MigrationPage> {
+    const supabase = getSupabaseClient();
+    if (!supabase) throw new Error('الاتصال غير متوفر');
+
+    if (data.id) {
+      const { data: updated, error } = await supabase
+        .from('migration_pages')
+        .update({
+          book_number: data.book_number,
+          original_page_number: data.original_page_number,
+          image_url: data.image_url,
+          page_date: data.page_date,
+          extraction_status: data.extraction_status,
+          review_status: data.review_status,
+          notes: data.notes,
+        })
+        .eq('id', data.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      await this.hydrate();
+      return updated;
+    } else {
+      const { data: inserted, error } = await supabase
+        .from('migration_pages')
+        .insert({
+          project_id: data.project_id,
+          book_number: data.book_number || '1',
+          original_page_number: data.original_page_number,
+          image_url: data.image_url,
+          page_date: data.page_date,
+          extraction_status: data.extraction_status || 'manual_entry',
+          review_status: data.review_status || 'pending',
+          notes: data.notes,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      await this.hydrate();
+      return inserted;
+    }
+  }
+
+  public async saveMigrationEntry(entryData: Partial<MigrationEntry> & {
+    project_id: string;
+    page_id: string;
+    customer_name_raw: string;
+    amount: number;
+    direction: 'debit' | 'credit';
+  }): Promise<MigrationEntry> {
+    const supabase = getSupabaseClient();
+    if (!supabase) throw new Error('الاتصال غير متوفر');
+
+    if (entryData.id) {
+      const { data: updated, error } = await supabase
+        .from('migration_entries')
+        .update({
+          customer_name_raw: entryData.customer_name_raw,
+          matched_customer_id: entryData.matched_customer_id || null,
+          matched_customer_name: entryData.matched_customer_name,
+          date: entryData.date,
+          description: entryData.description,
+          product_info: entryData.product_info,
+          qty: entryData.qty,
+          unit: entryData.unit,
+          amount: Number(entryData.amount) || 0,
+          movement_type: entryData.movement_type,
+          direction: entryData.direction,
+          handwritten_balance: entryData.handwritten_balance,
+          review_status: entryData.review_status,
+          duplicate_warning: entryData.duplicate_warning,
+          notes: entryData.notes,
+        })
+        .eq('id', entryData.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      await this.hydrate();
+      return updated;
+    } else {
+      const { data: inserted, error } = await supabase
+        .from('migration_entries')
+        .insert({
+          project_id: entryData.project_id,
+          page_id: entryData.page_id,
+          book_name: entryData.book_name,
+          original_page_number: entryData.original_page_number,
+          line_number: entryData.line_number,
+          customer_name_raw: entryData.customer_name_raw,
+          matched_customer_id: entryData.matched_customer_id || null,
+          matched_customer_name: entryData.matched_customer_name,
+          date: entryData.date || new Date().toISOString().slice(0, 10),
+          description: entryData.description || '',
+          product_info: entryData.product_info,
+          qty: entryData.qty,
+          unit: entryData.unit,
+          amount: Number(entryData.amount) || 0,
+          movement_type: entryData.movement_type || (entryData.direction === 'debit' ? 'credit_sale' : 'payment'),
+          direction: entryData.direction,
+          handwritten_balance: entryData.handwritten_balance,
+          review_status: entryData.review_status || 'needs_review',
+          extraction_confidence: entryData.extraction_confidence ?? 0.9,
+          duplicate_warning: entryData.duplicate_warning,
+          notes: entryData.notes,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      await this.hydrate();
+      return inserted;
+    }
+  }
+
+  public async commitMigrationBatchAtomic(projectId: string): Promise<{
+    success: boolean;
+    migratedCount: number;
+    totalDebit: number;
+    totalCredit: number;
+    error?: string;
+  }> {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, migratedCount: 0, totalDebit: 0, totalCredit: 0, error: 'الاتصال غير متوفر' };
+
+    try {
+      const idempotencyKey = `mig_${Date.now()}`;
+      const { data: res, error } = await supabase.rpc('commit_migration_batch_atomic', {
+        p_project_id: projectId,
+        p_idempotency_key: idempotencyKey,
+      });
+
+      if (error) return { success: false, migratedCount: 0, totalDebit: 0, totalCredit: 0, error: error.message };
+      if (!res?.success) return { success: false, migratedCount: 0, totalDebit: 0, totalCredit: 0, error: res?.error || 'فشل اعتماد الترحيل' };
+
+      await this.hydrate();
+      return {
+        success: true,
+        migratedCount: res.migrated_count || 0,
+        totalDebit: res.total_debit || 0,
+        totalCredit: res.total_credit || 0,
+      };
+    } catch (err: any) {
+      return { success: false, migratedCount: 0, totalDebit: 0, totalCredit: 0, error: err?.message || 'خطأ أثناء الترحيل' };
+    }
+  }
+
   // --- Settings ---
   public async saveSettings(newSettings: AppSettings): Promise<void> {
     const supabase = getSupabaseClient();
@@ -2369,6 +2720,7 @@ class DataStorage {
       srets,
       exps,
       ctxs,
+      mproj,
     ] = await Promise.all([
       supabase.from('product_categories').select('*'),
       supabase.from('warehouses').select('*'),
@@ -2382,6 +2734,7 @@ class DataStorage {
       supabase.from('sales_returns').select('*, sales_return_items(*)'),
       supabase.from('expenses').select('*'),
       supabase.from('cash_transactions').select('*'),
+      supabase.from('migration_projects').select('*, migration_pages(*, migration_entries(*))'),
     ]);
 
     return {
@@ -2401,6 +2754,7 @@ class DataStorage {
         sales_returns: srets.data,
         expenses: exps.data,
         cash_transactions: ctxs.data,
+        migration_projects: mproj.data,
       },
     };
   }
