@@ -19,9 +19,6 @@ import {
   CustomerPayment,
   SupplierPayment,
   SalesReturn,
-  MigrationProject,
-  MigrationPage,
-  MigrationEntry,
   AuditLog,
   StockBatch,
   SalesInvoiceItemBatch,
@@ -77,9 +74,6 @@ class DataStorage {
   private expenses: Expense[] = [];
   private cashTransactions: CashTransaction[] = [];
   private oldLedgers: OldLedgerEntry[] = [];
-  private migrationProjects: MigrationProject[] = [];
-  private migrationPages: MigrationPage[] = [];
-  private migrationEntries: MigrationEntry[] = [];
   private auditLogs: AuditLog[] = [];
   private settings: AppSettings = DEFAULT_SETTINGS;
 
@@ -143,9 +137,6 @@ class DataStorage {
         expensesRes,
         cashTransactionsRes,
         oldLedgersRes,
-        migrationProjectsRes,
-        migrationPagesRes,
-        migrationEntriesRes,
         auditLogsRes,
         settingsRes,
         stockBatchesRes,
@@ -175,9 +166,6 @@ class DataStorage {
         supabase.from('expenses').select('*').order('created_at', { ascending: false }).limit(200),
         supabase.from('cash_transactions').select('*').order('created_at', { ascending: false }).limit(200),
         supabase.from('old_ledgers').select('*').order('created_at', { ascending: false }),
-        supabase.from('migration_projects').select('*').order('created_at', { ascending: false }),
-        supabase.from('migration_pages').select('*').order('created_at', { ascending: false }),
-        supabase.from('migration_entries').select('*').order('line_number', { ascending: true }),
         supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100),
         supabase.from('app_settings').select('*'),
         supabase.from('stock_batches').select('*'),
@@ -216,9 +204,6 @@ class DataStorage {
       if (expensesRes.data) this.expenses = expensesRes.data;
       if (cashTransactionsRes.data) this.cashTransactions = cashTransactionsRes.data;
       if (oldLedgersRes.data) this.oldLedgers = oldLedgersRes.data;
-      if (migrationProjectsRes.data) this.migrationProjects = migrationProjectsRes.data;
-      if (migrationPagesRes.data) this.migrationPages = migrationPagesRes.data;
-      if (migrationEntriesRes.data) this.migrationEntries = migrationEntriesRes.data;
       if (auditLogsRes.data) this.auditLogs = auditLogsRes.data;
 
       // Hydrate Stock Transfers with items
@@ -681,21 +666,6 @@ class DataStorage {
 
   public getOldLedgers(): OldLedgerEntry[] {
     return this.oldLedgers;
-  }
-
-  public getMigrationProjects(): MigrationProject[] {
-    return this.migrationProjects;
-  }
-
-  public getMigrationPages(projectId?: string): MigrationPage[] {
-    return projectId ? this.migrationPages.filter((p) => p.project_id === projectId) : this.migrationPages;
-  }
-
-  public getMigrationEntries(projectId?: string, pageId?: string): MigrationEntry[] {
-    let list = this.migrationEntries;
-    if (projectId) list = list.filter((e) => e.project_id === projectId);
-    if (pageId) list = list.filter((e) => e.page_id === pageId);
-    return list;
   }
 
   public getAuditLogs(): AuditLog[] {
@@ -2213,199 +2183,6 @@ class DataStorage {
     }
   }
 
-  public async saveMigrationProject(data: Partial<MigrationProject> & { name: string }): Promise<MigrationProject> {
-    const supabase = getSupabaseClient();
-    if (!supabase) throw new Error('الاتصال غير متوفر');
-
-    if (data.id) {
-      const { data: updated, error } = await supabase
-        .from('migration_projects')
-        .update({
-          name: data.name,
-          book_type: data.book_type,
-          start_date: data.start_date,
-          end_date: data.end_date,
-          description: data.description,
-          status: data.status,
-          user_in_charge: data.user_in_charge,
-        })
-        .eq('id', data.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      await this.hydrate();
-      return updated;
-    } else {
-      const { data: inserted, error } = await supabase
-        .from('migration_projects')
-        .insert({
-          name: data.name,
-          book_type: data.book_type || 'customer_debts',
-          start_date: data.start_date,
-          end_date: data.end_date,
-          description: data.description,
-          status: data.status || 'in_progress',
-          user_in_charge: data.user_in_charge || 'المدير العام',
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      await this.hydrate();
-      return inserted;
-    }
-  }
-
-  public async saveMigrationPage(data: Partial<MigrationPage> & { project_id: string; original_page_number: string }): Promise<MigrationPage> {
-    const supabase = getSupabaseClient();
-    if (!supabase) throw new Error('الاتصال غير متوفر');
-
-    if (data.id) {
-      const { data: updated, error } = await supabase
-        .from('migration_pages')
-        .update({
-          book_number: data.book_number,
-          original_page_number: data.original_page_number,
-          image_url: data.image_url,
-          page_date: data.page_date,
-          extraction_status: data.extraction_status,
-          review_status: data.review_status,
-          notes: data.notes,
-        })
-        .eq('id', data.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      await this.hydrate();
-      return updated;
-    } else {
-      const { data: inserted, error } = await supabase
-        .from('migration_pages')
-        .insert({
-          project_id: data.project_id,
-          book_number: data.book_number || '1',
-          original_page_number: data.original_page_number,
-          image_url: data.image_url,
-          page_date: data.page_date,
-          extraction_status: data.extraction_status || 'manual_entry',
-          review_status: data.review_status || 'pending',
-          notes: data.notes,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      await this.hydrate();
-      return inserted;
-    }
-  }
-
-  public async saveMigrationEntry(entryData: Partial<MigrationEntry> & {
-    project_id: string;
-    page_id: string;
-    customer_name_raw: string;
-    amount: number;
-    direction: 'debit' | 'credit';
-  }): Promise<MigrationEntry> {
-    const supabase = getSupabaseClient();
-    if (!supabase) throw new Error('الاتصال غير متوفر');
-
-    if (entryData.id) {
-      const { data: updated, error } = await supabase
-        .from('migration_entries')
-        .update({
-          customer_name_raw: entryData.customer_name_raw,
-          matched_customer_id: entryData.matched_customer_id || null,
-          matched_customer_name: entryData.matched_customer_name,
-          date: entryData.date,
-          description: entryData.description,
-          product_info: entryData.product_info,
-          qty: entryData.qty,
-          unit: entryData.unit,
-          amount: Number(entryData.amount) || 0,
-          movement_type: entryData.movement_type,
-          direction: entryData.direction,
-          handwritten_balance: entryData.handwritten_balance,
-          review_status: entryData.review_status,
-          duplicate_warning: entryData.duplicate_warning,
-          notes: entryData.notes,
-        })
-        .eq('id', entryData.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      await this.hydrate();
-      return updated;
-    } else {
-      const { data: inserted, error } = await supabase
-        .from('migration_entries')
-        .insert({
-          project_id: entryData.project_id,
-          page_id: entryData.page_id,
-          book_name: entryData.book_name,
-          original_page_number: entryData.original_page_number,
-          line_number: entryData.line_number,
-          customer_name_raw: entryData.customer_name_raw,
-          matched_customer_id: entryData.matched_customer_id || null,
-          matched_customer_name: entryData.matched_customer_name,
-          date: entryData.date || new Date().toISOString().slice(0, 10),
-          description: entryData.description || '',
-          product_info: entryData.product_info,
-          qty: entryData.qty,
-          unit: entryData.unit,
-          amount: Number(entryData.amount) || 0,
-          movement_type: entryData.movement_type || (entryData.direction === 'debit' ? 'credit_sale' : 'payment'),
-          direction: entryData.direction,
-          handwritten_balance: entryData.handwritten_balance,
-          review_status: entryData.review_status || 'needs_review',
-          extraction_confidence: entryData.extraction_confidence ?? 0.9,
-          duplicate_warning: entryData.duplicate_warning,
-          notes: entryData.notes,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      await this.hydrate();
-      return inserted;
-    }
-  }
-
-  public async commitMigrationBatchAtomic(projectId: string): Promise<{
-    success: boolean;
-    migratedCount: number;
-    totalDebit: number;
-    totalCredit: number;
-    error?: string;
-  }> {
-    const supabase = getSupabaseClient();
-    if (!supabase) return { success: false, migratedCount: 0, totalDebit: 0, totalCredit: 0, error: 'الاتصال غير متوفر' };
-
-    try {
-      const idempotencyKey = `mig_${Date.now()}`;
-      const { data: res, error } = await supabase.rpc('commit_migration_batch_atomic', {
-        p_project_id: projectId,
-        p_idempotency_key: idempotencyKey,
-      });
-
-      if (error) return { success: false, migratedCount: 0, totalDebit: 0, totalCredit: 0, error: error.message };
-      if (!res?.success) return { success: false, migratedCount: 0, totalDebit: 0, totalCredit: 0, error: res?.error || 'فشل اعتماد الترحيل' };
-
-      await this.hydrate();
-      return {
-        success: true,
-        migratedCount: res.migrated_count || 0,
-        totalDebit: res.total_debit || 0,
-        totalCredit: res.total_credit || 0,
-      };
-    } catch (err: any) {
-      return { success: false, migratedCount: 0, totalDebit: 0, totalCredit: 0, error: err?.message || 'خطأ أثناء الترحيل' };
-    }
-  }
-
   // --- Settings ---
   public async saveSettings(newSettings: AppSettings): Promise<void> {
     const supabase = getSupabaseClient();
@@ -2592,7 +2369,6 @@ class DataStorage {
       srets,
       exps,
       ctxs,
-      mproj,
     ] = await Promise.all([
       supabase.from('product_categories').select('*'),
       supabase.from('warehouses').select('*'),
@@ -2606,7 +2382,6 @@ class DataStorage {
       supabase.from('sales_returns').select('*, sales_return_items(*)'),
       supabase.from('expenses').select('*'),
       supabase.from('cash_transactions').select('*'),
-      supabase.from('migration_projects').select('*, migration_pages(*, migration_entries(*))'),
     ]);
 
     return {
@@ -2626,7 +2401,6 @@ class DataStorage {
         sales_returns: srets.data,
         expenses: exps.data,
         cash_transactions: ctxs.data,
-        migration_projects: mproj.data,
       },
     };
   }
